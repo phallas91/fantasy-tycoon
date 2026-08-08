@@ -68,6 +68,12 @@ jobs:
           set -o pipefail
           godot --headless --path . --script res://tests/save_integrity_smoke.gd 2>&1 | tee godot-save-smoke.log
 
+      - name: Validate no-scroll mobile layouts and touch targets
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . --script res://tests/ui_layout_smoke.gd 2>&1 | tee godot-ui-layout.log
+
       - name: Run 30-minute economy stress simulation
         shell: bash
         run: |
@@ -104,11 +110,11 @@ jobs:
         run: |
           if grep -Eiq "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
               godot-import.log godot-start.log godot-save-smoke.log godot-sim.log \
-              godot-android-apk.log godot-android-aab.log; then
+              godot-ui-layout.log godot-android-apk.log godot-android-aab.log; then
             echo "Godot reported a parser or script error."
             grep -Ein "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
               godot-import.log godot-start.log godot-save-smoke.log godot-sim.log \
-              godot-android-apk.log godot-android-aab.log
+              godot-ui-layout.log godot-android-apk.log godot-android-aab.log
             exit 1
           fi
           echo "Godot project check passed."
@@ -123,6 +129,7 @@ jobs:
             godot-start.log
             godot-save-smoke.log
             godot-sim.log
+            godot-ui-layout.log
             godot-android-apk.log
             godot-android-aab.log
           if-no-files-found: ignore
