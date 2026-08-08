@@ -12,11 +12,17 @@ jobs:
   validate:
     name: Import and startup check
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
 
     steps:
       - name: Check out project
         uses: actions/checkout@v4
+
+      - name: Set up Java 17 for Android Gradle builds
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
       - name: Install Godot 4.7.1
         uses: solarlabyrinth/action-setup-godot@v3
@@ -71,14 +77,35 @@ jobs:
           set -o pipefail
           godot --headless --path . --quit-after 10 2>&1 | tee godot-start.log
 
+      - name: Build Android debug APK with native plugins
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p export
+          godot --headless --path . --install-android-build-template \
+            --export-debug "Android" export/ArcaneTradeEmpire-ci.apk \
+            2>&1 | tee godot-android-apk.log
+          python3 tests/android_package_smoke.py export/ArcaneTradeEmpire-ci.apk
+
+      - name: Build Android debug AAB with native plugins
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . \
+            --export-debug "Android AAB (Play Store)" export/ArcaneTradeEmpire-ci.aab \
+            2>&1 | tee godot-android-aab.log
+          python3 tests/android_package_smoke.py export/ArcaneTradeEmpire-ci.aab
+
       - name: Fail on parser or script errors
         shell: bash
         run: |
           if grep -Eiq "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
-              godot-import.log godot-start.log godot-save-smoke.log godot-sim.log; then
+              godot-import.log godot-start.log godot-save-smoke.log godot-sim.log \
+              godot-android-apk.log godot-android-aab.log; then
             echo "Godot reported a parser or script error."
             grep -Ein "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
-              godot-import.log godot-start.log godot-save-smoke.log godot-sim.log
+              godot-import.log godot-start.log godot-save-smoke.log godot-sim.log \
+              godot-android-apk.log godot-android-aab.log
             exit 1
           fi
           echo "Godot project check passed."
@@ -93,5 +120,18 @@ jobs:
             godot-start.log
             godot-save-smoke.log
             godot-sim.log
+            godot-android-apk.log
+            godot-android-aab.log
           if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload installable Android test packages
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcane-trade-empire-android-ci
+          path: |
+            export/ArcaneTradeEmpire-ci.apk
+            export/ArcaneTradeEmpire-ci.aab
+          if-no-files-found: error
           retention-days: 7
