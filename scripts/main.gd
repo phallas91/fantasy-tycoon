@@ -110,8 +110,11 @@ const INCOME_MILESTONES: Array = [1000.0, 10000.0, 100000.0, 1000000.0, 10000000
 const MILESTONE_LABELS: Array  = ["1K", "10K", "100K", "1M", "10M", "100M", "1B"]
 var _income_milestone_idx := 0
 
-# Floating delivery-earnings throttle
-var _deliver_throttle := 0
+# Floating delivery earnings are time-gated instead of delivery-count-gated.
+# At late-game speeds hundreds of logical deliveries can land per second, so a
+# count gate still created a wall of overlapping labels on narrow screens.
+var _delivery_fx_bank := 0.0
+var _last_delivery_fx_ms := 0
 var _fountain_counter := 0
 
 func _ready() -> void:
@@ -2371,12 +2374,16 @@ func _opt_tex(n: String) -> Texture2D:
 # ── Floating delivery earnings ────────────────────────────────────────────────────
 
 func _on_delivered(amount: float, _city_idx: int, _count: int) -> void:
-	_deliver_throttle += 1
-	var n := maxi(1, GameState.drones / 4)
-	if _deliver_throttle % n != 0: return
+	_delivery_fx_bank += amount
+	var now_ms := Time.get_ticks_msec()
+	if now_ms - _last_delivery_fx_ms < 750:
+		return
+	_last_delivery_fx_ms = now_ms
+	var shown_amount := _delivery_fx_bank
+	_delivery_fx_bank = 0.0
 	var cx := size.x * 0.5 + randf_range(-80, 80)
 	var cy := size.y * 0.42 + randf_range(-50, 50)
-	Fx.floating_label(self, "+" + Fmt.short(amount * n), Fx.GOLD, Vector2(cx, cy), 26)
+	Fx.floating_label(self, "+" + Fmt.short(shown_amount), Fx.GOLD, Vector2(cx, cy), 24)
 	# every ~8th shown delivery, fly coins into the credits chip (it never
 	# animated before — the core earn beat now lands on the HUD)
 	_fountain_counter += 1
