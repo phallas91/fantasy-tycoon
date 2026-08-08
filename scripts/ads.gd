@@ -7,9 +7,8 @@ extends Node
 ## gameplay flows remain testable. Android without the plugin reports unavailable
 ## instead of granting free currency. See docs/ADMOB_INTEGRATION.md.
 ##
-## Uses Google's public TEST ad unit IDs (Admob.ANDROID_REWARDED_DEMO_AD_UNIT_ID)
-## until real ones are configured — see docs/ADMOB_INTEGRATION.md for the
-## one-line switch to production ads once an AdMob account/app exists.
+## Uses the configured production Android app/rewarded-unit IDs. Physical-device
+## development must register a test device before interacting with served ads.
 
 signal reward_granted(kind: String)
 signal reward_failed(kind: String, reason: String)

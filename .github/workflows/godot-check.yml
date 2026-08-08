@@ -41,6 +41,9 @@ jobs:
       - name: Validate iOS release baseline
         run: python3 tests/ios_export_smoke.py
 
+      - name: Validate Android production wiring
+        run: python3 tests/android_release_wiring_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |

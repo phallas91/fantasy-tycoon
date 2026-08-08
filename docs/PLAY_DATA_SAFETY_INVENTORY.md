@@ -9,10 +9,10 @@ AAB, enabled plugins and current SDK disclosures immediately before submission.
 | Component | Current desktop-safe project | Intended Android store build |
 |---|---:|---:|
 | Local save / offline progress | Active | Active |
-| Google Mobile Ads + UMP | Plugin code present, export disabled | Optional; enable only after consent setup |
-| Google Play Billing | Plugin code present, export disabled | Optional; requires Play products |
+| Google Mobile Ads + UMP | Runtime guarded | Enabled in Android export; production IDs configured |
+| Google Play Billing | Runtime guarded | Enabled in Android export; requires matching Play products |
 | Google Play Games cloud save | Dormant | Optional; requires real game/application ID |
-| Local notifications | Dormant unless plugin enabled | Optional; runtime permission on Android 13+ |
+| Local notifications | Runtime guarded | Enabled in Android export; runtime permission on Android 13+ |
 | Developer analytics/backend | None found | None planned in current code |
 
 ## Data-flow inventory

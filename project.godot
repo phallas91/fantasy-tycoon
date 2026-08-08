@@ -31,6 +31,10 @@ GameState="*res://scripts/game_state.gd"
 Audio="*res://scripts/audio.gd"
 SaveSystem="*res://scripts/save_system.gd"
 Contracts="*res://scripts/contracts.gd"
+Billing="*res://scripts/billing.gd"
+Ads="*res://scripts/ads.gd"
+Notifications="*res://scripts/notifications.gd"
+CloudSave="*res://scripts/cloud_save.gd"
 
 [display]
 
@@ -44,9 +48,9 @@ window/handheld/orientation=1
 
 [editor_plugins]
 
-; Desktop development mode: Android export plugins are deliberately disabled.
-; Re-enable them only for a configured Android export environment.
-enabled=PackedStringArray()
+; Release-capable Android integrations. Every runtime path is platform-guarded,
+; so the editor and non-Android exports remain safe when native singletons do not exist.
+enabled=PackedStringArray("res://addons/AdmobPlugin/plugin.cfg", "res://addons/GodotGooglePlayBilling/plugin.cfg", "res://addons/NotificationSchedulerPlugin/plugin.cfg")
 
 [internationalization]
 

@@ -63,31 +63,14 @@ fallback for purchase-flow testing. Gameplay code uses
 Everything below requires your own Google account/identity and can't be
 automated from here.
 
-### 1. Create a real AdMob account & app
+### 1. Verify the configured AdMob app
 
-1. Sign up at [admob.google.com](https://admob.google.com), add the app
-   (package `com.arcanetrade.empire`), get your real **App ID**
-   (`ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY`).
-2. Create ad units — you only need **Rewarded** for this game (the gem/mission
-   ad placements). Get the real ad unit ID
-   (`ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ`).
-3. Update `addons/AdmobPlugin/android_export.cfg`:
-   ```
-   [Release]
-   app_id="ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY"
-   ```
-   (Keep `[Debug]` on the test App ID — never test with your real App ID or
-   you risk an AdMob policy strike from your own test traffic.)
-4. In `scripts/ads.gd`, change one line in `_ready()`:
-   ```gdscript
-   _admob.is_real = false   # → true
-   ```
-   and set the real rewarded ad unit ID:
-   ```gdscript
-   _admob.android_real_rewarded_id = "ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ"
-   ```
-   (add that line right after `_admob.is_real = false`).
-5. **Never tap your own live ads** — that's a bannable AdMob policy
+1. Confirm App ID `ca-app-pub-6257070310596477~3020396061` belongs to the
+   `com.arcanetrade.empire` AdMob app.
+2. Confirm rewarded unit `ca-app-pub-6257070310596477/2848051384` belongs to
+   that same app and is enabled for the intended markets.
+3. Keep `[Debug]` on Google's test App ID.
+4. **Never tap your own live ads** — that's a bannable AdMob policy
    violation. Use `test_device_hashed_ids` (an `Admob` export property) with
    your device's SHA-256 ID while testing real ads pre-launch.
 
@@ -106,15 +89,12 @@ automated from here.
    Testing, add yourself as a license tester, install via the testing link,
    and verify a real purchase flow end-to-end before wider release.
 
-### 3. Consent (EEA/UK — GDPR)
+### 3. Consent (EEA/UK/CH)
 
-Not yet integrated. Add the **Google UMP SDK** (User Messaging Platform,
-bundled with the AdMob plugin's `ConsentRequestParameters`/`UserConsent`
-classes already present in `addons/AdmobPlugin/model/`) to show the consent
-form before requesting ads in the EEA/UK/Switzerland. Only request
-personalized ads after consent — required before you can serve ads to EU
-users. See `addons/AdmobPlugin/Admob.gd`'s `load_consent_form()` /
-`show_consent_form()` / `get_consent_status()`.
+UMP is integrated in `scripts/ads.gd`: consent information is refreshed at
+startup, required forms are displayed, and settings exposes privacy options
+when available. Before production, configure the consent message in AdMob and
+verify accept, reject and reopen-options paths on a physical test device.
 
 ### 4. Play Console submission checklist
 
