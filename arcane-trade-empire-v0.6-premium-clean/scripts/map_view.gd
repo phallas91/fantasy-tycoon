@@ -137,7 +137,7 @@ func _ready() -> void:
 	_lock = load("res://assets/art/ic_lock.png")
 	_sun = load("res://assets/art/sun_glow.png")
 	_aurora = load("res://assets/art/aurora_band.png")
-	_realm_bg = load("res://assets/fantasy/arcane_map.webp")
+	_realm_bg = load("res://assets/fantasy/arcane_map_v2.webp")
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED   # lets the holo grid tile
 	GameState.delivered.connect(_on_delivered)
 	GameState.country_changed.connect(_on_country_changed_visual)
@@ -530,11 +530,18 @@ func _draw() -> void:
 
 func _draw_sea(w: float, h: float) -> void:
 	# Painterly realm texture gives the route simulation a real fantasy world.
+	# A barely perceptible overscanned drift adds depth without ever revealing an
+	# edge; `_t` freezes under reduce-motion, so accessibility remains respected.
 	if _realm_bg != null:
-		draw_texture_rect(_realm_bg, Rect2(0, band_top, w, h), false, Color(0.78, 0.72, 0.88, 0.92))
+		var overscan := 16.0
+		var bg_drift := Vector2(sin(_t * 0.035) * 7.0, cos(_t * 0.028) * 5.0)
+		draw_texture_rect(_realm_bg,
+			Rect2(-overscan + bg_drift.x, band_top - overscan + bg_drift.y,
+				w + overscan * 2.0, h + overscan * 2.0),
+			false, Color(0.92, 0.88, 1.0, 0.96))
 	# translucent arcane tint keeps labels and glowing routes readable.
 	var cyc := 0.5 + 0.5 * sin(_t * 0.05)
-	var tint := Color(0.22, 0.10, 0.30, 0.26).lerp(Color(0.08, 0.24, 0.28, 0.20), cyc)
+	var tint := Color(0.18, 0.07, 0.26, 0.18).lerp(Color(0.06, 0.19, 0.23, 0.14), cyc)
 	draw_texture_rect(_sea_tex, Rect2(0, band_top, w, h), false, tint)
 
 ## Warm sun glow at top-right + slowly drifting aurora ribbon on the horizon —
