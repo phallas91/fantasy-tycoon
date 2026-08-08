@@ -11,6 +11,11 @@ var _map: MapView
 var _bonus: BonusDrone
 var _hud: PanelContainer
 var _map_floor_anchor: Control
+var _bottom_bg: Panel
+var _nav_bar: HBoxContainer
+var _nav_sep: ColorRect
+var _safe_top := 0.0
+var _safe_bottom := 0.0
 var _pages: Array
 var _nav_btns: Array
 var _nav_icons: Array
@@ -127,6 +132,8 @@ func _ready() -> void:
 	theme = UITheme.build()
 	_bg(); _build_map(); _build_bonus_drone(); _build_hud()
 	_build_bottom_bg(); _build_map_floor_anchor(); _build_pages(); _build_nav(); _build_toasts()
+	_apply_safe_area()
+	call_deferred("_apply_safe_area")
 
 	GameState.city_unlocked.connect(_on_city_unlocked)
 	GameState.country_changed.connect(_on_country_changed)
@@ -280,7 +287,7 @@ func _boot_intro(loaded: bool) -> void:
 	# key art rather than an illustration with UI dropped on its focal point.
 	var box := VBoxContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	box.offset_left = 32; box.offset_right = -32; box.offset_top = 64
+	box.offset_left = 32; box.offset_right = -32; box.offset_top = 64 + _safe_top
 	box.alignment = BoxContainer.ALIGNMENT_BEGIN
 	box.add_theme_constant_override("separation", 3)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -304,7 +311,7 @@ func _boot_intro(loaded: bool) -> void:
 	load_box.anchor_left = 0; load_box.anchor_right = 1
 	load_box.anchor_top = 1; load_box.anchor_bottom = 1
 	load_box.offset_left = 42; load_box.offset_right = -42
-	load_box.offset_top = -118; load_box.offset_bottom = -42
+	load_box.offset_top = -118 - _safe_bottom; load_box.offset_bottom = -42 - _safe_bottom
 	load_box.add_theme_constant_override("separation", 8); cover.add_child(load_box)
 	var load_lbl := _lbl("A ABRIR ROTAS COMERCIAIS", 13, Color(0.86, 0.82, 0.91))
 	load_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; load_box.add_child(load_lbl)
@@ -344,7 +351,7 @@ func _boot_intro(loaded: bool) -> void:
 	var tw := create_tween()
 	tw.tween_interval(1.45)   # let the authored key-art and brand land before revealing play
 	tw.tween_property(cover, "modulate:a", 0.0, 0.4)
-	tw.parallel().tween_property(_hud, "offset_top", 20.0, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(_hud, "offset_top", 20.0 + _safe_top, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(_map, "zoom", 1.0, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(func():
 		if is_instance_valid(layer):
@@ -524,12 +531,12 @@ func _build_map_floor_anchor() -> void:
 # ── Bottom bg ─────────────────────────────────────────────────────────────────
 
 func _build_bottom_bg() -> void:
-	var bg := Panel.new()
-	bg.anchor_left = 0; bg.anchor_right = 1
-	bg.anchor_top = 1; bg.anchor_bottom = 1
-	bg.offset_top = -(NAV_H + TABS_H); bg.offset_bottom = 0
-	bg.add_theme_stylebox_override("panel", UITheme.bottom_panel())
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(bg)
+	_bottom_bg = Panel.new()
+	_bottom_bg.anchor_left = 0; _bottom_bg.anchor_right = 1
+	_bottom_bg.anchor_top = 1; _bottom_bg.anchor_bottom = 1
+	_bottom_bg.offset_top = -(NAV_H + TABS_H); _bottom_bg.offset_bottom = 0
+	_bottom_bg.add_theme_stylebox_override("panel", UITheme.bottom_panel())
+	_bottom_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(_bottom_bg)
 
 # ── Pages ──────────────────────────────────────────────────────────────────────
 
@@ -720,23 +727,23 @@ func _can_tap() -> bool:
 # ── Nav bar ─────────────────────────────────────────────────────────────────────
 
 func _build_nav() -> void:
-	var sep := ColorRect.new(); sep.color = UITheme.BORDER
-	sep.anchor_left = 0; sep.anchor_right = 1; sep.anchor_top = 1; sep.anchor_bottom = 1
-	sep.offset_top = -NAV_H - 1; sep.offset_bottom = -NAV_H
-	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(sep)
+	_nav_sep = ColorRect.new(); _nav_sep.color = UITheme.BORDER
+	_nav_sep.anchor_left = 0; _nav_sep.anchor_right = 1; _nav_sep.anchor_top = 1; _nav_sep.anchor_bottom = 1
+	_nav_sep.offset_top = -NAV_H - 1; _nav_sep.offset_bottom = -NAV_H
+	_nav_sep.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(_nav_sep)
 
-	var nav := HBoxContainer.new()
-	nav.anchor_left = 0; nav.anchor_right = 1
-	nav.anchor_top = 1; nav.anchor_bottom = 1
-	nav.offset_top = -NAV_H; nav.offset_bottom = 0
-	nav.add_theme_constant_override("separation", 0)
-	add_child(nav)
+	_nav_bar = HBoxContainer.new()
+	_nav_bar.anchor_left = 0; _nav_bar.anchor_right = 1
+	_nav_bar.anchor_top = 1; _nav_bar.anchor_bottom = 1
+	_nav_bar.offset_top = -NAV_H; _nav_bar.offset_bottom = 0
+	_nav_bar.add_theme_constant_override("separation", 0)
+	add_child(_nav_bar)
 
 	var defs := [["ic_nav_fleet","Frota"],["ic_nav_cities","Cidades"],
 		["ic_nav_talents","Talentos"],["ic_nav_legado","Legado"],
 		["ic_nav_shop","Loja"],["ic_nav_missions","Missões"]]
 	for i in defs.size():
-		nav.add_child(_make_nav_btn(defs[i][0], defs[i][1], i))
+		_nav_bar.add_child(_make_nav_btn(defs[i][0], defs[i][1], i))
 
 	# sliding accent indicator resting on top edge of the nav bar (glowing pill)
 	_nav_ind = Panel.new()
@@ -2227,6 +2234,51 @@ func _set_language(l: String) -> void:
 	Fx.set_locale(l)
 	SaveSystem.save_game()
 
+## Keep every persistent control clear of camera cut-outs, rounded display
+## corners and the Android gesture area. DisplayServer reports safe bounds in
+## physical screen pixels, so convert them into this project's logical canvas
+## before moving the anchored HUD/page stack. Desktop remains pixel-identical.
+func _apply_safe_area() -> void:
+	if not is_inside_tree():
+		return
+	var top_inset := 0.0
+	var bottom_inset := 0.0
+	if OS.has_feature("mobile"):
+		var screen := DisplayServer.screen_get_size()
+		var safe := DisplayServer.get_display_safe_area()
+		var logical := get_viewport().get_visible_rect().size
+		if screen.y > 0 and logical.y > 0.0:
+			var scale_y := logical.y / float(screen.y)
+			top_inset = float(maxi(0, safe.position.y)) * scale_y
+			var bottom_px := maxi(0, screen.y - (safe.position.y + safe.size.y))
+			bottom_inset = float(bottom_px) * scale_y
+	_safe_top = clampf(top_inset, 0.0, 96.0)
+	_safe_bottom = clampf(bottom_inset, 0.0, 96.0)
+
+	if is_instance_valid(_hud):
+		_hud.offset_top = 20.0 + _safe_top
+	var nav_bottom := NAV_H + _safe_bottom
+	var panel_top := NAV_H + TABS_H + _safe_bottom
+	if is_instance_valid(_bottom_bg):
+		_bottom_bg.offset_top = -panel_top
+		_bottom_bg.offset_bottom = 0.0
+	if is_instance_valid(_map_floor_anchor):
+		_map_floor_anchor.offset_top = -panel_top
+		_map_floor_anchor.offset_bottom = -panel_top
+	for page in _pages:
+		if is_instance_valid(page):
+			page.offset_top = -panel_top
+			page.offset_bottom = -nav_bottom
+	if is_instance_valid(_nav_sep):
+		_nav_sep.offset_top = -nav_bottom - 1.0
+		_nav_sep.offset_bottom = -nav_bottom
+	if is_instance_valid(_nav_bar):
+		_nav_bar.offset_top = -nav_bottom
+		_nav_bar.offset_bottom = -_safe_bottom
+	if is_instance_valid(_nav_ind):
+		_nav_ind.offset_top = -nav_bottom - 2.0
+		_nav_ind.offset_bottom = -nav_bottom + 4.0
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED:
 		for l: Label in _section_lbls:
@@ -2259,6 +2311,10 @@ func _notification(what: int) -> void:
 			_rows[key]["_sig"] = null
 		for key: String in _talent_rows:
 			_talent_rows[key]["_lvl"] = -1
+	elif what == NOTIFICATION_RESIZED:
+		# Multi-window, foldables and orientation/configuration changes can alter
+		# the usable display rectangle while the game is already running.
+		call_deferred("_apply_safe_area")
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		# Android hardware/gesture Back: close the top popup instead of killing
 		# the app; if nothing is open, ask before quitting. (Was unhandled — Back
