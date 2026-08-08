@@ -38,7 +38,7 @@ const MAX_LIGHT_FX  := 60    # lightweight tweened Sprite2D/rect nodes (coin_fou
 
 var reduce_motion := false
 var haptics := true
-var locale := ""   # "" = not explicitly chosen → defaults to English (see apply_locale)
+var locale := ""   # "" = not explicitly chosen → device language (see apply_locale)
 var _t := 0.0                # shared pulse_clock rhythm
 var _live_labels := 0
 var _live_particles := 0
@@ -563,16 +563,16 @@ func from_dict(d: Dictionary) -> void:
 	locale = str(d.get("locale", ""))
 	apply_locale()
 
-## Applies `locale`, auto-detecting from the device's language on first
-## launch (empty locale) — Portuguese-family locales stay untranslated
-## (source strings already are PT), anything else switches to English.
+## Applies `locale`, auto-detecting from the device language on first launch.
+## Unsupported languages fall back to English; an explicit settings choice is
+## always preserved. This prevents German systems from being forced back to EN
+## immediately after main.gd built its already-German interface.
 func apply_locale() -> void:
-	# Default language is ENGLISH. An empty locale means the player never picked
-	# one explicitly, so the game ships in English for the global audience;
-	# Portuguese is opt-in via the settings toggle (which pins locale = "pt").
 	var eff := locale
 	if eff == "":
-		eff = "en"
+		eff = OS.get_locale_language().substr(0, 2)
+		if eff not in ["pt", "en", "es", "fr", "de", "it", "ru", "ja", "zh"]:
+			eff = "en"
 	TranslationServer.set_locale(eff)
 
 func set_locale(l: String) -> void:
