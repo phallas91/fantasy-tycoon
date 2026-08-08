@@ -7,12 +7,20 @@ signal session_offline_ready(amount: float, seconds: float)
 const SAVE_PATH   := "user://dts_save.json"
 const BACKUP_PATH := "user://dts_save_bak.json"
 const SAVE_VERSION := 3
+const TEMP_SUFFIX := ".tmp"
+const PREVIOUS_SUFFIX := ".previous"
 
 var _save_n := 0   # counts saves; the backup is written every 4th (see save_game)
 var _backgrounded_at := 0
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH) or FileAccess.file_exists(BACKUP_PATH)
+	for path in [
+		SAVE_PATH, SAVE_PATH + TEMP_SUFFIX, SAVE_PATH + PREVIOUS_SUFFIX,
+		BACKUP_PATH, BACKUP_PATH + TEMP_SUFFIX, BACKUP_PATH + PREVIOUS_SUFFIX,
+	]:
+		if FileAccess.file_exists(path):
+			return true
+	return false
 
 ## Builds the obfuscated and checksummed local save envelope.
 func build_envelope() -> String:
@@ -33,7 +41,8 @@ func build_envelope() -> String:
 
 func save_game() -> void:
 	var envelope := build_envelope()
-	_write(SAVE_PATH, envelope)
+	if not _write(SAVE_PATH, envelope):
+		return
 	# The backup used to be written on every save, doubling the main-thread I/O of
 	# a 15s autosave for no extra safety — writing both back-to-back means a crash
 	# mid-save can take out both copies. A ~60s-stale backup is a better fallback
@@ -47,22 +56,61 @@ func save_game() -> void:
 	if has_node("/root/CloudSave"):
 		get_node("/root/CloudSave").call("mark_dirty")
 
-func _write(path: String, text: String) -> void:
-	var f := FileAccess.open(path, FileAccess.WRITE)
+func _write(path: String, text: String) -> bool:
+	var temp_path := path + TEMP_SUFFIX
+	var previous_path := path + PREVIOUS_SUFFIX
+	var f := FileAccess.open(temp_path, FileAccess.WRITE)
 	if f == null:
-		push_warning("SaveSystem: cannot write %s" % path)
-		return
+		push_warning("SaveSystem: cannot write temporary save %s" % temp_path)
+		return false
 	f.store_string(text)
+	f.flush()
 	f.close()
+
+	# Rotate the last known-good target out of the way only after the complete
+	# replacement has reached disk. If the second rename fails, restore it.
+	if FileAccess.file_exists(previous_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(previous_path))
+	if FileAccess.file_exists(path):
+		var rotate_error := DirAccess.rename_absolute(
+			ProjectSettings.globalize_path(path),
+			ProjectSettings.globalize_path(previous_path))
+		if rotate_error != OK:
+			push_warning("SaveSystem: cannot rotate previous save (%s)." % rotate_error)
+			return false
+	var commit_error := DirAccess.rename_absolute(
+		ProjectSettings.globalize_path(temp_path),
+		ProjectSettings.globalize_path(path))
+	if commit_error != OK:
+		push_warning("SaveSystem: cannot commit save (%s); restoring previous." % commit_error)
+		if FileAccess.file_exists(previous_path):
+			DirAccess.rename_absolute(
+				ProjectSettings.globalize_path(previous_path),
+				ProjectSettings.globalize_path(path))
+		return false
+	if FileAccess.file_exists(previous_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(previous_path))
+	return true
 
 ## Returns true if a save was loaded. Computes pending offline earnings.
 func load_game() -> bool:
-	for path: String in [SAVE_PATH, BACKUP_PATH]:
+	var candidates: Array[String] = [
+		SAVE_PATH,
+		SAVE_PATH + TEMP_SUFFIX,
+		SAVE_PATH + PREVIOUS_SUFFIX,
+		BACKUP_PATH,
+		BACKUP_PATH + TEMP_SUFFIX,
+		BACKUP_PATH + PREVIOUS_SUFFIX,
+	]
+	for path: String in candidates:
 		var raw := _try_load(path)
 		if raw.is_empty():
 			continue
 		var data := decode_envelope(raw)
 		if not data.is_empty():
+			if path != SAVE_PATH:
+				push_warning("SaveSystem: recovered progress from %s." % path)
+				_write(SAVE_PATH, raw)
 			return _apply(data)
 		push_warning("SaveSystem: invalid save at %s; trying fallback." % path)
 	return false
@@ -140,7 +188,10 @@ func _apply(data: Dictionary) -> bool:
 	return true
 
 func wipe() -> void:
-	for p in [SAVE_PATH, BACKUP_PATH]:
+	for p in [
+		SAVE_PATH, SAVE_PATH + TEMP_SUFFIX, SAVE_PATH + PREVIOUS_SUFFIX,
+		BACKUP_PATH, BACKUP_PATH + TEMP_SUFFIX, BACKUP_PATH + PREVIOUS_SUFFIX,
+	]:
 		if FileAccess.file_exists(p):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
 
