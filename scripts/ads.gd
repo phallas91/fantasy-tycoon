@@ -169,7 +169,7 @@ func _play_overlay(kind: String, on_reward: Callable) -> void:
 	layer.add_child(box)
 
 	var title := Label.new()
-	title.text = "Anúncio (demonstração)"
+	title.text = tr("Anúncio (demonstração)")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 36)
 	title.add_theme_color_override("font_color", Color(1, 1, 1))
@@ -182,7 +182,7 @@ func _play_overlay(kind: String, on_reward: Callable) -> void:
 	box.add_child(count)
 
 	var note := Label.new()
-	note.text = "(substituível por AdMob real — ver docs)"
+	note.text = tr("(substituível por AdMob real — ver docs)")
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	note.add_theme_font_size_override("font_size", 22)
 	note.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
@@ -192,7 +192,7 @@ func _play_overlay(kind: String, on_reward: Callable) -> void:
 		count.text = str(i)
 		await get_tree().create_timer(0.7).timeout
 
-	count.text = "✓ Recompensa!"
+	count.text = tr("✓ Recompensa!")
 	await get_tree().create_timer(0.5).timeout
 
 	layer.queue_free()

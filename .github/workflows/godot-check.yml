@@ -53,6 +53,9 @@ jobs:
       - name: Validate project data, resources and translations
         run: python3 tests/project_integrity_smoke.py
 
+      - name: Validate localization coverage of UI literals
+        run: python3 tests/localization_usage_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |
