@@ -25,6 +25,9 @@ func has_save() -> bool:
 
 ## Builds the obfuscated and checksummed local save envelope.
 func build_envelope() -> String:
+	var billing_data := {}
+	if has_node("/root/Billing"):
+		billing_data = get_node("/root/Billing").call("to_dict")
 	var payload := {
 		"v": SAVE_VERSION,
 		"ts": int(Time.get_unix_time_from_system()),
@@ -35,6 +38,7 @@ func build_envelope() -> String:
 		"daily":        Daily.to_dict(),
 		"contracts":    Contracts.to_dict(),
 		"fx":           Fx.to_dict(),
+		"billing":      billing_data,
 	}
 	var raw := JSON.stringify(payload)
 	var cs  := AntiCheat.checksum(raw)
@@ -172,6 +176,8 @@ func _try_load(path: String) -> String:
 
 func _apply(data: Dictionary) -> bool:
 	Audio.from_dict(data.get("audio", {}))
+	if has_node("/root/Billing"):
+		get_node("/root/Billing").call("from_dict", data.get("billing", {}))
 	Prestige.from_dict(data.get("prestige", {}))
 	Achievements.from_dict(data.get("achievements", {}))
 	Daily.from_dict(data.get("daily", {}))
