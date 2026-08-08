@@ -1,0 +1,5 @@
+Arcane Trade Empire enters release candidate:
+• Premium fantasy world and griffin courier presentation
+• Safer offline progress and crash-resilient saves
+• Improved mobile layout, feedback and accessibility
+• Purchase, privacy and Android 16 readiness improvements

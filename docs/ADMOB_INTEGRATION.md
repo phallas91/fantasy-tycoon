@@ -7,13 +7,10 @@
 startup for EEA/UK/CH users. Billing still needs its Play Console products
 created (see below). No code changes remain.
 
-> **Package note — it is `com.lpcf.dronetycoon` and cannot change (2026-07-17).**
-> It was briefly renamed to `com.bananaware.dronetycoon`, then reverted: a
-> `com.lpcf` bundle had already been uploaded to the Play Console app, and Play
-> **permanently binds the package to an app on its first upload**. Changing it
-> would mean creating a whole new Play app. The package is an internal
-> identifier no player ever sees — the visible brand is **BananaWare**
-> (copyright in-app, privacy policy). Do not "fix" this back.
+> **Active package:** `com.arcanetrade.empire`. Create and configure the Play
+> Console and AdMob app with this exact package before the first production
+> upload. A Play listing is permanently tied to the package of its first
+> uploaded bundle.
 >
 > Link the AdMob app to the Play listing once it exists — that link, not the
 > app's free-text name, is what binds an AdMob App ID to a package.
@@ -69,7 +66,7 @@ automated from here.
 ### 1. Create a real AdMob account & app
 
 1. Sign up at [admob.google.com](https://admob.google.com), add the app
-   (package `com.lpcf.dronetycoon`), get your real **App ID**
+   (package `com.arcanetrade.empire`), get your real **App ID**
    (`ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY`).
 2. Create ad units — you only need **Rewarded** for this game (the gem/mission
    ad placements). Get the real ad unit ID

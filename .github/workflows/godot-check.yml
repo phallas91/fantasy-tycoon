@@ -35,6 +35,9 @@ jobs:
       - name: Validate release credential hygiene
         run: python3 tests/release_hygiene_smoke.py
 
+      - name: Validate Play Store identity and assets
+        run: python3 tests/store_metadata_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |
