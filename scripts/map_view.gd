@@ -834,7 +834,7 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 		if i == 0:
 			_draw_city_district(cp, i, true)
 			_capital_marker(cp, flash)
-			_label(cp, nm + " (sede)", GOLD)
+			_label(cp, nm, GOLD)
 		elif i <= GameState.cities_unlocked:
 			_draw_city_district(cp, i, false)
 			_active_marker(cp, flash)
@@ -868,7 +868,8 @@ func _draw_city_district(p: Vector2, city_index: int, is_capital: bool) -> void:
 		var age: float = 1.25 - float(_city_growth[city_index])
 		reveal = ease(clampf(age / 0.72, 0.0, 1.0), -1.8)
 	var col := GOLD if is_capital else CYAN
-	var width := 62.0 if is_capital else 46.0
+	var overview_scale := 0.84 if zoom < 1.65 else 1.0
+	var width := (62.0 if is_capital else 46.0) * overview_scale
 	var base_y := p.y + 7.0
 
 	# Soft foundation and a narrow upward light column make the settlement read
@@ -946,7 +947,7 @@ func _capital_marker(p: Vector2, flash: float) -> void:
 	# tall ambient ground glow
 	draw_circle(p, 30.0 + breath * 6.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.10 + 0.05 * breath))
 	if _hub_home != null:
-		var s := 48.0
+		var s := 41.0 if zoom < 1.65 else 48.0
 		draw_texture_rect(_hub_home, Rect2(p.x - s * 0.5, p.y - s * 0.5, s, s), false)
 	else:
 		draw_circle(p, 11.0, GOLD)
@@ -965,7 +966,7 @@ func _active_marker(p: Vector2, flash: float) -> void:
 	var pulse: float = 0.5 + 0.5 * sin(_t * 3.0)
 	draw_circle(p, 14.0 + pulse * 4.0, Color(CYAN.r, CYAN.g, CYAN.b, 0.16))
 	if _hub_city != null:
-		var s := 34.0
+		var s := 27.0 if zoom < 1.65 else 34.0
 		draw_texture_rect(_hub_city, Rect2(p.x - s * 0.5, p.y - s * 0.5, s, s), false)
 	else:
 		draw_circle(p, 8.0, CYAN)
