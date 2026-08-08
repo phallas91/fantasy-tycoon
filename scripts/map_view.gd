@@ -827,6 +827,7 @@ func _draw_trail(hist: Array, col: Color) -> void:
 # ---------------------------------------------------------------- cities
 
 func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
+	var occupied := PackedVector2Array()
 	for i in range(cities.size()):
 		var cp := _proj(Vector2(cities[i]["x"], cities[i]["y"]))
 		var nm: String = cities[i]["name"]
@@ -835,9 +836,20 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 			_draw_city_district(cp, i, true)
 			_capital_marker(cp, flash)
 			_label(cp, nm, GOLD)
+			occupied.append(cp)
 		elif i <= GameState.cities_unlocked:
-			_draw_city_district(cp, i, false)
-			_active_marker(cp, flash)
+			var dense := false
+			if zoom < 1.65 and i < GameState.cities_unlocked:
+				for prior: Vector2 in occupied:
+					if cp.distance_to(prior) < 42.0:
+						dense = true
+						break
+			if dense:
+				_compact_marker(cp, flash)
+			else:
+				_draw_city_district(cp, i, false)
+				_active_marker(cp, flash)
+			occupied.append(cp)
 			# On the overview only the frontier city is named. Pinch-zooming turns
 			# the map into inspection mode and reveals the remaining labels. This
 			# keeps dense late-game realms legible on a 540px portrait viewport.
@@ -848,6 +860,17 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 			_locked_marker(cp, is_next)
 			if is_next:
 				_cost_chip(cp, _next_cost_str)
+
+## Level-of-detail marker for older hubs whose full crests would overlap in the
+## portrait overview. Zooming past 1.65 restores the complete city artwork.
+func _compact_marker(p: Vector2, flash: float) -> void:
+	var pulse := 0.5 + 0.5 * sin(_t * 2.4)
+	draw_circle(p, 8.0 + pulse * 2.0, Color(CYAN.r, CYAN.g, CYAN.b, 0.10))
+	draw_circle(p, 4.2, Color(MIDNIGHT.r, MIDNIGHT.g, MIDNIGHT.b, 0.96))
+	draw_circle(p, 2.4, Color(CYAN.r, CYAN.g, CYAN.b, 0.82))
+	draw_arc(p, 6.0, 0.0, TAU, 16, Color(CYAN.r, CYAN.g, CYAN.b, 0.35 + pulse * 0.20), 1.2)
+	if flash > 0.0:
+		_delivery_flash(p, CYAN, flash)
 
 ## Development is now visible on the map itself. Upgrade investment raises the
 ## skyline through four restrained tiers; the capital is always one tier ahead.
