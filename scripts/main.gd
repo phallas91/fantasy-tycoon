@@ -5,6 +5,7 @@ const NAV_H  := 92.0
 const TABS_H := 430.0
 const ART    := "res://assets/art/"
 const GUTTER := 12.0
+const GRIFFIN_FLIGHT := preload("res://scripts/griffin_flight.gd")
 
 var _map: MapView
 var _bonus: BonusDrone
@@ -166,11 +167,8 @@ func _show_welcome_popup() -> void:
 	eyebrow.add_theme_font_override("font", UITheme.font("Bold")); box.add_child(eyebrow)
 
 	# Signature griffin courier crowns the tutorial without taking over the screen.
-	var hero := TextureRect.new()
-	hero.texture = load("res://assets/art/griffin_gold.png")
-	hero.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	hero.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	hero.custom_minimum_size = Vector2(150, 108)
+	var hero: TextureRect = GRIFFIN_FLIGHT.new()
+	hero.custom_minimum_size = Vector2(156, 124)
 	hero.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(hero)
 	var welcome := _lbl(tr("Bem-vindo, Piloto!"), 27, UITheme.INK)
@@ -283,10 +281,7 @@ func _boot_intro(loaded: bool) -> void:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cover.add_child(box)
 	# Signature griffin courier hovering above the wordmark.
-	var hero := TextureRect.new()
-	hero.texture = load("res://assets/fantasy/griffin-courier-source.png")
-	hero.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	hero.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var hero: TextureRect = GRIFFIN_FLIGHT.new()
 	hero.custom_minimum_size = Vector2(260, 240)
 	hero.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(hero)

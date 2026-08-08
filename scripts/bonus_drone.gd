@@ -13,6 +13,7 @@ const FIRST_WAIT_MAX := 110.0
 const WAIT_MIN := 120.0
 const WAIT_MAX := 240.0
 const TRAIL_LEN := 8
+const GRIFFIN_FLIGHT := preload("res://scripts/griffin_flight.gd")
 
 const REWARDS := [
 	{"kind": "boost", "label": "Ertrag ×2 für 3 Minuten"},
@@ -80,18 +81,18 @@ func _ready() -> void:
 	_btn.add_child(_glow)
 	_glow.pivot_offset = _glow.size * 0.5   # constant for the node's lifetime — was recomputed every frame
 
-	_icon = TextureRect.new()
-	_icon.texture = _load_tex("griffin_gold")
-	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_icon = GRIFFIN_FLIGHT.new()
 	_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_icon.offset_left = 14; _icon.offset_right = -14
-	_icon.offset_top = 14; _icon.offset_bottom = -14
+	_icon.offset_left = 8; _icon.offset_right = -8
+	_icon.offset_top = 8; _icon.offset_bottom = -8
 	# Untinted: the generated griffin art already carries its golden palette; a warm tint on top of
 	# it flattened the native artwork's own highlights/shading
 	_icon.modulate = Color(1, 1, 1)
 	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_btn.add_child(_icon)
+	# The rare courier can be absent for minutes; pause its own frame clock too,
+	# preserving the component's zero-work idle behaviour.
+	_icon.set_process(false)
 
 	# idle between flights (up to WAIT_MAX=360s) needs no per-frame work at
 	# all — was ticking _process()/decrementing a counter at 60fps the whole
@@ -161,6 +162,9 @@ func _spawn() -> void:
 	_clock = 0.0
 	_trail_hist.clear()
 	_from_left = randf() < 0.5
+	# The painted sheet faces right; mirror it when the courier enters from the
+	# opposite side instead of letting it fly backwards across the map.
+	_icon.flip_h = not _from_left
 	_fly_y = randf_range(0.18, 0.72)
 	# rare JACKPOT variant — distinct violet-gold tint + bigger reward, the
 	# surprise-and-delight spike that a flat 3-reward table never delivered
@@ -174,6 +178,7 @@ func _spawn() -> void:
 		_glow.modulate = Color(1.0, 0.82, 0.25, 0.55); _glow_base_a = 0.55
 		_icon.modulate = Color(1, 1, 1)
 	_btn.visible = true
+	_icon.set_process(true)
 	Fx.chip_pop(_btn, Color(0.8, 0.6, 1.0) if _is_jackpot else Color(1.0, 0.85, 0.3))
 	# Audible and haptic cue so the rare courier isn't missed peripherally.
 	Audio.play("daily", 1.35 if _is_jackpot else 1.15, -2.0)
@@ -183,6 +188,7 @@ func _spawn() -> void:
 func _end_flight() -> void:
 	_flying = false
 	_btn.visible = false
+	_icon.set_process(false)
 	_trail_hist.clear()
 	queue_redraw()
 	set_process(false)
