@@ -118,7 +118,6 @@ var _last_delivery_fx_ms := 0
 var _fountain_counter := 0
 
 func _ready() -> void:
-	TranslationServer.set_locale("de")
 	if OS.has_feature("mobile"):
 		DisplayServer.screen_set_orientation(DisplayServer.SCREEN_PORTRAIT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -156,47 +155,99 @@ func _post_boot(loaded: bool) -> void:
 	elif Daily.pending:
 		_show_daily_popup()
 
-## First-ever launch only (SaveSystem.load_game() found no save) — this game's
-## only onboarding: four short tips, then straight into the boot ceremony's
-## normal flow. Never shown again once a save exists.
+## First-ever launch only (SaveSystem.load_game() found no save).  The former
+## tall list of tips felt like a terms screen and could overflow on small phones.
+## This compact, no-scroll carousel teaches one idea at a time and gives the
+## player a clear first action when it closes.  Settings can reopen it via Help.
 func _show_welcome_popup() -> void:
 	var layer := _overlay(); var box := _popup_box(layer, UITheme.ACCENT)
-	# Signature griffin courier crowning the welcome popup.
+	var eyebrow := _lbl("ARCANE TRADE ACADEMY", 13, UITheme.GOLD)
+	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	eyebrow.add_theme_font_override("font", UITheme.font("Bold")); box.add_child(eyebrow)
+
+	# Signature griffin courier crowns the tutorial without taking over the screen.
 	var hero := TextureRect.new()
 	hero.texture = load("res://assets/art/griffin_gold.png")
 	hero.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	hero.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	hero.custom_minimum_size = Vector2(180, 132)
+	hero.custom_minimum_size = Vector2(150, 108)
 	hero.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(hero)
-	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
-	hd.add_child(_icon("ic_drone", 34)); hd.add_child(_lbl(tr("Bem-vindo, Piloto!"), 27, UITheme.INK)); box.add_child(hd)
+	var welcome := _lbl(tr("Bem-vindo, Piloto!"), 27, UITheme.INK)
+	welcome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	welcome.add_theme_font_override("font", UITheme.font("Bold")); box.add_child(welcome)
 	var sub := _lbl(tr("A tua frota de entregas está pronta a descolar."), 15, UITheme.MUTED)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(sub)
 
-	var tips: Array = [
-		["ic_drone", UITheme.ACCENT, "Greifenkuriere anheuern", "Jeder Handel erzeugt automatisch Gold."],
-		["ic_city", UITheme.GOLD, "Das Reich erweitern", "Erschließe Städte und Reiche für höheren Ertrag."],
-		["ic_gems", UITheme.CYAN, "Edelsteine für besondere Ziele", "Verdiene sie durch Aufträge, Tagesbelohnungen und Vermächtnisse."],
+	var slides: Array = [
+		["ic_drone", UITheme.ACCENT, "Compra drones e melhorias", "Cada entrega gera créditos automaticamente."],
+		["ic_city", UITheme.GOLD, "Expande pelo mundo", "Abre cidades e países para multiplicar os lucros."],
+		["ic_gems", UITheme.CYAN, "Gemas só de anúncios e ofertas", "Vê anúncios ou compra-as — nunca se ganham a jogar."],
 		["ic_prestige", UITheme.PRESTIGE, "Faz Prestige para bónus permanentes", "Reinicia com multiplicadores que ficam para sempre."],
 	]
-	for t: Array in tips:
-		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 10); box.add_child(row)
-		row.add_child(_icon_badge(str(t[0]), t[1], 40, 20))
-		var tv := VBoxContainer.new(); tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER; tv.add_theme_constant_override("separation", 1); row.add_child(tv)
-		var tt := _lbl(tr(str(t[2])), 15, UITheme.INK); tt.add_theme_font_override("font", UITheme.font("Bold")); tv.add_child(tt)
-		var td := _lbl(tr(str(t[3])), 14, UITheme.MUTED); td.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; tv.add_child(td)
 
-	var go_btn := _wide_btn(UITheme.ACCENT)
-	go_btn.text = tr("Vamos a voar!")
-	go_btn.custom_minimum_size = Vector2(0, 68)
-	go_btn.pressed.connect(func():
-		Fx.press(go_btn); Audio.play("tap"); layer.queue_free()
+	var stage := PanelContainer.new()
+	stage.custom_minimum_size = Vector2(0, 230)
+	stage.add_theme_stylebox_override("panel", UITheme.action_card(UITheme.ACCENT)); box.add_child(stage)
+	var stage_v := VBoxContainer.new(); stage_v.alignment = BoxContainer.ALIGNMENT_CENTER
+	stage_v.add_theme_constant_override("separation", 10); stage.add_child(stage_v)
+	var badge := _icon_badge("ic_drone", UITheme.ACCENT, 64, 32)
+	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; stage_v.add_child(badge)
+	var title := _lbl("", 23, UITheme.INK); title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", UITheme.font("Bold")); stage_v.add_child(title)
+	var body := _lbl("", 16, UITheme.MUTED); body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; stage_v.add_child(body)
+
+	var progress := HBoxContainer.new(); progress.alignment = BoxContainer.ALIGNMENT_CENTER
+	progress.add_theme_constant_override("separation", 8); box.add_child(progress)
+	var dots: Array = []
+	for _i in slides.size():
+		var dot := Panel.new(); dot.custom_minimum_size = Vector2(34, 6)
+		progress.add_child(dot); dots.append(dot)
+
+	var actions := HBoxContainer.new(); actions.add_theme_constant_override("separation", 8); box.add_child(actions)
+	var back := Button.new(); back.text = "‹"; back.custom_minimum_size = Vector2(74, 62)
+	back.add_theme_font_size_override("font_size", 30); back.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	actions.add_child(back)
+	var next := _wide_btn(UITheme.ACCENT); next.custom_minimum_size = Vector2(0, 62)
+	next.size_flags_horizontal = Control.SIZE_EXPAND_FILL; actions.add_child(next)
+	var close := Button.new(); close.text = "×"; close.custom_minimum_size = Vector2(74, 62)
+	close.add_theme_font_size_override("font_size", 26); close.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	actions.add_child(close)
+
+	var state := {"page": 0}
+	var render := func() -> void:
+		var page: int = int(state["page"])
+		var slide: Array = slides[page]
+		var accent: Color = slide[1]
+		stage.add_theme_stylebox_override("panel", UITheme.action_card(accent))
+		badge.add_theme_stylebox_override("panel", UITheme.icon_badge(accent, 64, 32))
+		var badge_icon := badge.get_child(0) as TextureRect
+		badge_icon.texture = _opt_tex(str(slide[0]))
+		title.text = tr(str(slide[2])); body.text = tr(str(slide[3]))
+		back.disabled = page == 0
+		next.text = tr("Vamos a voar!") if page == slides.size() - 1 else "%d / %d   →" % [page + 1, slides.size()]
+		for i in dots.size():
+			var c: Color = accent if i == page else UITheme.MUTED.darkened(0.45)
+			(dots[i] as Panel).add_theme_stylebox_override("panel", UITheme.prog_fill(c))
+
+	back.pressed.connect(func():
+		if int(state["page"]) <= 0: return
+		Fx.press(back); state["page"] = int(state["page"]) - 1; render.call()
 	)
-	box.add_child(go_btn)
-	Fx.shimmer(go_btn, UITheme.ACCENT, true)
+	next.pressed.connect(func():
+		Fx.press(next); Audio.play("tap")
+		if int(state["page"]) < slides.size() - 1:
+			state["page"] = int(state["page"]) + 1; render.call()
+			return
+		_dismiss(layer); _switch_tab(0)
+		_toast(tr("Compra drones e melhorias"), UITheme.ACCENT, "ic_drone")
+		if is_instance_valid(_drone_btn): Fx.shimmer(_drone_btn, UITheme.ACCENT)
+	)
+	close.pressed.connect(func(): Fx.press(close); _dismiss(layer))
+	render.call()
+	Fx.shimmer(next, UITheme.ACCENT, true)
 
 ## First-launch ceremony: branded cover, drone fly-through, then UI cascade.
 func _boot_intro(loaded: bool) -> void:
@@ -2071,29 +2122,10 @@ func _settings_stats_text() -> String:
 		GameState.drones, GameState.current_country + 1, Economy.num_countries(), Daily.streak,
 		Prestige.count, Achievements.done_count(), Achievements.total_count()]
 
-## Re-openable help: the four onboarding tips + a currency glossary (the welcome
-## popup only ever shows once, so returning players had no in-app reference).
+## Re-openable help uses the same one-screen tutorial as first launch, avoiding
+## two competing explanations that gradually drift out of sync.
 func _show_help() -> void:
-	var layer := _overlay(); var box := _popup_box(layer, UITheme.ACCENT)
-	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
-	hd.add_child(_icon("ic_drone", 30)); hd.add_child(_lbl(tr("Como jogar"), 28, UITheme.INK)); box.add_child(hd)
-	var tips: Array = [
-		["ic_drone", UITheme.ACCENT, "Greifenkuriere anheuern", "Jeder Handel erzeugt automatisch Gold."],
-		["ic_city", UITheme.GOLD, "Das Reich erweitern", "Erschließe Städte und Reiche für höheren Ertrag."],
-		["ic_gems", UITheme.CYAN, "Edelsteine für besondere Ziele", "Verdiene sie durch Aufträge, Tagesbelohnungen und Vermächtnisse."],
-		["ic_prestige", UITheme.PRESTIGE, "Faz Prestige para bónus permanentes", "Reinicia com multiplicadores que ficam para sempre."],
-	]
-	for t: Array in tips:
-		var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 10); box.add_child(row)
-		row.add_child(_icon_badge(str(t[0]), t[1], 40, 20))
-		var tv := VBoxContainer.new(); tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER; tv.add_theme_constant_override("separation", 1); row.add_child(tv)
-		var tt := _lbl(tr(str(t[2])), 15, UITheme.INK); tt.add_theme_font_override("font", UITheme.font("Bold")); tv.add_child(tt)
-		var td := _lbl(tr(str(t[3])), 13, UITheme.MUTED); td.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; tv.add_child(td)
-	box.add_child(_section("Moedas", UITheme.GOLD))
-	var gloss := _lbl("Gold: Kuriere, Ausbauten und neue Reiche.\nEdelsteine: besondere Sammlung und Auftragsboni.\nEinfluss: Forschung innerhalb des aktuellen Vermächtnisses.\nVermächtnisrunen: dauerhafte Verbesserungen.", 14, UITheme.MUTED)
-	gloss.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(gloss)
-	box.add_child(_close_btn(layer))
+	_show_welcome_popup()
 
 func _show_settings() -> void:
 	var layer := _overlay(); var box := _popup_box(layer, UITheme.ACCENT)
