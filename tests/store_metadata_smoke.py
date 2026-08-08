@@ -43,9 +43,24 @@ for locale in LOCALES:
     assert png_size(base / "images" / "icon.png") == (512, 512), \
         f"Wrong icon dimensions for {locale}"
 
-for doc in (ROOT / "docs" / "ADMOB_INTEGRATION.md", ROOT / "docs" / "CLOUD_SAVE_SETUP.md"):
+integration_docs = (
+    ROOT / "docs" / "ADMOB_INTEGRATION.md",
+    ROOT / "docs" / "CLOUD_SAVE_SETUP.md",
+    ROOT / "fastlane" / "Appfile",
+    ROOT / "fastlane" / "Fastfile",
+)
+for doc in integration_docs:
     lowered = read(doc).lower()
-    assert "com.arcanetrade.empire" in lowered, f"Active package missing from {doc.name}"
     assert "com.lpcf.dronetycoon" not in lowered, f"Legacy package remains in {doc.name}"
+
+for doc in integration_docs[:3]:
+    assert "com.arcanetrade.empire" in read(doc).lower(), \
+        f"Active package missing from {doc.name}"
+
+public_policy = read(ROOT / "docs" / "legal" / "privacy-policy.html").lower()
+for stale in FORBIDDEN:
+    assert stale not in public_policy, f"Legacy identity '{stale}' remains in privacy HTML"
+assert "arcane trade empire" in public_policy
+assert "release draft" in public_policy, "Unfinalized policy must be visibly marked as draft"
 
 print("Play Store metadata and asset checks passed.")

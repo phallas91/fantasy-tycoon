@@ -1,0 +1,75 @@
+# Arcane Trade Empire — Google Play release automation.
+#
+#   fastlane android internal     # build + upload to Closed testing (internal)
+#   fastlane android beta         # promote internal -> beta
+#   fastlane android production   # promote beta -> production (staged 10%)
+#   fastlane android metadata     # push store listing text/graphics only
+#
+# Keep the service-account JSON OUT of the repo:
+#   set PLAY_JSON_KEY, or drop it at ~/.play/arcane-trade-empire-play.json
+#
+# NOT automatable (Google provides no API — do these once per new app):
+#   - creating the app in Play Console
+#   - the content rating (IARC) questionnaire
+# Data safety IS automatable, but via the androidpublisher applications.dataSafety
+# endpoint rather than supply — see docs/PLAY_STORE_SUBMISSION.md.
+
+default_platform(:android)
+
+GODOT = ENV["GODOT"] || "godot"
+AAB   = "export/ArcaneTradeEmpire.aab"
+
+platform :android do
+  desc "Export a signed AAB from Godot, failing loudly on script errors"
+  lane :build do
+    # Godot exits 0 and still writes an APK/AAB when a script fails to compile,
+    # so the exit code alone is not a build signal — grep the log.
+    log = sh("cd .. && \"#{GODOT}\" --headless --path . " \
+             "--export-release \"Android AAB (Play Store)\" #{AAB} 2>&1", log: false)
+    UI.user_error!("Godot reported a SCRIPT ERROR:\n#{log}") if log =~ /SCRIPT ERROR|Parse Error/i
+    UI.success("AAB built: #{AAB}")
+  end
+
+  desc "Build + upload to Closed testing"
+  lane :internal do
+    build
+    upload_to_play_store(
+      track: "internal",
+      aab: "../#{AAB}",
+      release_status: "draft",       # review in the console before going live
+      skip_upload_apk: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false
+    )
+  end
+
+  desc "Promote the internal build to beta"
+  lane :beta do
+    upload_to_play_store(
+      track: "internal",
+      track_promote_to: "beta",
+      skip_upload_aab: true, skip_upload_apk: true,
+      skip_upload_metadata: true, skip_upload_images: true, skip_upload_screenshots: true
+    )
+  end
+
+  desc "Promote beta to production at 10% staged rollout"
+  lane :production do
+    upload_to_play_store(
+      track: "beta",
+      track_promote_to: "production",
+      rollout: "0.1",
+      skip_upload_aab: true, skip_upload_apk: true,
+      skip_upload_metadata: true, skip_upload_images: true, skip_upload_screenshots: true
+    )
+  end
+
+  desc "Push store listing text + graphics only (no binary)"
+  lane :metadata do
+    upload_to_play_store(
+      skip_upload_aab: true, skip_upload_apk: true,
+      skip_upload_changelogs: false
+    )
+  end
+end

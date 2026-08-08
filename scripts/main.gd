@@ -2571,7 +2571,7 @@ func _show_settings() -> void:
 	# silently went stale across releases (showed an old version in Settings
 	# even when the APK itself was current).
 	var app_ver := str(ProjectSettings.get_setting("application/config/version", "?"))
-	var ver := _lbl("Arcane Trade Empire · v%s · basierend auf Sky Fleet (MIT)" % app_ver, 15, UITheme.MUTED)
+	var ver := _lbl("Arcane Trade Empire · v%s" % app_ver, 15, UITheme.MUTED)
 	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ver.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_child(ver)
