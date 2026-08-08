@@ -29,6 +29,9 @@ jobs:
       - name: Validate Play Store export configuration
         run: python3 tests/export_config_smoke.py
 
+      - name: Validate privacy and Data Safety inventory
+        run: python3 tests/privacy_docs_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |
