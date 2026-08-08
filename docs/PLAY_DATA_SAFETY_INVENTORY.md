@@ -53,7 +53,6 @@ microphone, storage/media library, SMS, call logs or health permissions.
 - [ ] Inspect the final AAB's merged manifest and SDK versions.
 - [ ] Complete Data safety using the final binary, Play SDK Index and SDK docs.
 - [ ] Configure UMP messages for EEA/UK/Switzerland and applicable US states.
-- [ ] Add an in-app privacy-options entry point if UMP marks it required.
+- [x] Show the in-app privacy-options entry point when UMP exposes a form.
 - [ ] Verify rewarded ads never gate core progress and purchases restore correctly.
 - [ ] Re-audit this inventory whenever an SDK or data flow changes.
-

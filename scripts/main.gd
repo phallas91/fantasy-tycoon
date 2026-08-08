@@ -2512,6 +2512,20 @@ func _show_settings() -> void:
 			SaveSystem.save_game()))
 	box.add_child(_settings_toggle("Reduzir animações", Fx.reduce_motion,
 		func(on): Fx.set_reduce_motion(on); SaveSystem.save_game()))
+
+	# Google UMP can require a permanent privacy-options entry point. It appears
+	# only in a real AdMob build when the SDK says a form is available; desktop
+	# and local-only builds keep the exact same compact settings layout.
+	var ads_node := get_node_or_null("/root/Ads")
+	if ads_node != null and bool(ads_node.call("privacy_options_available")):
+		var privacy_btn := _wide_btn(UITheme.CYAN.darkened(0.18))
+		privacy_btn.text = tr("Privacidade e anúncios")
+		privacy_btn.custom_minimum_size = Vector2(0, 54)
+		privacy_btn.pressed.connect(func():
+			Fx.press(privacy_btn)
+			ads_node.call("show_privacy_options")
+		)
+		box.add_child(privacy_btn)
 	var lang_lbl := _lbl("Idioma / Language", 22, UITheme.INK); box.add_child(lang_lbl)
 	# 9 languages don't fit one row, so wrap compact chips in a flow container.
 	# Native short labels so speakers recognise their own language.

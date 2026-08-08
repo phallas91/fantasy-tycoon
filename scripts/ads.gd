@@ -58,6 +58,19 @@ func _on_consent_updated() -> void:
 	if _admob != null and _admob.is_consent_form_available():
 		_admob.load_consent_form()
 
+## Settings entry point required by some UMP privacy messages. Kept behind a
+## capability query so desktop and builds without AdMob show no dead control.
+func privacy_options_available() -> bool:
+	return _admob != null and _admob.is_consent_form_available()
+
+func show_privacy_options() -> bool:
+	if not privacy_options_available():
+		return false
+	# consent_form_loaded is already wired to show_consent_form() in _ready.
+	# Loading a fresh form ensures the player sees current choices, not stale UI.
+	_admob.load_consent_form()
+	return true
+
 func _load_next_ad() -> void:
 	_ad_ready = false
 	if _admob != null:
