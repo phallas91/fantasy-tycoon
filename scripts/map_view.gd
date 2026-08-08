@@ -121,7 +121,7 @@ func _ready() -> void:
 	_cloud = load("res://assets/art/cloud.png")
 	_hub_home = load("res://assets/art/generated/arcane_capital_hub_v2.png")
 	_hub_city = load("res://assets/art/generated/arcane_city_hub_v2.png")
-	_hub_city2 = load("res://assets/art/hub_city2.png")
+	_hub_city2 = load("res://assets/art/generated/arcane_locked_hub_v2.png")
 	_grid_tile = load("res://assets/art/grid_tile.png")
 	_dot = _make_dot_tex()
 	_chip_sb = StyleBoxFlat.new()
@@ -850,7 +850,7 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 			else:
 				if _hub_city == null:
 					_draw_city_district(cp, i, false)
-				_active_marker(cp, flash)
+				_active_marker(cp, flash, i)
 			occupied.append(cp)
 			# On the overview only the frontier city is named. Pinch-zooming turns
 			# the map into inspection mode and reveals the remaining labels. This
@@ -886,12 +886,15 @@ func _city_development_tier(is_capital: bool) -> int:
 		tier += 1
 	return clampi(tier, 1, 4)
 
+func _city_reveal(city_index: int) -> float:
+	if Fx.reduce_motion or not _city_growth.has(city_index):
+		return 1.0
+	var age: float = 1.25 - float(_city_growth[city_index])
+	return ease(clampf(age / 0.72, 0.0, 1.0), -1.8)
+
 func _draw_city_district(p: Vector2, city_index: int, is_capital: bool) -> void:
 	var tier := _city_development_tier(is_capital)
-	var reveal := 1.0
-	if _city_growth.has(city_index) and not Fx.reduce_motion:
-		var age: float = 1.25 - float(_city_growth[city_index])
-		reveal = ease(clampf(age / 0.72, 0.0, 1.0), -1.8)
+	var reveal := _city_reveal(city_index)
 	var col := GOLD if is_capital else CYAN
 	var overview_scale := 0.84 if zoom < 1.65 else 1.0
 	var width := (62.0 if is_capital else 46.0) * overview_scale
@@ -969,14 +972,17 @@ func _on_country_changed_visual(_index: int) -> void:
 func _capital_marker(p: Vector2, flash: float) -> void:
 	# hub_home texture if available, else procedural golden pad
 	var breath: float = 0.5 + 0.5 * sin(_t * 1.6)
+	var reveal := _city_reveal(0)
+	var tier := _city_development_tier(true)
 	# tall ambient ground glow
 	draw_circle(p, 30.0 + breath * 6.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.10 + 0.05 * breath))
 	if _hub_home != null:
-		var s := 62.0 if zoom < 1.65 else 76.0
+		var s := (58.0 + float(tier) * 2.0) if zoom < 1.65 else (70.0 + float(tier) * 2.0)
+		var rs := s * reveal
 		# Buildings stand above their route node; the landing platform rests on
 		# `p` while the label remains below it. Centering the old crest on `p`
 		# made artwork, route and name collide in the same 40px square.
-		draw_texture_rect(_hub_home, Rect2(p.x - s * 0.5, p.y - s + 8.0, s, s), false)
+		draw_texture_rect(_hub_home, Rect2(p.x - rs * 0.5, p.y - rs + 8.0, rs, rs), false, Color(1, 1, 1, reveal))
 	else:
 		draw_circle(p, 11.0, GOLD)
 		draw_circle(p, 5.0, INK)
@@ -990,12 +996,15 @@ func _capital_marker(p: Vector2, flash: float) -> void:
 	if flash > 0.0:
 		_delivery_flash(p, GOLD, flash)
 
-func _active_marker(p: Vector2, flash: float) -> void:
+func _active_marker(p: Vector2, flash: float, city_index: int) -> void:
 	var pulse: float = 0.5 + 0.5 * sin(_t * 3.0)
+	var reveal := _city_reveal(city_index)
+	var tier := _city_development_tier(false)
 	draw_circle(p, 14.0 + pulse * 4.0, Color(CYAN.r, CYAN.g, CYAN.b, 0.16))
 	if _hub_city != null:
-		var s := 44.0 if zoom < 1.65 else 56.0
-		draw_texture_rect(_hub_city, Rect2(p.x - s * 0.5, p.y - s + 6.0, s, s), false)
+		var s := (40.0 + float(tier) * 2.0) if zoom < 1.65 else (50.0 + float(tier) * 2.0)
+		var rs := s * reveal
+		draw_texture_rect(_hub_city, Rect2(p.x - rs * 0.5, p.y - rs + 6.0, rs, rs), false, Color(1, 1, 1, reveal))
 	else:
 		draw_circle(p, 8.0, CYAN)
 		draw_circle(p, 3.6, INK)
@@ -1005,12 +1014,13 @@ func _active_marker(p: Vector2, flash: float) -> void:
 
 func _locked_marker(p: Vector2, is_next: bool) -> void:
 	if is_next:
-		# CTA: pulse brighter, alt hub texture
+		# The next expansion is a real construction site, not another abstract
+		# crest. Its warm pulse makes the progression target obvious at a glance.
 		var pulse: float = 0.5 + 0.5 * sin(_t * 2.2)
 		draw_circle(p, 16.0 + pulse * 5.0, Color(MUTED.r, MUTED.g, MUTED.b, 0.14 + 0.06 * pulse))
 		if _hub_city2 != null:
-			var s := 36.0
-			draw_texture_rect(_hub_city2, Rect2(p.x - s * 0.5, p.y - s * 0.5, s, s), false, Color(1, 1, 1, 0.75 + 0.25 * pulse))
+			var s := 42.0 if zoom < 1.65 else 52.0
+			draw_texture_rect(_hub_city2, Rect2(p.x - s * 0.5, p.y - s + 6.0, s, s), false, Color(0.72, 0.76, 0.88, 0.72 + 0.20 * pulse))
 		else:
 			draw_circle(p, 7.0, Color(MUTED.r, MUTED.g, MUTED.b, 0.9))
 		draw_arc(p, 12.0, 0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, 0.35 + 0.3 * pulse), 1.6)
@@ -1059,14 +1069,17 @@ func _cost_chip(p: Vector2, cost: String) -> void:
 	# lives ABOVE the marker (name pills live below) so lanes never collide
 	var lw := 200.0
 	var tw := _measure(cost, 17)
-	var pill := Rect2(p.x - tw * 0.5 - 27.0, p.y - 46.0, tw + 45.0, 26.0)
+	var chip_y := p.y - 46.0
+	if _hub_city2 != null:
+		chip_y = p.y - (74.0 if zoom < 1.65 else 88.0)
+	var pill := Rect2(p.x - tw * 0.5 - 27.0, chip_y, tw + 45.0, 26.0)
 	_chip_sb.bg_color = Color(MIDNIGHT.r, MIDNIGHT.g, MIDNIGHT.b, 0.78)
 	_chip_sb.border_color = Color(GOLD.r, GOLD.g, GOLD.b, 0.35)
 	draw_style_box(_chip_sb, pill)
 	if _lock != null:
 		draw_texture_rect(_lock, Rect2(pill.position.x + 8.0, pill.position.y + 6.0, 14, 14), false, Color(GOLD.r, GOLD.g, GOLD.b, 0.95))
-	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.5, p.y - 27.5), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, Color(SHADOW.r, SHADOW.g, SHADOW.b, 0.7))
-	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.0, p.y - 29.0), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, Color(GOLD.r, GOLD.g, GOLD.b, 0.95))
+	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.5, chip_y + 18.5), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, Color(SHADOW.r, SHADOW.g, SHADOW.b, 0.7))
+	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.0, chip_y + 17.0), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, Color(GOLD.r, GOLD.g, GOLD.b, 0.95))
 
 # ---------------------------------------------------------------- pops / fx
 
