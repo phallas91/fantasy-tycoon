@@ -138,7 +138,7 @@ func _ready() -> void:
 	_realm_bg = load("res://assets/fantasy/arcane_map.webp")
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED   # lets the holo grid tile
 	GameState.delivered.connect(_on_delivered)
-	GameState.country_changed.connect(func(_i): _recalc_bbox(); _reset_view(); reveal_country(); _refresh_next_cost())
+	GameState.country_changed.connect(_on_country_changed_visual)
 	# cached sea gradient (replaces 40 draw_rect calls per frame)
 	var sg := Gradient.new()
 	sg.set_color(0, SEA_TOP); sg.set_color(1, SEA_BOT)
@@ -923,6 +923,19 @@ func _on_city_unlocked_visual(index: int) -> void:
 	_flash[index] = 0.5
 	if not Fx.reduce_motion:
 		_city_growth[index] = 1.25
+
+func _on_country_changed_visual(_index: int) -> void:
+	_recalc_bbox()
+	_reset_view()
+	_refresh_next_cost()
+	# Histories use screen positions from the previous realm. Clearing them
+	# prevents one-frame trail streaks across the new map during its reveal.
+	_trails.clear()
+	_flash.clear()
+	_city_growth.clear()
+	if not Fx.reduce_motion:
+		_city_growth[0] = 1.25
+	reveal_country()
 
 func _capital_marker(p: Vector2, flash: float) -> void:
 	# hub_home texture if available, else procedural golden pad
