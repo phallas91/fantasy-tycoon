@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Arcane Trade Empire"
-config/version="0.6.0-premium-clean"
+config/version="0.7.0-rc1"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/show_image=false
@@ -44,6 +44,8 @@ window/handheld/orientation=1
 
 [editor_plugins]
 
+; Desktop development mode: Android export plugins are deliberately disabled.
+; Re-enable them only for a configured Android export environment.
 enabled=PackedStringArray()
 
 [internationalization]

@@ -26,6 +26,9 @@ jobs:
       - name: Show Godot version
         run: godot --version
 
+      - name: Validate Play Store export configuration
+        run: python3 tests/export_config_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |
