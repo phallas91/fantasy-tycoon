@@ -93,6 +93,7 @@ var _clouds: Array = []               # decorative drifting clouds (parallax)
 var _stars: Array = []                # faint ambient star/dust field
 var _caustics: Array = []             # animated sea shimmer blobs
 var _flash: Dictionary = {}           # city_index -> remaining flash time on delivery
+var _city_growth: Dictionary = {}     # city_index -> remaining build reveal time
 
 # --- Arcane Trade Empire palette ---
 const VOID      := Color(0.025, 0.016, 0.035)
@@ -159,7 +160,7 @@ func _ready() -> void:
 	_land_grad.width = 4; _land_grad.height = 128
 	_seed_ambiance()
 	_recalc_bbox()
-	GameState.city_unlocked.connect(func(_i): _refresh_next_cost())
+	GameState.city_unlocked.connect(_on_city_unlocked_visual)
 	_refresh_next_cost()
 	set_process(true)
 
@@ -319,6 +320,19 @@ func _process(delta: float) -> void:
 				expired.append(key)
 		for key in expired:
 			_flash.erase(key)
+	# A newly unlocked settlement rises from the map instead of appearing as a
+	# static icon. Functional state is already committed by GameState; this is a
+	# short, purely visual reveal and remains frozen when reduce-motion is active.
+	if not _city_growth.is_empty():
+		var finished: Array = []
+		for key: int in _city_growth:
+			var rem: float = float(_city_growth[key]) - delta
+			if rem > 0.0:
+				_city_growth[key] = rem
+			else:
+				finished.append(key)
+		for key in finished:
+			_city_growth.erase(key)
 	queue_redraw()
 
 func _band_ctr() -> Vector2:
@@ -819,9 +833,11 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 		var nm: String = cities[i]["name"]
 		var flash: float = float(_flash.get(i, 0.0))
 		if i == 0:
+			_draw_city_district(cp, i, true)
 			_capital_marker(cp, flash)
 			_label(cp, nm + " (sede)", GOLD)
 		elif i <= GameState.cities_unlocked:
+			_draw_city_district(cp, i, false)
 			_active_marker(cp, flash)
 			_label(cp, nm, Color(0.80, 1.0, 1.0))
 		else:
@@ -829,6 +845,84 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 			_locked_marker(cp, is_next)
 			if is_next:
 				_cost_chip(cp, _next_cost_str)
+
+## Development is now visible on the map itself. Upgrade investment raises the
+## skyline through four restrained tiers; the capital is always one tier ahead.
+## All shapes are code-native, so they stay crisp at every viewport and zoom.
+func _city_development_tier(is_capital: bool) -> int:
+	var invested := 0
+	for key in GameState.levels:
+		invested += int(GameState.levels[key])
+	var tier := 1 + int(float(invested) / 32.0)
+	if is_capital:
+		tier += 1
+	return clampi(tier, 1, 4)
+
+func _draw_city_district(p: Vector2, city_index: int, is_capital: bool) -> void:
+	var tier := _city_development_tier(is_capital)
+	var reveal := 1.0
+	if _city_growth.has(city_index) and not Fx.reduce_motion:
+		var age: float = 1.25 - float(_city_growth[city_index])
+		reveal = ease(clampf(age / 0.72, 0.0, 1.0), -1.8)
+	var col := GOLD if is_capital else CYAN
+	var width := 62.0 if is_capital else 46.0
+	var base_y := p.y + 7.0
+
+	# Soft foundation and a narrow upward light column make the settlement read
+	# as part of the magical map without competing with labels or couriers.
+	draw_ellipse_soft(Vector2(p.x, base_y + 4.0), Vector2(width * 0.62, 8.0), Color(col.r, col.g, col.b, 0.10 * reveal))
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(p.x - width * 0.34, base_y), Vector2(p.x - width * 0.12, base_y - 44.0 * reveal),
+		Vector2(p.x + width * 0.12, base_y - 44.0 * reveal), Vector2(p.x + width * 0.34, base_y),
+	]), Color(col.r, col.g, col.b, 0.035 * reveal))
+
+	var count := tier + 2
+	for n in range(count):
+		var slot: float = float(n) - float(count - 1) * 0.5
+		var bw := 7.0 + float((n + city_index) % 2) * 2.0
+		var bh := (13.0 + float((n * 11 + city_index * 5) % 18) + float(tier) * 3.0) * reveal
+		if n == count / 2:
+			bh += (10.0 if is_capital else 5.0) * reveal
+		var bx := p.x + slot * (width / float(count)) - bw * 0.5
+		var top := base_y - bh
+		var body := Color(MIDNIGHT.r * 0.72, MIDNIGHT.g * 0.72, MIDNIGHT.b * 0.78, 0.94 * reveal)
+		draw_rect(Rect2(bx, top, bw, bh), body)
+		# Arcane spires provide a recognisable fantasy silhouette at small scale.
+		if (n + tier) % 2 == 0:
+			draw_colored_polygon(PackedVector2Array([
+				Vector2(bx - 1.0, top), Vector2(bx + bw * 0.5, top - (5.0 + tier) * reveal),
+				Vector2(bx + bw + 1.0, top),
+			]), Color(MIDNIGHT.r * 0.65, MIDNIGHT.g * 0.65, MIDNIGHT.b * 0.72, 0.96 * reveal))
+		# One or two warm/cyan windows per tower imply life without visual noise.
+		if reveal > 0.45:
+			var window_col := Color(col.r, col.g, col.b, 0.66)
+			draw_rect(Rect2(bx + bw * 0.5 - 1.0, base_y - minf(8.0, bh * 0.45), 2.0, 3.0), window_col)
+			if tier >= 3 and bh > 24.0:
+				draw_rect(Rect2(bx + bw * 0.5 - 1.0, base_y - 17.0, 2.0, 3.0), window_col)
+
+	# A fine baseline unifies the separate towers into one readable district.
+	draw_line(Vector2(p.x - width * 0.5, base_y), Vector2(p.x + width * 0.5, base_y), Color(col.r, col.g, col.b, 0.42 * reveal), 1.4)
+	if _city_growth.has(city_index) and not Fx.reduce_motion:
+		var ring_alpha := clampf(float(_city_growth[city_index]) / 1.25, 0.0, 1.0)
+		draw_arc(p, 24.0 + (1.0 - ring_alpha) * 38.0, 0.0, TAU, 36, Color(col.r, col.g, col.b, ring_alpha * 0.75), 2.4)
+
+## CanvasItem has no soft ellipse primitive. Layered ellipses keep this cheap,
+## deterministic and compatible with the mobile renderer.
+func draw_ellipse_soft(center: Vector2, radius: Vector2, color: Color) -> void:
+	for layer in range(4, 0, -1):
+		var f := float(layer) / 4.0
+		var pts := PackedVector2Array()
+		for s in range(20):
+			var a := TAU * float(s) / 20.0
+			pts.append(center + Vector2(cos(a) * radius.x * f, sin(a) * radius.y * f))
+		var alpha := color.a * (0.18 + (1.0 - f) * 0.20)
+		draw_colored_polygon(pts, Color(color.r, color.g, color.b, alpha))
+
+func _on_city_unlocked_visual(index: int) -> void:
+	_refresh_next_cost()
+	_flash[index] = 0.5
+	if not Fx.reduce_motion:
+		_city_growth[index] = 1.25
 
 func _capital_marker(p: Vector2, flash: float) -> void:
 	# hub_home texture if available, else procedural golden pad
