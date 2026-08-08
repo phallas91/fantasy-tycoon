@@ -32,6 +32,12 @@ jobs:
           set -o pipefail
           godot --headless --path . --editor --import 2>&1 | tee godot-import.log
 
+      - name: Validate save integrity and autoload graph
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . --script res://tests/save_integrity_smoke.gd 2>&1 | tee godot-save-smoke.log
+
       - name: Start project briefly
         shell: bash
         run: |
@@ -41,9 +47,11 @@ jobs:
       - name: Fail on parser or script errors
         shell: bash
         run: |
-          if grep -Eiq "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" godot-import.log godot-start.log; then
+          if grep -Eiq "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
+              godot-import.log godot-start.log godot-save-smoke.log; then
             echo "Godot reported a parser or script error."
-            grep -Ein "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" godot-import.log godot-start.log
+            grep -Ein "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
+              godot-import.log godot-start.log godot-save-smoke.log
             exit 1
           fi
           echo "Godot project check passed."
@@ -56,5 +64,6 @@ jobs:
           path: |
             godot-import.log
             godot-start.log
+            godot-save-smoke.log
           if-no-files-found: ignore
           retention-days: 7
