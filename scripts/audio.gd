@@ -11,6 +11,7 @@ const MUSIC_FILES: Array[String] = [
 	"res://assets/music/stratosphere.mp3",
 	"res://assets/music/beepage.mp3",
 ]
+const ACTIVE_TRACKS: Array[String] = ["technoscape.mp3", "network.mp3", "beepage.mp3"]
 
 var muted    := false
 var music_vol := -18.0
@@ -35,6 +36,10 @@ var _duck_hold := 400
 var _duck_db := 0.0
 var _last_deliver_snd := 0   # ms; throttles the delivery blip so it never spams
 var _last_music_db := INF    # dirty-check for the per-frame volume write in _process
+var _last_music_pitch := -1.0
+var _mix_intensity := 0.0    # 0 calm economy → 1 event / high combo
+var _mix_target := 0.0
+var _mix_frame := 0
 
 func _ready() -> void:
 	_build_streams()
@@ -59,6 +64,7 @@ func _ready() -> void:
 
 func _build_streams() -> void:
 	_streams["tap"]         = _click(0.020, 0.18)
+	_streams["page"]        = _whoosh(0.16, 0.10)
 	_streams["buy"]         = _sweep(440.0, 880.0, 0.15, 0.22)
 	_streams["whoosh"]      = _whoosh(0.30, 0.20)
 	_streams["unlock"]      = _arp([392.0, 493.88, 587.33, 783.99], 0.072, 0.24)
@@ -120,18 +126,41 @@ func _start_music() -> void:
 		_ambient.volume_db = muted_music_db()
 		_ambient.play()
 		return
-	_music_idx = randi() % _music_paths.size()   # vary the opening track each launch
+	_music_idx = _pick_music_track(false)   # calm first impression; still varied
 	_play_track(_music_idx)
 	_ambient.play()
 
 func _on_music_finished() -> void:
 	if _music_paths.is_empty(): return
-	_music_idx = (_music_idx + 1) % _music_paths.size()
+	_music_idx = _pick_music_track(_mix_intensity >= 0.55)
 	_play_track(_music_idx)   # ease the new track in (no hard slam)
 	if not muted:
 		_ambient.play()
 
-func _process(_delta: float) -> void:
+## Selects a calm or active playlist pool without repeating the track that just
+## ended. If a build ships only a subset of music files, it gracefully falls
+## back to every available track.
+func _pick_music_track(want_active: bool) -> int:
+	var pool: Array[int] = []
+	for i in range(_music_paths.size()):
+		var is_active := _music_paths[i].get_file() in ACTIVE_TRACKS
+		if is_active == want_active:
+			pool.append(i)
+	if pool.is_empty():
+		for i in range(_music_paths.size()): pool.append(i)
+	if pool.size() > 1 and _music_idx in pool:
+		pool.erase(_music_idx)
+	return pool[randi() % pool.size()]
+
+func _process(delta: float) -> void:
+	_mix_frame += 1
+	if _mix_frame % 12 == 0:
+		_mix_target = 0.0
+		if has_node("/root/GameState"):
+			_mix_target = clampf((GameState.combo_mult() - 1.0) / 2.0, 0.0, 0.72)
+		if has_node("/root/Events") and Events.is_active():
+			_mix_target = maxf(_mix_target, 0.88)
+	_mix_intensity = move_toward(_mix_intensity, _mix_target, delta * 0.55)
 	if _ambient:
 		# Both are AudioServer writes; muted_music_db() only moves during a
 		# fade-in/duck window, so skip the write on the ~99% of frames where
@@ -139,9 +168,17 @@ func _process(_delta: float) -> void:
 		if _ambient.stream_paused != muted:
 			_ambient.stream_paused = muted
 		var db := muted_music_db()
+		if not muted:
+			# Calm play sits slightly behind the UI; a hot streak/event moves the
+			# same track forward without ever overpowering reward stingers.
+			db += lerpf(-1.2, 1.0, _mix_intensity)
 		if not is_equal_approx(db, _last_music_db):
 			_last_music_db = db
 			_ambient.volume_db = db
+		var pitch := lerpf(0.995, 1.025, _mix_intensity)
+		if not is_equal_approx(pitch, _last_music_pitch):
+			_last_music_pitch = pitch
+			_ambient.pitch_scale = pitch
 
 func _on_delivered(_amount: float, _hub: int, _count: int) -> void:
 	# Subtle, THROTTLED delivery blip (full removal made the core loop feel dead).
@@ -149,9 +186,11 @@ func _on_delivered(_amount: float, _hub: int, _count: int) -> void:
 	# the machine-gun spam that got it removed at high drone counts.
 	if muted: return
 	var now := Time.get_ticks_msec()
-	if now - _last_deliver_snd < 280: return
+	var cadence_ms := int(lerpf(380.0, 220.0, _mix_intensity))
+	if now - _last_deliver_snd < cadence_ms: return
 	_last_deliver_snd = now
-	play("tap", randf_range(1.15, 1.35), -16.0)
+	play("tap", randf_range(1.12, 1.30) + _mix_intensity * 0.12,
+		lerpf(-18.0, -14.5, _mix_intensity))
 
 func play(name: String, pitch := 1.0, vol_db := 0.0) -> void:
 	if muted or not _streams.has(name): return

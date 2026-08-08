@@ -585,8 +585,10 @@ func _refresh_page_container(container: Control) -> void:
 		_show_management_page(node as ScrollContainer, int(_page_indices.get(node, 0)))
 
 func _change_management_page(sc: ScrollContainer, delta: int) -> void:
-	Audio.play("tap")
-	_show_management_page(sc, int(_page_indices.get(sc, 0)) + delta)
+	var before := int(_page_indices.get(sc, 0))
+	_show_management_page(sc, before + delta)
+	if int(_page_indices.get(sc, 0)) != before:
+		Audio.play("page", 1.0, -5.0)
 
 func _show_management_page(sc: ScrollContainer, requested: int) -> void:
 	if not _page_groups.has(sc): return
