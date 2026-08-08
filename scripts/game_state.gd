@@ -206,6 +206,20 @@ func income_per_sec() -> float:
 		s += const_mult * (1.0 + d) / tt
 	return float(drones) * (s / float(n))
 
+## Exact contribution of one active trade route to the displayed realm income.
+## The fleet is distributed evenly across all routes, matching income_per_sec().
+## Exposed for the map city inspector so it never presents the realm total as if
+## every individual city generated that full amount.
+func route_income_per_sec(route: int) -> float:
+	var n := cities_unlocked
+	if n < 1 or route < 0 or route >= n:
+		return 0.0
+	var cities := Economy.country_cities(current_country)
+	var d := _route_dist(route, cities)
+	var tt := 2.0 * d / (BASE_SPEED * speed_factor())
+	var route_rate := _delivery_const_mult() * (1.0 + d) / tt
+	return (float(drones) / float(n)) * route_rate
+
 func drone_cost() -> float:
 	return Economy.drone_cost(drones) * cost_scale() * max(0.5, 1.0 - 0.02 * float(talents["hangar"]))
 
@@ -569,15 +583,19 @@ func from_dict(d: Dictionary) -> void:
 	var lv := {"speed": 0, "cargo": 0, "value": 0, "routes": 0}
 	var slv: Dictionary = d.get("levels", {})
 	for k in lv:
-		if slv.has(k): lv[k] = clampi(int(slv[k]), 0, 1_000_000)
+		# 1000 is far beyond reachable play but still numerically safe for the
+		# milestone bit shift and exponential cost curves. The former 1,000,000
+		# cap could turn a legacy/plain save into INF or an invalid huge shift.
+		if slv.has(k): lv[k] = clampi(int(slv[k]), 0, 1000)
 	levels = lv
 	var tl := {"global": 0, "speed": 0, "value": 0, "hangar": 0}
 	var stl: Dictionary = d.get("talents", {})
 	for k in tl:
 		if stl.has(k): tl[k] = clampi(int(stl[k]), 0, int(Economy.TALENTS[k]["max"]))
 	talents = tl
-	gem_boost = maxi(0, int(d.get("gem_boost", 0)))
+	gem_boost = clampi(int(d.get("gem_boost", 0)), 0, 30)
 	earn_boost_timer = maxf(0.0, float(d.get("earn_boost_timer", 0.0)))
+	if not is_finite(earn_boost_timer): earn_boost_timer = 0.0
 	total_earned = maxf(0.0, float(d.get("total_earned", 0.0)))
 	if not is_finite(total_earned): total_earned = 0.0
 	total_deliveries = maxi(0, int(d.get("total_deliveries", 0)))

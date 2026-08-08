@@ -155,15 +155,22 @@ func to_dict() -> Dictionary:
     }
 
 func from_dict(d: Dictionary) -> void:
-    count = int(d.get("count", 0))
-    pgems = int(d.get("pgems", 0))
-    total_pgems = int(d.get("total", 0))
-    permanent_mult = float(d.get("mult", 1.0))
-    shop_owned = Array(d.get("shop", []))
+    # Legacy v1 dictionaries had no authenticated envelope. Treat every field as
+    # hostile input so extreme values cannot create INF multipliers or invalid UI.
+    count = clampi(int(d.get("count", 0)), 0, 1000)
+    pgems = clampi(int(d.get("pgems", 0)), 0, 1_000_000_000)
+    total_pgems = clampi(int(d.get("total", 0)), pgems, 1_000_000_000)
+    permanent_mult = pow(1.15, float(count))
+    shop_owned = []
+    for raw_id in Array(d.get("shop", [])):
+        var item_id := str(raw_id)
+        if (SHOP.has(item_id) or item_id == "vip_24h") and item_id not in shop_owned:
+            shop_owned.append(item_id)
     # v2 migration from the former monetization-themed identifier.
     if "vip_24h" in shop_owned:
         shop_owned.erase("vip_24h")
         if "guild_24h" not in shop_owned:
             shop_owned.append("guild_24h")
-    ascendant_level = int(d.get("ascendant", 0))
-    run_start_earned = float(d.get("run_start", 0.0))
+    ascendant_level = clampi(int(d.get("ascendant", 0)), 0, 100_000)
+    run_start_earned = maxf(0.0, float(d.get("run_start", 0.0)))
+    if not is_finite(run_start_earned): run_start_earned = 0.0
