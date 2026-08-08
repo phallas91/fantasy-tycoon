@@ -44,6 +44,9 @@ jobs:
       - name: Validate Android production wiring
         run: python3 tests/android_release_wiring_smoke.py
 
+      - name: Validate project data, resources and translations
+        run: python3 tests/project_integrity_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |
@@ -56,6 +59,12 @@ jobs:
           set -o pipefail
           godot --headless --path . --script res://tests/save_integrity_smoke.gd 2>&1 | tee godot-save-smoke.log
 
+      - name: Run 30-minute economy stress simulation
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout 120s godot --headless --path . res://tests/sim.tscn 2>&1 | tee godot-sim.log
+
       - name: Start project briefly
         shell: bash
         run: |
@@ -66,10 +75,10 @@ jobs:
         shell: bash
         run: |
           if grep -Eiq "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
-              godot-import.log godot-start.log godot-save-smoke.log; then
+              godot-import.log godot-start.log godot-save-smoke.log godot-sim.log; then
             echo "Godot reported a parser or script error."
             grep -Ein "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
-              godot-import.log godot-start.log godot-save-smoke.log
+              godot-import.log godot-start.log godot-save-smoke.log godot-sim.log
             exit 1
           fi
           echo "Godot project check passed."
@@ -83,5 +92,6 @@ jobs:
             godot-import.log
             godot-start.log
             godot-save-smoke.log
+            godot-sim.log
           if-no-files-found: ignore
           retention-days: 7

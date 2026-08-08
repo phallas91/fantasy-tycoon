@@ -15,6 +15,7 @@ func _run() -> void:
 	var required := [
 		"Fmt", "Economy", "AntiCheat", "Fx", "Events", "Prestige",
 		"Achievements", "Daily", "GameState", "Audio", "SaveSystem", "Contracts",
+		"Billing", "Ads", "Notifications", "CloudSave",
 	]
 	for singleton: String in required:
 		if not root.has_node(singleton):

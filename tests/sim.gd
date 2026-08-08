@@ -9,16 +9,41 @@ func _ready() -> void:
 	print("=== Arcane Trade Empire world sim ===")
 	while t < 1800.0:
 		GameState._process(dt)
+		if not _state_is_valid():
+			push_error("SIM_SMOKE: invalid state at t=%.1f" % t)
+			get_tree().quit(1)
+			return
 		if iter % 10 == 0:
 			_auto_buy()
 		t += dt; iter += 1
 		if iter % 1500 == 0:
 			_report(t)
 	_report(t)
+	if GameState.total_deliveries <= 0 or GameState.total_earned <= 0.0:
+		push_error("SIM_SMOKE: economy produced no deliveries or earnings")
+		get_tree().quit(1)
+		return
 	print("=== FINAL country=%d/%d cities=%d drones=%d credits=%s ===" % [
 		GameState.current_country + 1, Economy.num_countries(), GameState.cities_unlocked,
 		GameState.drones, Fmt.short(GameState.credits)])
-	SaveSystem.wipe(); get_tree().quit()
+	print("SIM_SMOKE: PASS")
+	SaveSystem.wipe(); get_tree().quit(0)
+
+func _state_is_valid() -> bool:
+	if not is_finite(GameState.credits) or GameState.credits < 0.0:
+		return false
+	if not is_finite(GameState.total_earned) or GameState.total_earned < 0.0:
+		return false
+	if GameState.drones < 1 or GameState.total_deliveries < 0:
+		return false
+	if GameState.current_country < 0 or GameState.current_country >= Economy.num_countries():
+		return false
+	if GameState.cities_unlocked < 1 or GameState.cities_unlocked > GameState.max_cities():
+		return false
+	for key: String in Economy.UPGRADE_ORDER:
+		if int(GameState.levels.get(key, -1)) < 0:
+			return false
+	return true
 
 func _auto_buy() -> void:
 	if GameState.can_expand():
