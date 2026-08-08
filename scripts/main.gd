@@ -2134,7 +2134,13 @@ func _show_settings() -> void:
 
 	var help_btn := _wide_btn(UITheme.ACCENT.darkened(0.1)); help_btn.text = tr("Como jogar / Ajuda")
 	help_btn.custom_minimum_size = Vector2(0, 60)
-	help_btn.pressed.connect(func(): Fx.press(help_btn); _show_help())
+	help_btn.pressed.connect(func():
+		Fx.press(help_btn)
+		_dismiss(layer)
+		# Let the Settings exit animation finish before the tutorial enters, so
+		# two modal panels never stack or compete for Back/touch input.
+		get_tree().create_timer(0.16).timeout.connect(_show_help)
+	)
 	box.add_child(help_btn)
 
 	box.add_child(_settings_toggle("Som activado", not Audio.muted,
