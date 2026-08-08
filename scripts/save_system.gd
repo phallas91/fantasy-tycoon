@@ -3,6 +3,7 @@ extends Node
 ## v3 keeps the game fully local and validates primary plus backup saves.
 
 signal session_offline_ready(amount: float, seconds: float)
+signal save_recovered()
 
 const SAVE_PATH   := "user://dts_save.json"
 const BACKUP_PATH := "user://dts_save_bak.json"
@@ -111,6 +112,7 @@ func load_game() -> bool:
 			if path != SAVE_PATH:
 				push_warning("SaveSystem: recovered progress from %s." % path)
 				_write(SAVE_PATH, raw)
+				save_recovered.emit()
 			return _apply(data)
 		push_warning("SaveSystem: invalid save at %s; trying fallback." % path)
 	return false

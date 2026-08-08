@@ -125,6 +125,8 @@ var _delivery_fx_bank := 0.0
 var _last_delivery_fx_ms := 0
 var _fountain_counter := 0
 var _resume_reward_queued := false
+var _save_recovery_queued := false
+var _boot_complete := false
 
 func _ready() -> void:
 	if OS.has_feature("mobile"):
@@ -147,6 +149,7 @@ func _ready() -> void:
 	Prestige.prestiged.connect(_on_prestige)
 	Contracts.completed.connect(_on_contract_completed)
 	SaveSystem.session_offline_ready.connect(_on_session_offline_ready)
+	SaveSystem.save_recovered.connect(_on_save_recovered)
 
 	var loaded := SaveSystem.load_game()
 	_disp_credits = GameState.credits
@@ -160,12 +163,26 @@ func _ready() -> void:
 
 ## Welcome popups run only after the boot ceremony so it is never covered.
 func _post_boot(loaded: bool) -> void:
+	_boot_complete = true
 	if not loaded:
 		_show_welcome_popup()
 	elif GameState.pending_offline > 1.0:
 		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
 	elif Daily.pending:
 		_show_daily_popup()
+
+## Recovery can happen during load, underneath the cinematic cover. Hold the
+## confirmation until boot and any welcome/reward modal have finished so the
+## player actually sees that their progress was protected.
+func _on_save_recovered() -> void:
+	if _save_recovery_queued:
+		return
+	_save_recovery_queued = true
+	await get_tree().process_frame
+	while not _boot_complete or _has_modal_overlay():
+		await get_tree().create_timer(0.35).timeout
+	_save_recovery_queued = false
+	_toast(tr("Progresso recuperado com segurança."), UITheme.GREEN, "ic_achieve")
 
 ## A warm resume does not reload the scene. Queue its offline reward until any
 ## modal the player left open has closed, preventing stacked popups while still

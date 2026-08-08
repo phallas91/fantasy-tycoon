@@ -1,16 +1,16 @@
 "keys","pt","en","es","fr","de","it","ru","ja","zh"
 "Frota","Frota","Caravan","Caravana","Caravane","Karawane","Carovana","Караван","隊商","商队"
-"Cidades","Cidades","Cities","Ciudades","Villes","Städte","Città","Города","都市","城市"
-"Talentos","Talentos","Talents","Talentos","Talents","Talente","Talenti","Таланты","タレント","天赋"
+"Cidades","Cidades","Cities","Ciudades","Villes","Reiche","Città","Города","都市","城市"
+"Talentos","Talentos","Talents","Talentos","Talents","Forschung","Talenti","Таланты","タレント","天赋"
 "Legado","Legado","Legacy","Legado","Héritage","Vermächtnis","Eredità","Наследие","レガシー","传承"
-"Loja","Loja","Shop","Tienda","Boutique","Shop","Negozio","Магазин","ショップ","商店"
-"Missões","Missões","Missions","Misiones","Missions","Missionen","Missioni","Задания","ミッション","任务"
-"Comprar Drones","Comprar Drones","Hire Couriers","Contratar correos","Engager des coursiers","Kuriere anheuern","Assumi Corrieri","Нанять курьеров","運び手を雇う","雇佣信使"
-"Tens %d drones","Tens %d drones","You command %d couriers","Diriges %d correos","Vous dirigez %d coursiers","Du befehligst %d Kuriere","Comandi %d corrieri","У тебя %d курьеров","運び手 %d 人","拥有 %d 名信使"
+"Loja","Loja","Shop","Tienda","Boutique","Sammlung","Negozio","Магазин","ショップ","商店"
+"Missões","Missões","Missions","Misiones","Missions","Aufträge","Missioni","Задания","ミッション","任务"
+"Comprar Drones","Comprar Drones","Hire Couriers","Contratar correos","Engager des coursiers","Greifenkuriere anheuern","Assumi Corrieri","Нанять курьеров","運び手を雇う","雇佣信使"
+"Tens %d drones","Tens %d drones","You command %d couriers","Diriges %d correos","Vous dirigez %d coursiers","Du befehligst %d Greifenkuriere","Comandi %d corrieri","У тебя %d курьеров","運び手 %d 人","拥有 %d 名信使"
 "Abrir Cidade","Abrir Cidade","Open City","Abrir ciudad","Ouvrir une ville","Stadt öffnen","Apri Città","Открыть город","都市を開放","开设城市"
-"Expandir país","Expandir país","Expand Country","Expandir país","Étendre le pays","Land erweitern","Espandi paese","Расширить страну","国を拡大","扩张国家"
+"Expandir país","Expandir país","Expand Country","Expandir país","Étendre le pays","Reich erschließen","Espandi paese","Расширить страну","国を拡大","扩张国家"
 "Rede de cidades","Rede de cidades","City Network","Red de ciudades","Réseau de villes","Städtenetz","Rete di città","Сеть городов","都市ネットワーク","城市网络"
-"Loja de Prestige","Loja de Prestige","Prestige Shop","Tienda de Prestigio","Boutique de Prestige","Prestige-Shop","Negozio Prestigio","Магазин престижа","プレステージショップ","转生商店"
+"Loja de Prestige","Loja de Prestige","Prestige Shop","Tienda de Prestigio","Boutique de Prestige","Vermächtnisladen","Negozio Prestigio","Магазин престижа","プレステージショップ","转生商店"
 "Conquistas","Conquistas","Achievements","Logros","Succès","Erfolge","Obiettivi","Достижения","実績","成就"
 "Obtido","Obtido","Owned","Obtenido","Obtenu","Im Besitz","Posseduto","В наличии","所持済み","已拥有"
 "Abrir","Abrir","Open","Abrir","Ouvrir","Öffnen","Apri","Открыть","開く","开启"
@@ -25,27 +25,27 @@
 "A verificar compras...","A verificar compras...","Checking purchases...","Comprobando compras...","Vérification des achats...","Prüfe Käufe...","Verifica acquisti...","Проверка покупок...","購入を確認中...","正在验证购买…"
 "Repor progresso","Repor progresso","Reset Progress","Reiniciar progreso","Réinitialiser la progression","Fortschritt zurücksetzen","Azzera progressi","Сбросить прогресс","進行状況をリセット","重置进度"
 "Fechar","Fechar","Close","Cerrar","Fermer","Schließen","Chiudi","Закрыть","閉じる","关闭"
-"Confirmar Prestige","Confirmar Prestige","Confirm Prestige","Confirmar Prestigio","Confirmer le Prestige","Prestige bestätigen","Conferma Prestigio","Подтвердить престиж","プレステージを確認","确认转生"
-"SIM, FAZER PRESTIGE","SIM, FAZER PRESTIGE","YES, PRESTIGE NOW","SÍ, HACER PRESTIGIO","OUI, FAIRE PRESTIGE","JA, PRESTIGE JETZT","SÌ, FAI PRESTIGIO","ДА, СДЕЛАТЬ ПРЕСТИЖ","はい、プレステージする","是的，立即转生"
+"Confirmar Prestige","Confirmar Prestige","Confirm Prestige","Confirmar Prestigio","Confirmer le Prestige","Vermächtnis bestätigen","Conferma Prestigio","Подтвердить престиж","プレステージを確認","确认转生"
+"SIM, FAZER PRESTIGE","SIM, FAZER PRESTIGE","YES, PRESTIGE NOW","SÍ, HACER PRESTIGIO","OUI, FAIRE PRESTIGE","JA, VERMÄCHTNIS BEGINNEN","SÌ, FAI PRESTIGIO","ДА, СДЕЛАТЬ ПРЕСТИЖ","はい、プレステージする","是的，立即转生"
 "Cancelar","Cancelar","Cancel","Cancelar","Annuler","Abbrechen","Annulla","Отмена","キャンセル","取消"
 "SIM, APAGAR TUDO","SIM, APAGAR TUDO","YES, DELETE EVERYTHING","SÍ, BORRAR TODO","OUI, TOUT EFFACER","JA, ALLES LÖSCHEN","SÌ, CANCELLA TUTTO","ДА, УДАЛИТЬ ВСЁ","はい、すべて削除","是的，删除全部"
 "Repor progresso?","Repor progresso?","Reset progress?","¿Reiniciar progreso?","Réinitialiser la progression ?","Fortschritt zurücksetzen?","Azzerare i progressi?","Сбросить прогресс?","進行状況をリセット？","重置进度？"
 "Bem-vindo de volta!","Bem-vindo de volta!","Welcome back!","¡Bienvenido de nuevo!","Bon retour !","Willkommen zurück!","Bentornato!","С возвращением!","おかえりなさい！","欢迎回来！"
 "Recolher","Recolher","Collect","Recoger","Récolter","Einsammeln","Raccogli","Забрать","受け取る","领取"
 "Recolher em DOBRO (anúncio)","Recolher em DOBRO (anúncio)","Collect DOUBLE (ad)","Recoger DOBLE (anuncio)","Récolter en DOUBLE (pub)","DOPPELT einsammeln (Werbung)","Raccogli il DOPPIO (annuncio)","Забрать ВДВОЙНЕ (реклама)","2倍で受け取る（広告）","双倍领取（广告）"
-"Completa missões para ganhar créditos e gemas bónus.","Completa missões para ganhar créditos e gemas bónus.","Complete missions to earn bonus credits and gems.","Completa misiones para ganar créditos y gemas extra.","Complétez des missions pour gagner des crédits et gemmes bonus.","Erfülle Missionen für Bonus-Credits und Edelsteine.","Completa le missioni per ottenere crediti e gemme bonus.","Выполняй задания, чтобы получить кредиты и бонусные гемы.","ミッションをクリアしてクレジットとボーナスジェムを獲得。","完成任务可赚取额外信用点和宝石。"
+"Completa missões para ganhar créditos e gemas bónus.","Completa missões para ganhar créditos e gemas bónus.","Complete missions to earn bonus credits and gems.","Completa misiones para ganar créditos y gemas extra.","Complétez des missions pour gagner des crédits et gemmes bonus.","Erfülle Aufträge für Bonus-Gold und Edelsteine.","Completa le missioni per ottenere crediti e gemme bonus.","Выполняй задания, чтобы получить кредиты и бонусные гемы.","ミッションをクリアしてクレジットとボーナスジェムを獲得。","完成任务可赚取额外信用点和宝石。"
 "REIVINDICAR","REIVINDICAR","CLAIM","RECLAMAR","RÉCLAMER","EINFORDERN","RISCUOTI","ЗАБРАТЬ","受け取る","领取"
 "Recebido","Recebido","Received","Recibido","Reçu","Erhalten","Ricevuto","Получено","受取済み","已领取"
 "Em curso","Em curso","In progress","En curso","En cours","Läuft","In corso","В процессе","進行中","进行中"
 "TODAS","TODAS","ALL","TODAS","TOUTES","ALLE","TUTTE","ВСЕ","すべて","全部"
 "Todas as cidades estão abertas.","Todas as cidades estão abertas.","All cities are open.","Todas las ciudades están abiertas.","Toutes les villes sont ouvertes.","Alle Städte sind offen.","Tutte le città sono aperte.","Все города открыты.","すべての都市が開放済み。","所有城市均已开设。"
 "FIM","FIM","END","FIN","FIN","ENDE","FINE","КОНЕЦ","完","完"
-"Chegaste ao último país. Parabéns!","Chegaste ao último país. Parabéns!","You've reached the last country. Congrats!","Has llegado al último país. ¡Enhorabuena!","Vous avez atteint le dernier pays. Félicitations !","Du hast das letzte Land erreicht. Glückwunsch!","Hai raggiunto l'ultimo paese. Complimenti!","Ты достиг последней страны. Поздравляем!","最後の国に到達。おめでとう！","你已到达最后一个国家。恭喜！"
+"Chegaste ao último país. Parabéns!","Chegaste ao último país. Parabéns!","You've reached the last country. Congrats!","Has llegado al último país. ¡Enhorabuena!","Vous avez atteint le dernier pays. Félicitations !","Du hast das letzte Reich erschlossen. Glückwunsch!","Hai raggiunto l'ultimo paese. Complimenti!","Ты достиг последней страны. Поздравляем!","最後の国に到達。おめでとう！","你已到达最后一个国家。恭喜！"
 "Bloqueado","Bloqueado","Locked","Bloqueado","Verrouillé","Gesperrt","Bloccato","Заблокировано","ロック中","已锁定"
-"Prestige (requer 5.º país)","Prestige (requer 5.º país)","Prestige (requires 5th country)","Prestigio (requiere 5.º país)","Prestige (requiert le 5e pays)","Prestige (erfordert 5. Land)","Prestigio (richiede il 5º paese)","Престиж (нужна 5-я страна)","プレステージ（5番目の国が必要）","转生（需第5个国家）"
+"Prestige (requer 5.º país)","Prestige (requer 5.º país)","Prestige (requires 5th country)","Prestigio (requiere 5.º país)","Prestige (requiert le 5e pays)","Vermächtnis (erfordert 5. Reich)","Prestigio (richiede il 5º paese)","Престиж (нужна 5-я страна)","プレステージ（5番目の国が必要）","转生（需第5个国家）"
 "Cidade desbloqueada!","Cidade desbloqueada!","City unlocked!","¡Ciudad desbloqueada!","Ville débloquée !","Stadt freigeschaltet!","Città sbloccata!","Город разблокирован!","都市を解放！","城市已解锁！"
 "🏆 MISSÃO COMPLETA! Conquistaste o mundo!","🏆 MISSÃO COMPLETA! Conquistaste o mundo!","🏆 MISSION COMPLETE! You conquered the world!","🏆 ¡MISIÓN COMPLETA! ¡Has conquistado el mundo!","🏆 MISSION ACCOMPLIE ! Vous avez conquis le monde !","🏆 MISSION ERFÜLLT! Du hast die Welt erobert!","🏆 MISSIONE COMPLETA! Hai conquistato il mondo!","🏆 ЗАДАНИЕ ВЫПОЛНЕНО! Ты покорил мир!","🏆 ミッション達成！世界を制覇した！","🏆 任务完成！你征服了世界！"
-"PRESTIGE! Bem-vindo ao recomeço!","PRESTIGE! Bem-vindo ao recomeço!","PRESTIGE! Welcome to your fresh start!","¡PRESTIGIO! ¡Bienvenido a tu nuevo comienzo!","PRESTIGE ! Bienvenue dans votre nouveau départ !","PRESTIGE! Willkommen zum Neustart!","PRESTIGIO! Benvenuto al nuovo inizio!","ПРЕСТИЖ! Добро пожаловать в новое начало!","プレステージ！新たなスタートへようこそ！","转生！欢迎全新开始！"
+"PRESTIGE! Bem-vindo ao recomeço!","PRESTIGE! Bem-vindo ao recomeço!","PRESTIGE! Welcome to your fresh start!","¡PRESTIGIO! ¡Bienvenido a tu nuevo comienzo!","PRESTIGE ! Bienvenue dans votre nouveau départ !","VERMÄCHTNIS! Willkommen zum Neuanfang!","PRESTIGIO! Benvenuto al nuovo inizio!","ПРЕСТИЖ! Добро пожаловать в новое начало!","プレステージ！新たなスタートへようこそ！","转生！欢迎全新开始！"
 "Receber Recompensa!","Receber Recompensa!","Claim Reward!","¡Reclamar recompensa!","Réclamer la récompense !","Belohnung holen!","Riscuoti Ricompensa!","Забрать награду!","報酬を受け取る！","领取奖励！"
 "Missão concluída! Recompensa recebida","Missão concluída! Recompensa recebida","Mission complete! Reward received","¡Misión completada! Recompensa recibida","Mission terminée ! Récompense reçue","Mission erfüllt! Belohnung erhalten","Missione completata! Ricompensa ricevuta","Задание выполнено! Награда получена","ミッション達成！報酬を受け取りました","任务完成！奖励已领取"
 "Recompensa a DOBRAR!","Recompensa a DOBRAR!","Reward DOUBLING!","¡Recompensa DUPLICADA!","Récompense DOUBLÉE !","Belohnung wird VERDOPPELT!","Ricompensa RADDOPPIATA!","Награда УДВАИВАЕТСЯ!","報酬が2倍に！","奖励翻倍！"
@@ -56,25 +56,25 @@ Gasta-a em bónus válidos até ao próximo Prestige.","Influência ganha-se ao 
 Gasta-a em bónus válidos até ao próximo Prestige.","Influence is earned by expanding countries.
 Spend it on bonuses valid until your next Prestige.","La influencia se gana al expandir países.
 Gástala en bonificaciones válidas hasta el próximo Prestigio.","L'influence se gagne en étendant les pays.
-Dépensez-la en bonus valables jusqu'au prochain Prestige.","Einfluss verdienst du durch Länder-Erweiterung.
-Gib ihn für Boni bis zum nächsten Prestige aus.","L'influenza si guadagna espandendo i paesi.
+Dépensez-la en bonus valables jusqu'au prochain Prestige.","Einfluss erhältst du beim Erschließen neuer Reiche.
+Investiere ihn in Boni bis zum nächsten Vermächtnis.","L'influenza si guadagna espandendo i paesi.
 Spendila in bonus validi fino al prossimo Prestigio.","Влияние даётся за расширение стран.
 Трать его на бонусы до следующего престижа.","影響力は国を拡大して獲得。
 次のプレステージまで有効なボーナスに使えます。","扩张国家可获得影响力。
 用它购买有效至下次转生的加成。"
-"Sistema de Prestige","Sistema de Prestige","Prestige System","Sistema de Prestigio","Système de Prestige","Prestige-System","Sistema di Prestigio","Система престижа","プレステージシステム","转生系统"
+"Sistema de Prestige","Sistema de Prestige","Prestige System","Sistema de Prestigio","Système de Prestige","Vermächtnissystem","Sistema di Prestigio","Система престижа","プレステージシステム","转生系统"
 "Reinicia com multiplicador permanente.
 Requer 5.º país desbloqueado.","Reinicia com multiplicador permanente.
 Requer 5.º país desbloqueado.","Resets with a permanent multiplier.
 Requires the 5th country unlocked.","Reinicia con multiplicador permanente.
 Requiere el 5.º país desbloqueado.","Réinitialise avec un multiplicateur permanent.
-Requiert le 5e pays débloqué.","Neustart mit dauerhaftem Multiplikator.
-Erfordert 5. Land freigeschaltet.","Riparti con moltiplicatore permanente.
+Requiert le 5e pays débloqué.","Beginne neu mit einem dauerhaften Multiplikator.
+Erfordert das freigeschaltete 5. Reich.","Riparti con moltiplicatore permanente.
 Richiede il 5º paese sbloccato.","Перезапуск с постоянным множителем.
 Нужна разблокированная 5-я страна.","永続倍率でリスタート。
 5番目の国の解放が必要。","重置并获得永久乘数。
 需解锁第5个国家。"
-"Gemas de Prestígio:","Gemas de Prestígio:","Prestige Gems:","Gemas de Prestigio:","Gemmes de Prestige :","Prestige-Edelsteine:","Gemme di Prestigio:","Гемы престижа:","プレステージジェム：","转生宝石："
+"Gemas de Prestígio:","Gemas de Prestígio:","Prestige Gems:","Gemas de Prestigio:","Gemmes de Prestige :","Vermächtnisrunen:","Gemme di Prestigio:","Гемы престижа:","プレステージジェム：","转生宝石："
 "Conquista secreta.","Conquista secreta.","Secret achievement.","Logro secreto.","Succès secret.","Geheimer Erfolg.","Obiettivo segreto.","Секретное достижение.","シークレット実績。","隐藏成就。"
 "Gemas — ganha com anúncios (acima)","Gemas — ganha com anúncios (acima)","Gems — earn via ads (above)","Gemas — gana con anuncios (arriba)","Gemmes — gagnez-en avec des pubs (ci-dessus)","Edelsteine — durch Werbung (oben)","Gemme — ottienile con gli annunci (sopra)","Гемы — за рекламу (выше)","ジェム — 広告で獲得（上記）","宝石——通过广告获得（上方）"
 "Recompensa Diária","Recompensa Diária","Daily Reward","Recompensa diaria","Récompense quotidienne","Tägliche Belohnung","Ricompensa Giornaliera","Ежедневная награда","デイリー報酬","每日奖励"
@@ -86,8 +86,8 @@ Não pode ser desfeito.","Apaga TODO o progresso: créditos, drones, países, pr
 Não pode ser desfeito.","Deletes ALL progress: credits, drones, countries, prestige and achievements.
 This cannot be undone.","Borra TODO el progreso: créditos, drones, países, prestigio y logros.
 No se puede deshacer.","Efface TOUTE la progression : crédits, drones, pays, prestige et succès.
-Cela ne peut pas être annulé.","Löscht ALLEN Fortschritt: Credits, Drohnen, Länder, Prestige und Erfolge.
-Nicht rückgängig zu machen.","Cancella TUTTI i progressi: crediti, droni, paesi, prestigio e obiettivi.
+Cela ne peut pas être annulé.","Löscht ALLEN Fortschritt: Gold, Greifenkuriere, Reiche, Vermächtnis und Erfolge.
+Dies kann nicht rückgängig gemacht werden.","Cancella TUTTI i progressi: crediti, droni, paesi, prestigio e obiettivi.
 Non può essere annullato.","Удаляет ВЕСЬ прогресс: кредиты, дронов, страны, престиж и достижения.
 Это нельзя отменить.","すべての進行状況を削除：クレジット、ドローン、国、プレステージ、実績。
 元に戻せません。","删除全部进度：信用点、无人机、国家、转生和成就。
@@ -111,8 +111,8 @@ Reinicias mantendo gemas e conquistas.","Tier: %s · Prestige #%d · ×%.2f
 Reinicias mantendo gemas e conquistas.","Tier: %s · Prestige #%d · ×%.2f
 You reset keeping gems and achievements.","Nivel: %s · Prestigio #%d · ×%.2f
 Reinicias conservando gemas y logros.","Palier : %s · Prestige n°%d · ×%.2f
-Vous réinitialisez en gardant gemmes et succès.","Tier: %s · Prestige #%d · ×%.2f
-Du setzt zurück, behältst Edelsteine und Erfolge.","Tier: %s · Prestigio #%d · ×%.2f
+Vous réinitialisez en gardant gemmes et succès.","Rang: %s · Vermächtnis #%d · ×%.2f
+Beim Neuanfang bleiben Edelsteine und Erfolge erhalten.","Tier: %s · Prestigio #%d · ×%.2f
 Riparti mantenendo gemme e obiettivi.","Уровень: %s · Престиж #%d · ×%.2f
 Перезапуск с сохранением гемов и достижений.","ティア：%s · プレステージ #%d · ×%.2f
 ジェムと実績を保持してリスタート。","等级：%s · 转生 #%d · ×%.2f
@@ -122,8 +122,8 @@ Tier: %s · Prestige %d · ×%.2f","Chega ao 5.º país para fazer prestige.
 Tier: %s · Prestige %d · ×%.2f","Reach the 5th country to prestige.
 Tier: %s · Prestige %d · ×%.2f","Llega al 5.º país para hacer prestigio.
 Nivel: %s · Prestigio %d · ×%.2f","Atteignez le 5e pays pour faire prestige.
-Palier : %s · Prestige %d · ×%.2f","Erreiche das 5. Land für Prestige.
-Tier: %s · Prestige %d · ×%.2f","Raggiungi il 5º paese per fare prestigio.
+Palier : %s · Prestige %d · ×%.2f","Erreiche das 5. Reich für dein Vermächtnis.
+Rang: %s · Vermächtnis %d · ×%.2f","Raggiungi il 5º paese per fare prestigio.
 Tier: %s · Prestigio %d · ×%.2f","Достигни 5-й страны для престижа.
 Уровень: %s · Престиж %d · ×%.2f","5番目の国に到達でプレステージ可能。
 ティア：%s · プレステージ %d · ×%.2f","到达第5个国家即可转生。
@@ -151,11 +151,11 @@ Conservas gemas normales y logros.","Vous allez gagner  %d  Gemmes de Prestige
 et un multiplicateur ×%.2f permanent.
 
 Vous perdez crédits, drones et améliorations.
-Vous gardez gemmes normales et succès.","Du erhältst  %d  Prestige-Edelsteine
-und einen dauerhaften ×%.2f Multiplikator.
+Vous gardez gemmes normales et succès.","Du erhältst  %d  Vermächtnisrunen
+und einen dauerhaften ×%.2f-Multiplikator.
 
-Du verlierst Credits, Drohnen und Upgrades.
-Du behältst normale Edelsteine und Erfolge.","Otterrai  %d  Gemme Prestigio
+Du verlierst Gold, Greifenkuriere und Ausbauten.
+Edelsteine und Erfolge bleiben erhalten.","Otterrai  %d  Gemme Prestigio
 e un moltiplicatore ×%.2f permanente.
 
 Perdi crediti, droni e potenziamenti.
@@ -172,7 +172,7 @@ Mantieni gemme normali e obiettivi.","Ты получишь  %d  гемов пр
 
 你会失去信用点、无人机和升级。
 保留普通宝石和成就。"
-"Os drones entregaram durante %s:","Os drones entregaram durante %s:","Your drones delivered for %s:","Tus drones entregaron durante %s:","Vos drones ont livré pendant %s :","Deine Drohnen lieferten %s lang:","I tuoi droni hanno consegnato per %s:","Дроны доставляли за %s:","%s の間、ドローンが配達しました：","你的无人机在 %s 内送达："
+"Os drones entregaram durante %s:","Os drones entregaram durante %s:","Your drones delivered for %s:","Tus drones entregaron durante %s:","Vos drones ont livré pendant %s :","Deine Greifenkuriere handelten %s lang:","I tuoi droni hanno consegnato per %s:","Дроны доставляли за %s:","%s の間、ドローンが配達しました：","你的无人机在 %s 内送达："
 "Entregas: %s  ·  Ganhos: %s
 Rendimento: %s/s  ·  Combo: %d
 Drones: %d  ·  Países: %d/%d  ·  Streak: %dd
@@ -188,10 +188,10 @@ Drones: %d  ·  Países: %d/%d  ·  Racha: %dd
 Prestigio: %d  ·  Logros: %d/%d","Livraisons : %s  ·  Gains : %s
 Revenu : %s/s  ·  Combo : %d
 Drones : %d  ·  Pays : %d/%d  ·  Série : %dj
-Prestige : %d  ·  Succès : %d/%d","Lieferungen: %s  ·  Verdient: %s
+Prestige : %d  ·  Succès : %d/%d","Handel: %s  ·  Ertrag: %s
 Einkommen: %s/s  ·  Combo: %d
-Drohnen: %d  ·  Länder: %d/%d  ·  Streak: %dd
-Prestige: %d  ·  Erfolge: %d/%d","Consegne: %s  ·  Guadagno: %s
+Greifenkuriere: %d  ·  Reiche: %d/%d  ·  Serie: %dd
+Vermächtnis: %d  ·  Erfolge: %d/%d","Consegne: %s  ·  Guadagno: %s
 Rendita: %s/s  ·  Combo: %d
 Droni: %d  ·  Paesi: %d/%d  ·  Streak: %dg
 Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработок: %s
@@ -211,7 +211,7 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "Platina","Platina","Platinum","Platino","Platine","Platin","Platino","Платина","プラチナ","白金"
 "Diamante","Diamante","Diamond","Diamante","Diamant","Diamant","Diamante","Алмаз","ダイヤモンド","钻石"
 "Lendário","Lendário","Legendary","Legendario","Légendaire","Legendär","Leggendario","Легенда","レジェンド","传奇"
-"Velocidade dos Drones","Velocidade dos Drones","Drone Speed","Velocidad de los drones","Vitesse des drones","Drohnen-Tempo","Velocità dei Droni","Скорость дронов","ドローン速度","无人机速度"
+"Velocidade dos Drones","Velocidade dos Drones","Drone Speed","Velocidad de los drones","Vitesse des drones","Reisetempo der Greifenkuriere","Velocità dei Droni","Скорость дронов","ドローン速度","无人机速度"
 "Capacidade de Carga","Capacidade de Carga","Cargo Capacity","Capacidad de carga","Capacité de charge","Ladekapazität","Capacità di Carico","Грузоподъёмность","積載量","货舱容量"
 "Valor da Encomenda","Valor da Encomenda","Package Value","Valor del paquete","Valeur du colis","Paketwert","Valore del Pacco","Стоимость посылки","荷物の価値","包裹价值"
 "Rede de Rotas","Rede de Rotas","Route Network","Red de rutas","Réseau de routes","Routennetz","Rete di Rotte","Сеть маршрутов","ルートネットワーク","航线网络"
@@ -222,17 +222,17 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "Rotas Premium","Rotas Premium","Premium Routes","Rutas premium","Routes Premium","Premium-Routen","Rotte Premium","Премиум-маршруты","プレミアムルート","高级航线"
 "+4% valor","+4% valor","+4% value","+4% valor","+4% valeur","+4% Wert","+4% valore","+4% к стоимости","価値 +4%","+4% 价值"
 "Hangar Eficiente","Hangar Eficiente","Efficient Hangar","Hangar eficiente","Hangar efficace","Effizienter Hangar","Hangar Efficiente","Экономичный ангар","効率格納庫","高效机库"
-"-2% custo de drones","-2% custo de drones","-2% drone cost","-2% coste de drones","-2% coût des drones","-2% Drohnenkosten","-2% costo droni","-2% к цене дронов","ドローンコスト -2%","-2% 无人机成本"
+"-2% custo de drones","-2% custo de drones","-2% drone cost","-2% coste de drones","-2% coût des drones","-2% Kurierkosten","-2% costo droni","-2% к цене дронов","ドローンコスト -2%","-2% 无人机成本"
 "Núcleo de Lucro","Núcleo de Lucro","Profit Core","Núcleo de ganancias","Noyau de profit","Gewinnkern","Nucleo di Profitto","Ядро прибыли","利益コア","利润核心"
 "+25% lucros GLOBAIS, para sempre.","+25% lucros GLOBAIS, para sempre.","+25% GLOBAL profits, forever.","+25% ganancias GLOBALES, para siempre.","+25% profits GLOBAUX, pour toujours.","+25% GLOBALER Gewinn, für immer.","+25% profitti GLOBALI, per sempre.","+25% к ОБЩЕЙ прибыли, навсегда.","全体利益 +25%、永続。","+25% 全局利润，永久有效。"
-"Injeção de Créditos","Injeção de Créditos","Credit Injection","Inyección de créditos","Injection de crédits","Credit-Spritze","Iniezione di Crediti","Вливание кредитов","クレジット注入","信用点注入"
+"Injeção de Créditos","Injeção de Créditos","Credit Injection","Inyección de créditos","Injection de crédits","Goldsegen","Iniezione di Crediti","Вливание кредитов","クレジット注入","信用点注入"
 "Ganha já 1 hora de lucros.","Ganha já 1 hora de lucros.","Instantly earn 1 hour of profits.","Gana ya 1 hora de ganancias.","Gagnez 1 heure de profits d'un coup.","Erhalte sofort 1 Stunde Gewinn.","Ottieni subito 1 ora di profitti.","Получи сразу 1 час прибыли.","1時間分の利益を即獲得。","立即获得1小时利润。"
 "Salto Temporal 8h","Salto Temporal 8h","8h Time Warp","Salto temporal 8h","Saut temporel 8h","8h Zeitsprung","Salto Temporale 8h","Скачок времени 8ч","8時間タイムワープ","8小时时空跳跃"
 "Ganha já 8 horas de lucros.","Ganha já 8 horas de lucros.","Instantly earn 8 hours of profits.","Gana ya 8 horas de ganancias.","Gagnez 8 heures de profits d'un coup.","Erhalte sofort 8 Stunden Gewinn.","Ottieni subito 8 ore di profitti.","Получи сразу 8 часов прибыли.","8時間分の利益を即獲得。","立即获得8小时利润。"
 "Salto Temporal 24h","Salto Temporal 24h","24h Time Warp","Salto temporal 24h","Saut temporel 24h","24h Zeitsprung","Salto Temporale 24h","Скачок времени 24ч","24時間タイムワープ","24小时时空跳跃"
 "Ganha já 24 horas de lucros.","Ganha já 24 horas de lucros.","Instantly earn 24 hours of profits.","Gana ya 24 horas de ganancias.","Gagnez 24 heures de profits d'un coup.","Erhalte sofort 24 Stunden Gewinn.","Ottieni subito 24 ore di profitti.","Получи сразу 24 часа прибыли.","24時間分の利益を即獲得。","立即获得24小时利润。"
 "Esquadrão Instantâneo","Esquadrão Instantâneo","Instant Squadron","Escuadrón instantáneo","Escadron instantané","Sofort-Geschwader","Squadrone Istantaneo","Мгновенная эскадрилья","即時飛行隊","即时中队"
-"+10 drones imediatamente, sem custo em créditos.","+10 drones imediatamente, sem custo em créditos.","+10 drones instantly, no credit cost.","+10 drones al instante, sin coste en créditos.","+10 drones immédiatement, sans coût en crédits.","+10 Drohnen sofort, ohne Credit-Kosten.","+10 droni subito, senza costo in crediti.","+10 дронов сразу, без затрат кредитов.","ドローン +10 機を即座に、クレジット不要。","立即 +10 架无人机，无需信用点。"
+"+10 drones imediatamente, sem custo em créditos.","+10 drones imediatamente, sem custo em créditos.","+10 drones instantly, no credit cost.","+10 drones al instante, sin coste en créditos.","+10 drones immédiatement, sans coût en crédits.","+10 Greifenkuriere sofort, ohne Goldkosten.","+10 droni subito, senza costo in crediti.","+10 дронов сразу, без затрат кредитов.","ドローン +10 機を即座に、クレジット不要。","立即 +10 架无人机，无需信用点。"
 "Combo Duradouro","Combo Duradouro","Lasting Combo","Combo duradero","Combo durable","Anhaltende Combo","Combo Duraturo","Долгое комбо","持続コンボ","持久连击"
 "O combo demora o DOBRO do tempo a expirar. Permanente.","O combo demora o DOBRO do tempo a expirar. Permanente.","Combo takes TWICE as long to expire. Permanent.","El combo tarda el DOBLE en expirar. Permanente.","Le combo met DEUX FOIS plus de temps à expirer. Permanent.","Combo läuft DOPPELT so langsam ab. Dauerhaft.","Il combo impiega il DOPPIO del tempo a scadere. Permanente.","Комбо истекает ВДВОЕ дольше. Навсегда.","コンボの持続時間が2倍に。永続。","连击过期时间延长一倍。永久有效。"
 "Primeira Entrega","Primeira Entrega","First Delivery","Primera entrega","Première livraison","Erste Lieferung","Prima Consegna","Первая доставка","初配達","首次送达"
@@ -243,22 +243,22 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "Completa 1 000 entregas.","Completa 1 000 entregas.","Complete 1,000 deliveries.","Completa 1000 entregas.","Complétez 1 000 livraisons.","Schließe 1 000 Lieferungen ab.","Completa 1 000 consegne.","Выполни 1 000 доставок.","1,000回配達を完了。","完成1,000次送达。"
 "Dez Mil Entregas","Dez Mil Entregas","Ten Thousand Deliveries","Diez mil entregas","Dix mille livraisons","Zehntausend Lieferungen","Diecimila Consegne","Десять тысяч доставок","10,000配達","万次送达"
 "Completa 10 000 entregas.","Completa 10 000 entregas.","Complete 10,000 deliveries.","Completa 10 000 entregas.","Complétez 10 000 livraisons.","Schließe 10 000 Lieferungen ab.","Completa 10 000 consegne.","Выполни 10 000 доставок.","10,000回配達を完了。","完成10,000次送达。"
-"Pequena Frota","Pequena Frota","Small Fleet","Flota pequeña","Petite flotte","Kleine Flotte","Piccola Flotta","Малый флот","小規模艦隊","小型机队"
-"Tem 5 drones activos.","Tem 5 drones activos.","Have 5 active drones.","Ten 5 drones activos.","Avoir 5 drones actifs.","Habe 5 aktive Drohnen.","Possiedi 5 droni attivi.","Имей 5 активных дронов.","稼働ドローン5機を保有。","拥有5架活跃无人机。"
-"Frota Sólida","Frota Sólida","Solid Fleet","Flota sólida","Flotte solide","Solide Flotte","Flotta Solida","Крепкий флот","堅実な艦隊","稳固机队"
-"Tem 25 drones activos.","Tem 25 drones activos.","Have 25 active drones.","Ten 25 drones activos.","Avoir 25 drones actifs.","Habe 25 aktive Drohnen.","Possiedi 25 droni attivi.","Имей 25 активных дронов.","稼働ドローン25機を保有。","拥有25架活跃无人机。"
-"Exército de Drones","Exército de Drones","Drone Army","Ejército de drones","Armée de drones","Drohnen-Armee","Esercito di Droni","Армия дронов","ドローン軍団","无人机军团"
-"Tem 100 drones activos.","Tem 100 drones activos.","Have 100 active drones.","Ten 100 drones activos.","Avoir 100 drones actifs.","Habe 100 aktive Drohnen.","Possiedi 100 droni attivi.","Имей 100 активных дронов.","稼働ドローン100機を保有。","拥有100架活跃无人机。"
+"Pequena Frota","Pequena Frota","Small Fleet","Flota pequeña","Petite flotte","Kleine Greifenschar","Piccola Flotta","Малый флот","小規模艦隊","小型机队"
+"Tem 5 drones activos.","Tem 5 drones activos.","Have 5 active drones.","Ten 5 drones activos.","Avoir 5 drones actifs.","Befehligt 5 aktive Greifenkuriere.","Possiedi 5 droni attivi.","Имей 5 активных дронов.","稼働ドローン5機を保有。","拥有5架活跃无人机。"
+"Frota Sólida","Frota Sólida","Solid Fleet","Flota sólida","Flotte solide","Erfahrene Karawane","Flotta Solida","Крепкий флот","堅実な艦隊","稳固机队"
+"Tem 25 drones activos.","Tem 25 drones activos.","Have 25 active drones.","Ten 25 drones activos.","Avoir 25 drones actifs.","Befehligt 25 aktive Greifenkuriere.","Possiedi 25 droni attivi.","Имей 25 активных дронов.","稼働ドローン25機を保有。","拥有25架活跃无人机。"
+"Exército de Drones","Exército de Drones","Drone Army","Ejército de drones","Armée de drones","Greifenlegion","Esercito di Droni","Армия дронов","ドローン軍団","无人机军团"
+"Tem 100 drones activos.","Tem 100 drones activos.","Have 100 active drones.","Ten 100 drones activos.","Avoir 100 drones actifs.","Befehligt 100 aktive Greifenkuriere.","Possiedi 100 droni attivi.","Имей 100 активных дронов.","稼働ドローン100機を保有。","拥有100架活跃无人机。"
 "Força Aérea","Força Aérea","Air Force","Fuerza aérea","Force aérienne","Luftwaffe","Forza Aerea","ВВС","航空隊","空军"
-"Tem 500 drones activos.","Tem 500 drones activos.","Have 500 active drones.","Ten 500 drones activos.","Avoir 500 drones actifs.","Habe 500 aktive Drohnen.","Possiedi 500 droni attivi.","Имей 500 активных дронов.","稼働ドローン500機を保有。","拥有500架活跃无人机。"
+"Tem 500 drones activos.","Tem 500 drones activos.","Have 500 active drones.","Ten 500 drones activos.","Avoir 500 drones actifs.","Befehligt 500 aktive Greifenkuriere.","Possiedi 500 droni attivi.","Имей 500 активных дронов.","稼働ドローン500機を保有。","拥有500架活跃无人机。"
 "Atacado","Atacado","Wholesale","Al por mayor","Gros","Großhandel","Ingrosso","Оптом","大量購入","批发"
-"Compra 100 drones de uma vez.","Compra 100 drones de uma vez.","Buy 100 drones at once.","Compra 100 drones de una vez.","Achetez 100 drones d'un coup.","Kaufe 100 Drohnen auf einmal.","Compra 100 droni in una volta.","Купи 100 дронов за раз.","一度に100機のドローンを購入。","一次购买100架无人机。"
+"Compra 100 drones de uma vez.","Compra 100 drones de uma vez.","Buy 100 drones at once.","Compra 100 drones de una vez.","Achetez 100 drones d'un coup.","Heuere 100 Greifenkuriere auf einmal an.","Compra 100 droni in una volta.","Купи 100 дронов за раз.","一度に100機のドローンを購入。","一次购买100架无人机。"
 "Milionário","Milionário","Millionaire","Millonario","Millionnaire","Millionär","Milionario","Миллионер","ミリオネア","百万富翁"
-"Acumula 1 M de créditos.","Acumula 1 M de créditos.","Accumulate 1M credits.","Acumula 1 M de créditos.","Accumulez 1 M de crédits.","Sammle 1 Mio. Credits.","Accumula 1 M di crediti.","Накопи 1 млн кредитов.","クレジットを100万貯める。","累积100万信用点。"
+"Acumula 1 M de créditos.","Acumula 1 M de créditos.","Accumulate 1M credits.","Acumula 1 M de créditos.","Accumulez 1 M de crédits.","Sammle 1 Mio. Gold.","Accumula 1 M di crediti.","Накопи 1 млн кредитов.","クレジットを100万貯める。","累积100万信用点。"
 "Bilionário","Bilionário","Billionaire","Multimillonario","Milliardaire","Milliardär","Miliardario","Миллиардер","ビリオネア","亿万富翁"
-"Acumula 1 B de créditos.","Acumula 1 B de créditos.","Accumulate 1B credits.","Acumula 1 B de créditos.","Accumulez 1 Md de crédits.","Sammle 1 Mrd. Credits.","Accumula 1 B di crediti.","Накопи 1 млрд кредитов.","クレジットを10億貯める。","累积10亿信用点。"
+"Acumula 1 B de créditos.","Acumula 1 B de créditos.","Accumulate 1B credits.","Acumula 1 B de créditos.","Accumulez 1 Md de crédits.","Sammle 1 Mrd. Gold.","Accumula 1 B di crediti.","Накопи 1 млрд кредитов.","クレジットを10億貯める。","累积10亿信用点。"
 "Trilionário","Trilionário","Trillionaire","Billonario","Billionnaire","Billionär","Trilionario","Триллионер","トリリオネア","兆万富翁"
-"Acumula 1 T de créditos.","Acumula 1 T de créditos.","Accumulate 1T credits.","Acumula 1 T de créditos.","Accumulez 1 Bn de crédits.","Sammle 1 Bio. Credits.","Accumula 1 T di crediti.","Накопи 1 трлн кредитов.","クレジットを1兆貯める。","累积1万亿信用点。"
+"Acumula 1 T de créditos.","Acumula 1 T de créditos.","Accumulate 1T credits.","Acumula 1 T de créditos.","Accumulez 1 Bn de crédits.","Sammle 1 Bio. Gold.","Accumula 1 T di crediti.","Накопи 1 трлн кредитов.","クレジットを1兆貯める。","累积1万亿信用点。"
 "Fluxo de Caixa","Fluxo de Caixa","Cash Flow","Flujo de caja","Flux de trésorerie","Cashflow","Flusso di Cassa","Денежный поток","キャッシュフロー","现金流"
 "Ganha 10 B no total.","Ganha 10 B no total.","Earn 10B total.","Gana 10 B en total.","Gagnez 10 Md au total.","Verdiene 10 Mrd. gesamt.","Guadagna 10 B in totale.","Заработай 10 млрд всего.","合計100億を獲得。","累计赚取100亿。"
 "Magnata","Magnata","Tycoon","Magnate","Magnat","Magnat","Magnate","Магнат","大富豪","大亨"
@@ -268,11 +268,11 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "Máquina de Dinheiro","Máquina de Dinheiro","Money Machine","Máquina de dinero","Machine à cash","Geldmaschine","Macchina da Soldi","Денежная машина","マネーマシン","赚钱机器"
 "Atinge 1 M/s de receita.","Atinge 1 M/s de receita.","Reach 1M/s income.","Alcanza 1 M/s de ingresos.","Atteignez 1 M/s de revenu.","Erreiche 1 Mio./s Einkommen.","Raggiungi 1 M/s di entrate.","Достигни дохода 1 млн/с.","収益100万/sに到達。","达到100万/s收入。"
 "Expansão Global","Expansão Global","Global Expansion","Expansión global","Expansion mondiale","Globale Expansion","Espansione Globale","Глобальное расширение","グローバル展開","全球扩张"
-"Expande para o 2.º país.","Expande para o 2.º país.","Expand to the 2nd country.","Expande al 2.º país.","Étendez-vous au 2e pays.","Erweitere zum 2. Land.","Espandi al 2º paese.","Расширься во 2-ю страну.","2番目の国へ拡大。","扩张至第2个国家。"
+"Expande para o 2.º país.","Expande para o 2.º país.","Expand to the 2nd country.","Expande al 2.º país.","Étendez-vous au 2e pays.","Erschließe das 2. Reich.","Espandi al 2º paese.","Расширься во 2-ю страну.","2番目の国へ拡大。","扩张至第2个国家。"
 "Continente","Continente","Continent","Continente","Continent","Kontinent","Continente","Континент","大陸","大陆"
-"Expande para 5 países.","Expande para 5 países.","Expand to 5 countries.","Expande a 5 países.","Étendez-vous à 5 pays.","Erweitere auf 5 Länder.","Espandi a 5 paesi.","Расширься на 5 стран.","5カ国へ拡大。","扩张至5个国家。"
+"Expande para 5 países.","Expande para 5 países.","Expand to 5 countries.","Expande a 5 países.","Étendez-vous à 5 pays.","Erschließe 5 Reiche.","Espandi a 5 paesi.","Расширься на 5 стран.","5カ国へ拡大。","扩张至5个国家。"
 "Dominação Mundial","Dominação Mundial","World Domination","Dominación mundial","Domination mondiale","Weltherrschaft","Dominio Mondiale","Мировое господство","世界制覇","统治世界"
-"Expande para 10 países.","Expande para 10 países.","Expand to 10 countries.","Expande a 10 países.","Étendez-vous à 10 pays.","Erweitere auf 10 Länder.","Espandi a 10 paesi.","Расширься на 10 стран.","10カ国へ拡大。","扩张至10个国家。"
+"Expande para 10 países.","Expande para 10 países.","Expand to 10 countries.","Expande a 10 países.","Étendez-vous à 10 pays.","Erschließe 10 Reiche.","Espandi a 10 paesi.","Расширься на 10 стран.","10カ国へ拡大。","扩张至10个国家。"
 "Urbanista","Urbanista","Urban Planner","Urbanista","Urbaniste","Stadtplaner","Urbanista","Градостроитель","都市計画者","城市规划师"
 "Desbloqueia 10 cidades no total.","Desbloqueia 10 cidades no total.","Unlock 10 cities total.","Desbloquea 10 ciudades en total.","Débloquez 10 villes au total.","Schalte 10 Städte gesamt frei.","Sblocca 10 città in totale.","Разблокируй 10 городов всего.","合計10都市を解放。","累计解锁10座城市。"
 "Megalópole","Megalópole","Megalopolis","Megalópolis","Mégalopole","Megalopolis","Megalopoli","Мегаполис","メガロポリス","特大都市"
@@ -281,7 +281,7 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "Chega ao nível 25 num upgrade.","Chega ao nível 25 num upgrade.","Reach level 25 in an upgrade.","Llega al nivel 25 en una mejora.","Atteignez le niveau 25 sur une amélioration.","Erreiche Stufe 25 bei einem Upgrade.","Raggiungi il livello 25 in un potenziamento.","Достигни 25 уровня улучшения.","アップグレードをレベル25に到達。","某项升级达到25级。"
 "Mestre Técnico","Mestre Técnico","Master Technician","Maestro técnico","Maître technicien","Meistertechniker","Maestro Tecnico","Мастер-техник","マスターテクニシャン","技术大师"
 "Chega ao nível 100 num upgrade.","Chega ao nível 100 num upgrade.","Reach level 100 in an upgrade.","Llega al nivel 100 en una mejora.","Atteignez le niveau 100 sur une amélioration.","Erreiche Stufe 100 bei einem Upgrade.","Raggiungi il livello 100 in un potenziamento.","Достигни 100 уровня улучшения.","アップグレードをレベル100に到達。","某项升级达到100级。"
-"Frota Optimizada","Frota Optimizada","Optimized Fleet","Flota optimizada","Flotte optimisée","Optimierte Flotte","Flotta Ottimizzata","Отлаженный флот","最適化艦隊","优化机队"
+"Frota Optimizada","Frota Optimizada","Optimized Fleet","Flota optimizada","Flotte optimisée","Meisterhafte Karawane","Flotta Ottimizzata","Отлаженный флот","最適化艦隊","优化机队"
 "Todos os upgrades ao nível 25+.","Todos os upgrades ao nível 25+.","All upgrades at level 25+.","Todas las mejoras al nivel 25+.","Toutes les améliorations au niveau 25+.","Alle Upgrades auf Stufe 25+.","Tutti i potenziamenti al livello 25+.","Все улучшения на уровне 25+.","全アップグレードをレベル25以上に。","所有升级达到25级以上。"
 "Talentoso","Talentoso","Talented","Talentoso","Talentueux","Talentiert","Talentuoso","Талантливый","才能あり","天赋异禀"
 "Chega ao nível 10 num talento.","Chega ao nível 10 num talento.","Reach level 10 in a talent.","Llega al nivel 10 en un talento.","Atteignez le niveau 10 sur un talent.","Erreiche Stufe 10 bei einem Talent.","Raggiungi il livello 10 in un talento.","Достигни 10 уровня таланта.","タレントをレベル10に到達。","某项天赋达到10级。"
@@ -290,11 +290,11 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "Obsessivo","Obsessivo","Obsessive","Obsesivo","Obsessionnel","Besessen","Ossessivo","Одержимый","執念家","痴迷者"
 "Compra o Núcleo de Lucro 5 vezes.","Compra o Núcleo de Lucro 5 vezes.","Buy the Profit Core 5 times.","Compra el Núcleo de Ganancias 5 veces.","Achetez le Noyau de profit 5 fois.","Kaufe den Gewinnkern 5 Mal.","Compra il Nucleo di Profitto 5 volte.","Купи Ядро прибыли 5 раз.","利益コアを5回購入。","购买利润核心5次。"
 "Novo Começo","Novo Começo","New Beginning","Nuevo comienzo","Nouveau départ","Neuanfang","Nuovo Inizio","Новое начало","新たな始まり","全新开始"
-"Faz prestige pela primeira vez.","Faz prestige pela primeira vez.","Prestige for the first time.","Haz prestigio por primera vez.","Faites prestige pour la première fois.","Mache zum ersten Mal Prestige.","Fai prestigio per la prima volta.","Сделай престиж впервые.","初めてプレステージする。","首次转生。"
+"Faz prestige pela primeira vez.","Faz prestige pela primeira vez.","Prestige for the first time.","Haz prestigio por primera vez.","Faites prestige pour la première fois.","Begründe dein erstes Vermächtnis.","Fai prestigio per la prima volta.","Сделай престиж впервые.","初めてプレステージする。","首次转生。"
 "Veterano","Veterano","Veteran","Veterano","Vétéran","Veteran","Veterano","Ветеран","ベテラン","老兵"
-"Faz prestige 3 vezes.","Faz prestige 3 vezes.","Prestige 3 times.","Haz prestigio 3 veces.","Faites prestige 3 fois.","Mache 3 Mal Prestige.","Fai prestigio 3 volte.","Сделай престиж 3 раза.","プレステージを3回行う。","转生3次。"
+"Faz prestige 3 vezes.","Faz prestige 3 vezes.","Prestige 3 times.","Haz prestigio 3 veces.","Faites prestige 3 fois.","Begründe 3 Vermächtnisse.","Fai prestigio 3 volte.","Сделай престиж 3 раза.","プレステージを3回行う。","转生3次。"
 "Piloto Lendário","Piloto Lendário","Legendary Pilot","Piloto legendario","Pilote légendaire","Legendärer Pilot","Pilota Leggendario","Легендарный пилот","レジェンドパイロット","传奇飞行员"
-"Faz prestige 5 vezes.","Faz prestige 5 vezes.","Prestige 5 times.","Haz prestigio 5 veces.","Faites prestige 5 fois.","Mache 5 Mal Prestige.","Fai prestigio 5 volte.","Сделай престиж 5 раз.","プレステージを5回行う。","转生5次。"
+"Faz prestige 5 vezes.","Faz prestige 5 vezes.","Prestige 5 times.","Haz prestigio 5 veces.","Faites prestige 5 fois.","Begründe 5 Vermächtnisse.","Fai prestigio 5 volte.","Сделай престиж 5 раз.","プレステージを5回行う。","转生5次。"
 "Semana de Trabalho","Semana de Trabalho","Work Week","Semana de trabajo","Semaine de travail","Arbeitswoche","Settimana di Lavoro","Рабочая неделя","勤務週間","工作周"
 "Joga 7 dias consecutivos.","Joga 7 dias consecutivos.","Play 7 days in a row.","Juega 7 días seguidos.","Jouez 7 jours d'affilée.","Spiele 7 Tage in Folge.","Gioca 7 giorni di fila.","Играй 7 дней подряд.","7日連続でプレイ。","连续游玩7天。"
 "Mês Dedicado","Mês Dedicado","Dedicated Month","Mes dedicado","Mois dévoué","Engagierter Monat","Mese Dedicato","Преданный месяц","献身の1ヶ月","专注一月"
@@ -325,16 +325,16 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "Operações Noturnas","Operações Noturnas","Night Operations","Operaciones nocturnas","Opérations nocturnes","Nachtbetrieb","Operazioni Notturne","Ночные операции","夜間オペレーション","夜间运营"
 "+20% de eficiência offline permanente.","+20% de eficiência offline permanente.","+20% permanent offline efficiency.","+20% de eficiencia sin conexión permanente.","+20% d'efficacité hors ligne permanente.","+20% dauerhafte Offline-Effizienz.","+20% di efficienza offline permanente.","+20% к офлайн-эффективности навсегда.","オフライン効率 +20% 永続。","+20% 永久离线效率。"
 "Hangar Herdado","Hangar Herdado","Inherited Hangar","Hangar heredado","Hangar hérité","Geerbter Hangar","Hangar Ereditato","Унаследованный ангар","継承格納庫","继承机库"
-"Começa sempre com 10 drones extra.","Começa sempre com 10 drones extra.","Always start with 10 extra drones.","Empieza siempre con 10 drones extra.","Commencez toujours avec 10 drones en plus.","Starte immer mit 10 Extra-Drohnen.","Parti sempre con 10 droni extra.","Всегда начинай с 10 доп. дронами.","常にドローン10機追加でスタート。","始终额外拥有10架无人机开始。"
+"Começa sempre com 10 drones extra.","Começa sempre com 10 drones extra.","Always start with 10 extra drones.","Empieza siempre con 10 drones extra.","Commencez toujours avec 10 drones en plus.","Beginne immer mit 10 zusätzlichen Greifenkurieren.","Parti sempre con 10 droni extra.","Всегда начинай с 10 доп. дронами.","常にドローン10機追加でスタート。","始终额外拥有10架无人机开始。"
 "Hangar Militar","Hangar Militar","Military Hangar","Hangar militar","Hangar militaire","Militärhangar","Hangar Militare","Военный ангар","軍用格納庫","军用机库"
-"Começa sempre com 25 drones extra.","Começa sempre com 25 drones extra.","Always start with 25 extra drones.","Empieza siempre con 25 drones extra.","Commencez toujours avec 25 drones en plus.","Starte immer mit 25 Extra-Drohnen.","Parti sempre con 25 droni extra.","Всегда начинай с 25 доп. дронами.","常にドローン25機追加でスタート。","始终额外拥有25架无人机开始。"
-"Prévia VIP","Prévia VIP","VIP Preview","Adelanto VIP","Aperçu VIP","VIP-Vorschau","Anteprima VIP","VIP-превью","VIPプレビュー","VIP 预览"
-"Activa VIP por 24 h após cada prestige.","Activa VIP por 24 h após cada prestige.","Activates VIP for 24h after each prestige.","Activa VIP durante 24 h tras cada prestigio.","Active le VIP pendant 24 h après chaque prestige.","Aktiviert VIP für 24h nach jedem Prestige.","Attiva il VIP per 24 h dopo ogni prestigio.","Включает VIP на 24ч после каждого престижа.","各プレステージ後、24時間VIPを有効化。","每次转生后激活VIP 24小时。"
+"Começa sempre com 25 drones extra.","Começa sempre com 25 drones extra.","Always start with 25 extra drones.","Empieza siempre con 25 drones extra.","Commencez toujours avec 25 drones en plus.","Beginne immer mit 25 zusätzlichen Greifenkurieren.","Parti sempre con 25 droni extra.","Всегда начинай с 25 доп. дронами.","常にドローン25機追加でスタート。","始终额外拥有25架无人机开始。"
+"Prévia VIP","Prévia VIP","VIP Preview","Adelanto VIP","Aperçu VIP","Gildensegen","Anteprima VIP","VIP-превью","VIPプレビュー","VIP 预览"
+"Activa VIP por 24 h após cada prestige.","Activa VIP por 24 h após cada prestige.","Activates VIP for 24h after each prestige.","Activa VIP durante 24 h tras cada prestigio.","Active le VIP pendant 24 h après chaque prestige.","Aktiviert nach jedem Vermächtnis 24 Stunden Gildensegen.","Attiva il VIP per 24 h dopo ogni prestigio.","Включает VIP на 24ч после каждого престижа.","各プレステージ後、24時間VIPを有効化。","每次转生后激活VIP 24小时。"
 "Voos Internacionais","Voos Internacionais","International Flights","Vuelos internacionales","Vols internationaux","Internationale Flüge","Voli Internazionali","Международные рейсы","国際便","国际航班"
-"Começa no 2.º país após prestige.","Começa no 2.º país após prestige.","Start in the 2nd country after prestige.","Empieza en el 2.º país tras prestigio.","Commencez au 2e pays après un prestige.","Starte nach Prestige im 2. Land.","Parti dal 2º paese dopo il prestigio.","Начинай во 2-й стране после престижа.","プレステージ後、2番目の国からスタート。","转生后从第2个国家开始。"
+"Começa no 2.º país após prestige.","Começa no 2.º país após prestige.","Start in the 2nd country after prestige.","Empieza en el 2.º país tras prestigio.","Commencez au 2e pays après un prestige.","Beginne nach einem Vermächtnis im 2. Reich.","Parti dal 2º paese dopo il prestigio.","Начинай во 2-й стране после престижа.","プレステージ後、2番目の国からスタート。","转生后从第2个国家开始。"
 "Pacote Inicial","Pacote Inicial","Starter Pack","Pack inicial","Pack de démarrage","Starterpaket","Pacchetto Iniziale","Стартовый набор","スターターパック","新手礼包"
-"+300 Gemas, +5 drones e Lucros x2 por 1h. Arranque rápido!","+300 Gemas, +5 drones e Lucros x2 por 1h. Arranque rápido!","+300 Gems, +5 drones and 2x Profits for 1h. Quick start!","+300 Gemas, +5 drones y Ganancias x2 por 1h. ¡Arranque rápido!","+300 Gemmes, +5 drones et Profits x2 pendant 1h. Départ rapide !","+300 Edelsteine, +5 Drohnen und 2x Gewinn für 1h. Schnellstart!","+300 Gemme, +5 droni e Profitti x2 per 1h. Partenza rapida!","+300 гемов, +5 дронов и x2 прибыли на 1ч. Быстрый старт!","+300 ジェム、ドローン +5 機、1時間 利益2倍。スピードスタート！","+300 宝石、+5 架无人机及1小时利润×2。快速起步！"
-"Passe VIP","Passe VIP","VIP Pass","Pase VIP","Passe VIP","VIP-Pass","Pass VIP","VIP-пропуск","VIPパス","VIP 通行证"
+"+300 Gemas, +5 drones e Lucros x2 por 1h. Arranque rápido!","+300 Gemas, +5 drones e Lucros x2 por 1h. Arranque rápido!","+300 Gems, +5 drones and 2x Profits for 1h. Quick start!","+300 Gemas, +5 drones y Ganancias x2 por 1h. ¡Arranque rápido!","+300 Gemmes, +5 drones et Profits x2 pendant 1h. Départ rapide !","+300 Edelsteine, +5 Greifenkuriere und 2× Ertrag für 1 Std. Schnellstart!","+300 Gemme, +5 droni e Profitti x2 per 1h. Partenza rapida!","+300 гемов, +5 дронов и x2 прибыли на 1ч. Быстрый старт!","+300 ジェム、ドローン +5 機、1時間 利益2倍。スピードスタート！","+300 宝石、+5 架无人机及1小时利润×2。快速起步！"
+"Passe VIP","Passe VIP","VIP Pass","Pase VIP","Passe VIP","Gildenpass","Pass VIP","VIP-пропуск","VIPパス","VIP 通行证"
 "Lucros x2 SEMPRE ativos, offline até 24h, +500 Gemas.","Lucros x2 SEMPRE ativos, offline até 24h, +500 Gemas.","2x Profits ALWAYS active, offline up to 24h, +500 Gems.","Ganancias x2 SIEMPRE activas, sin conexión hasta 24h, +500 Gemas.","Profits x2 TOUJOURS actifs, hors ligne jusqu'à 24h, +500 Gemmes.","2x Gewinn IMMER aktiv, offline bis 24h, +500 Edelsteine.","Profitti x2 SEMPRE attivi, offline fino a 24h, +500 Gemme.","x2 прибыли ВСЕГДА, офлайн до 24ч, +500 гемов.","利益2倍が常時有効、オフライン最大24時間、+500 ジェム。","利润×2 永久激活，离线最长24小时，+500 宝石。"
 "Lucros x2 (para sempre)","Lucros x2 (para sempre)","2x Profits (forever)","Ganancias x2 (para siempre)","Profits x2 (pour toujours)","2x Gewinn (für immer)","Profitti x2 (per sempre)","x2 прибыли (навсегда)","利益2倍（永続）","利润×2（永久）"
 "Duplica todos os lucros, para sempre.","Duplica todos os lucros, para sempre.","Doubles all profits, forever.","Duplica todas las ganancias, para siempre.","Double tous les profits, pour toujours.","Verdoppelt jeden Gewinn, für immer.","Raddoppia tutti i profitti, per sempre.","Удваивает всю прибыль, навсегда.","すべての利益を永久に2倍。","所有利润翻倍，永久有效。"
@@ -355,11 +355,11 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "Velocidade ÷2, Ganhos ×3!","Velocidade ÷2, Ganhos ×3!","Speed ÷2, Earnings ×3!","¡Velocidad ÷2, Ganancias ×3!","Vitesse ÷2, Gains ×3 !","Tempo ÷2, Verdienst ×3!","Velocità ÷2, Guadagni ×3!","Скорость ÷2, заработок ×3!","速度 ÷2、獲得 ×3！","速度÷2，收益×3！"
 "Festival da Cidade","Festival da Cidade","City Festival","Festival de la ciudad","Festival de la ville","Stadtfest","Festival della Città","Городской фестиваль","シティフェスティバル","城市节庆"
 "Ganhos ×2.5 por 8 min!","Ganhos ×2.5 por 8 min!","Earnings ×2.5 for 8 min!","¡Ganancias ×2.5 durante 8 min!","Gains ×2.5 pendant 8 min !","Verdienst ×2,5 für 8 Min!","Guadagni ×2.5 per 8 min!","Заработок ×2.5 на 8 мин!","獲得 ×2.5 を8分間！","收益×2.5 持续8分钟！"
-"Pacote VIP","Pacote VIP","VIP Package","Paquete VIP","Pack VIP","VIP-Paket","Pacchetto VIP","VIP-посылка","VIPパッケージ","VIP 礼包"
+"Pacote VIP","Pacote VIP","VIP Package","Paquete VIP","Pack VIP","Gildenpaket","Pacchetto VIP","VIP-посылка","VIPパッケージ","VIP 礼包"
 "Próxima entrega ×25!","Próxima entrega ×25!","Next delivery ×25!","¡Próxima entrega ×25!","Prochaine livraison ×25 !","Nächste Lieferung ×25!","Prossima consegna ×25!","Следующая доставка ×25!","次の配達 ×25！","下次送达×25！"
 "Chuva de Lucros","Chuva de Lucros","Profit Rain","Lluvia de ganancias","Pluie de profits","Gewinnregen","Pioggia di Profitti","Дождь из прибыли","利益の雨","利润雨"
 "Ganhos ×8 durante 3 min! RARO!","Ganhos ×8 durante 3 min! RARO!","Earnings ×8 for 3 min! RARE!","¡Ganancias ×8 durante 3 min! ¡RARO!","Gains ×8 pendant 3 min ! RARE !","Verdienst ×8 für 3 Min! SELTEN!","Guadagni ×8 per 3 min! RARO!","Заработок ×8 на 3 мин! РЕДКО!","獲得 ×8 を3分間！レア！","收益×8 持续3分钟！稀有！"
-"Tech Drone","Tech Drone","Drone Tech","Tech Drone","Tech Drone","Drohnen-Tech","Drone Tech","Дрон-техника","ドローンテック","无人机科技"
+"Tech Drone","Tech Drone","Drone Tech","Tech Drone","Tech Drone","Arkaner Greif","Drone Tech","Дрон-техника","ドローンテック","无人机科技"
 "Velocidade ×1.5, Ganhos ×1.5!","Velocidade ×1.5, Ganhos ×1.5!","Speed ×1.5, Earnings ×1.5!","¡Velocidad ×1.5, Ganancias ×1.5!","Vitesse ×1.5, Gains ×1.5 !","Tempo ×1,5, Verdienst ×1,5!","Velocità ×1.5, Guadagni ×1.5!","Скорость ×1.5, заработок ×1.5!","速度 ×1.5、獲得 ×1.5！","速度×1.5，收益×1.5！"
 "Black Friday","Black Friday","Black Friday","Black Friday","Black Friday","Black Friday","Black Friday","Чёрная пятница","ブラックフライデー","黑色星期五"
 "Ganhos ×6 por 5 min!","Ganhos ×6 por 5 min!","Earnings ×6 for 5 min!","¡Ganancias ×6 durante 5 min!","Gains ×6 pendant 5 min !","Verdienst ×6 für 5 Min!","Guadagni ×6 per 5 min!","Заработок ×6 на 5 мин!","獲得 ×6 を5分間！","收益×6 持续5分钟！"
@@ -369,20 +369,20 @@ Prestigio: %d  ·  Obiettivi: %d/%d","Доставки: %s  ·  Заработо
 "+25 Influência + 25 💎","+25 Influência + 25 💎","+25 Influence + 25 💎","+25 Influencia + 25 💎","+25 Influence + 25 💎","+25 Einfluss + 25 💎","+25 Influenza + 25 💎","+25 влияния + 25 💎","+25 影響力 + 25 💎","+25 影响力 + 25 💎"
 "Desafio Semanal: entrega %d pacotes","Desafio Semanal: entrega %d pacotes","Weekly Challenge: deliver %d packages","Desafío semanal: entrega %d paquetes","Défi hebdomadaire : livrez %d colis","Wochen-Challenge: liefere %d Pakete","Sfida Settimanale: consegna %d pacchi","Еженедельный вызов: доставь %d посылок","ウィークリーチャレンジ：%d 個の荷物を配達","每周挑战：送达 %d 个包裹"
 "Entrega %d pacotes","Entrega %d pacotes","Deliver %d packages","Entrega %d paquetes","Livrez %d colis","Liefere %d Pakete","Consegna %d pacchi","Доставь %d посылок","%d 個の荷物を配達","送达 %d 个包裹"
-"Ganha %s créditos","Ganha %s créditos","Earn %s credits","Gana %s créditos","Gagnez %s crédits","Verdiene %s Credits","Guadagna %s crediti","Заработай %s кредитов","%s クレジットを獲得","赚取 %s 信用点"
-"Tem %d drones na frota","Tem %d drones na frota","Have %d drones in your fleet","Ten %d drones en tu flota","Avoir %d drones dans votre flotte","Habe %d Drohnen in der Flotte","Possiedi %d droni nella flotta","Имей %d дронов во флоте","艦隊にドローン %d 機を保有","机队拥有 %d 架无人机"
+"Ganha %s créditos","Ganha %s créditos","Earn %s credits","Gana %s créditos","Gagnez %s crédits","Verdiene %s Gold","Guadagna %s crediti","Заработай %s кредитов","%s クレジットを獲得","赚取 %s 信用点"
+"Tem %d drones na frota","Tem %d drones na frota","Have %d drones in your fleet","Ten %d drones en tu flota","Avoir %d drones dans votre flotte","Befehligt %d Greifenkuriere","Possiedi %d droni nella flotta","Имей %d дронов во флоте","艦隊にドローン %d 機を保有","机队拥有 %d 架无人机"
 "Atinge combo de %d entregas","Atinge combo de %d entregas","Reach a %d-delivery combo","Alcanza un combo de %d entregas","Atteignez un combo de %d livraisons","Erreiche eine %d-Combo","Raggiungi un combo di %d consegne","Достигни комбо из %d доставок","%d 配達のコンボを達成","达成 %d 次送达连击"
-"Ganha 1K créditos","Ganha 1K créditos","Earn 1K credits","Gana 1K créditos","Gagnez 1K crédits","Verdiene 1K Credits","Guadagna 1K crediti","Заработай 1K кредитов","1K クレジットを獲得","赚取 1K 信用点"
+"Ganha 1K créditos","Ganha 1K créditos","Earn 1K credits","Gana 1K créditos","Gagnez 1K crédits","Verdiene 1K Gold","Guadagna 1K crediti","Заработай 1K кредитов","1K クレジットを獲得","赚取 1K 信用点"
 "Marco ×%d · próx. Nv %d","Marco ×%d · próx. Nv %d","Milestone ×%d · next Lv %d","Hito ×%d · próx. Nv %d","Cap ×%d · proch. Nv %d","Meilenstein ×%d · nächst. Stufe %d","Traguardo ×%d · pross. Liv %d","Рубеж ×%d · след. ур. %d","マイルストーン ×%d · 次 Lv %d","里程碑 ×%d · 下一个 Lv %d"
 "Marco ×2 ao Nv %d","Marco ×2 ao Nv %d","Milestone ×2 at Lv %d","Hito ×2 al Nv %d","Cap ×2 au Nv %d","Meilenstein ×2 bei Stufe %d","Traguardo ×2 al Liv %d","Рубеж ×2 на ур. %d","Lv %d でマイルストーン ×2","Lv %d 时里程碑 ×2"
 "MARCO! %s ×2!","MARCO! %s ×2!","MILESTONE! %s ×2!","¡HITO! ¡%s ×2!","CAP ! %s ×2 !","MEILENSTEIN! %s ×2!","TRAGUARDO! %s ×2!","РУБЕЖ! %s ×2!","マイルストーン！%s ×2！","里程碑！%s ×2！"
-"Drone Bónus!","Drone Bónus!","Bonus Drone!","¡Drone extra!","Drone bonus !","Bonus-Drohne!","Drone Bonus!","Бонусный дрон!","ボーナスドローン！","奖励无人机！"
+"Drone Bónus!","Drone Bónus!","Bonus Drone!","¡Drone extra!","Drone bonus !","Bonus-Greif!","Drone Bonus!","Бонусный дрон!","ボーナスドローン！","奖励无人机！"
 "Apanhaste um drone de carga dourado.
 Escolhe a tua recompensa:","Apanhaste um drone de carga dourado.
 Escolhe a tua recompensa:","You caught a golden cargo drone.
 Choose your reward:","Has atrapado un drone de carga dorado.
 Elige tu recompensa:","Vous avez attrapé un drone de charge doré.
-Choisissez votre récompense :","Du hast eine goldene Frachtdrohne gefangen.
+Choisissez votre récompense :","Du hast einen seltenen Goldgreif entdeckt.
 Wähle deine Belohnung:","Hai preso un drone di carico dorato.
 Scegli la tua ricompensa:","Ты поймал золотой грузовой дрон.
 Выбери свою награду:","金色の輸送ドローンをキャッチ。
@@ -397,16 +397,16 @@ Scegli la tua ricompensa:","Ты поймал золотой грузовой д
 "+40 Gemas","+40 Gemas","+40 Gems","+40 Gemas","+40 Gemmes","+40 Edelsteine","+40 Gemme","+40 гемов","+40 ジェム","+40 宝石"
 "+40 Gemas!","+40 Gemas!","+40 Gems!","¡+40 Gemas!","+40 Gemmes !","+40 Edelsteine!","+40 Gemme!","+40 гемов!","+40 ジェム！","+40 宝石！"
 "Hangar de Skins","Hangar de Skins","Skin Hangar","Hangar de skins","Hangar de skins","Skin-Hangar","Hangar delle Skin","Ангар скинов","スキン格納庫","涂装机库"
-"Skins permanentes para a tua frota. Cada skin extra dá +2% de lucros.","Skins permanentes para a tua frota. Cada skin extra dá +2% de lucros.","Permanent skins for your fleet. Each extra skin grants +2% profits.","Skins permanentes para tu flota. Cada skin extra da +2% de ganancias.","Skins permanents pour votre flotte. Chaque skin en plus donne +2% de profits.","Dauerhafte Skins für deine Flotte. Jede Extra-Skin gibt +2% Gewinn.","Skin permanenti per la tua flotta. Ogni skin extra dà +2% di profitti.","Постоянные скины для флота. Каждый доп. скин даёт +2% к прибыли.","艦隊の永続スキン。スキン1つ追加ごとに利益 +2%。","为你的机队提供永久涂装。每款额外涂装 +2% 利润。"
-"Frota Clássica","Frota Clássica","Classic Fleet","Flota clásica","Flotte classique","Klassische Flotte","Flotta Classica","Классический флот","クラシック艦隊","经典机队"
-"O visual original da frota.","O visual original da frota.","The fleet's original look.","El aspecto original de la flota.","L'apparence originale de la flotte.","Der Original-Look der Flotte.","L'aspetto originale della flotta.","Изначальный вид флота.","艦隊のオリジナルの外観。","机队的原始外观。"
-"Frota Solar","Frota Solar","Solar Fleet","Flota solar","Flotte solaire","Solar-Flotte","Flotta Solare","Солнечный флот","ソーラー艦隊","太阳机队"
+"Skins permanentes para a tua frota. Cada skin extra dá +2% de lucros.","Skins permanentes para a tua frota. Cada skin extra dá +2% de lucros.","Permanent skins for your fleet. Each extra skin grants +2% profits.","Skins permanentes para tu flota. Cada skin extra da +2% de ganancias.","Skins permanents pour votre flotte. Chaque skin en plus donne +2% de profits.","Dauerhafte Gewänder für deine Greifenkuriere. Jedes zusätzliche Gewand bringt +2% Ertrag.","Skin permanenti per la tua flotta. Ogni skin extra dà +2% di profitti.","Постоянные скины для флота. Каждый доп. скин даёт +2% к прибыли.","艦隊の永続スキン。スキン1つ追加ごとに利益 +2%。","为你的机队提供永久涂装。每款额外涂装 +2% 利润。"
+"Frota Clássica","Frota Clássica","Classic Fleet","Flota clásica","Flotte classique","Klassisches Gewand","Flotta Classica","Классический флот","クラシック艦隊","经典机队"
+"O visual original da frota.","O visual original da frota.","The fleet's original look.","El aspecto original de la flota.","L'apparence originale de la flotte.","Das ursprüngliche Gewand der Greifenkuriere.","L'aspetto originale della flotta.","Изначальный вид флота.","艦隊のオリジナルの外観。","机队的原始外观。"
+"Frota Solar","Frota Solar","Solar Fleet","Flota solar","Flotte solaire","Sonnengewand","Flotta Solare","Солнечный флот","ソーラー艦隊","太阳机队"
 "Dourado radiante com rasto âmbar.","Dourado radiante com rasto âmbar.","Radiant gold with an amber trail.","Dorado radiante con estela ámbar.","Or radieux avec une traînée ambre.","Strahlendes Gold mit Bernstein-Spur.","Oro radiante con scia ambra.","Сияющее золото с янтарным следом.","琥珀色の軌跡を放つ輝くゴールド。","灿烂金色，琥珀色尾迹。"
-"Frota Néon","Frota Néon","Neon Fleet","Flota neón","Flotte Néon","Neon-Flotte","Flotta Neon","Неоновый флот","ネオン艦隊","霓虹机队"
+"Frota Néon","Frota Néon","Neon Fleet","Flota neón","Flotte Néon","Neongewand","Flotta Neon","Неоновый флот","ネオン艦隊","霓虹机队"
 "Rosa elétrico com rasto magenta.","Rosa elétrico com rasto magenta.","Electric pink with a magenta trail.","Rosa eléctrico con estela magenta.","Rose électrique avec une traînée magenta.","Elektrisches Pink mit Magenta-Spur.","Rosa elettrico con scia magenta.","Электрик-розовый с пурпурным следом.","マゼンタの軌跡のエレクトリックピンク。","电光粉红，品红色尾迹。"
-"Frota Sombra","Frota Sombra","Shadow Fleet","Flota sombra","Flotte Ombre","Schatten-Flotte","Flotta Ombra","Теневой флот","シャドウ艦隊","暗影机队"
+"Frota Sombra","Frota Sombra","Shadow Fleet","Flota sombra","Flotte Ombre","Schattengewand","Flotta Ombra","Теневой флот","シャドウ艦隊","暗影机队"
 "Fuselagem escura com rasto vermelho.","Fuselagem escura com rasto vermelho.","Dark hull with a red trail.","Fuselaje oscuro con estela roja.","Fuselage sombre avec une traînée rouge.","Dunkler Rumpf mit roter Spur.","Fusoliera scura con scia rossa.","Тёмный корпус с красным следом.","赤い軌跡のダークな機体。","暗色机身，红色尾迹。"
-"Frota Aurora","Frota Aurora","Aurora Fleet","Flota aurora","Flotte Aurore","Aurora-Flotte","Flotta Aurora","Флот Аврора","オーロラ艦隊","极光机队"
+"Frota Aurora","Frota Aurora","Aurora Fleet","Flota aurora","Flotte Aurore","Auroragewand","Flotta Aurora","Флот Аврора","オーロラ艦隊","极光机队"
 "Verde-ciano boreal. A elite do céu.","Verde-ciano boreal. A elite do céu.","Boreal cyan-green. The sky's elite.","Verde-cian boreal. La élite del cielo.","Vert-cyan boréal. L'élite du ciel.","Boreales Cyan-Grün. Die Elite des Himmels.","Verde-ciano boreale. L'élite del cielo.","Северный циан-зелёный. Элита неба.","北方のシアングリーン。空の精鋭。","极地青绿。天空的精英。"
 "Skin ativa: %s","Skin ativa: %s","Active skin: %s","Skin activa: %s","Skin active : %s","Aktive Skin: %s","Skin attiva: %s","Активный скин: %s","使用中スキン：%s","当前涂装：%s"
 "Nova skin: %s!","Nova skin: %s!","New skin: %s!","¡Nueva skin: %s!","Nouvelle skin : %s !","Neue Skin: %s!","Nuova skin: %s!","Новый скин: %s!","新スキン：%s！","新涂装：%s！"
@@ -421,7 +421,7 @@ Scegli la tua ricompensa:","Ты поймал золотой грузовой д
 "Nv 0 · %s · %s","Nv 0 · %s · %s","Lv 0 · %s · %s","Nv 0 · %s · %s","Nv 0 · %s · %s","Stufe 0 · %s · %s","Liv 0 · %s · %s","Ур. 0 · %s · %s","Lv 0 · %s · %s","Lv 0 · %s · %s"
 "+20 Gemas","+20 Gemas","+20 Gems","+20 Gemas","+20 Gemmes","+20 Edelsteine","+20 Gemme","+20 гемов","+20 ジェム","+20 宝石"
 "+20 Gemas!","+20 Gemas!","+20 Gems!","¡+20 Gemas!","+20 Gemmes !","+20 Edelsteine!","+20 Gemme!","+20 гемов!","+20 ジェム！","+20 宝石！"
-"Prestige","Prestige","Prestige","Prestigio","Prestige","Prestige","Prestigio","Престиж","プレステージ","转生"
+"Prestige","Prestige","Prestige","Prestigio","Prestige","Vermächtnis","Prestigio","Престиж","プレステージ","转生"
 "+3%/nv velocidade","+3%/nv velocidade","+3%/lv speed","+3%/nv velocidad","+3%/nv vitesse","+3%/Stufe Tempo","+3%/liv velocità","+3%/ур. скорости","速度 +3%/Lv","+3%/级 速度"
 "+0.25/nv carga","+0.25/nv carga","+0.25/lv cargo","+0.25/nv carga","+0.25/nv charge","+0.25/Stufe Ladung","+0.25/liv carico","+0.25/ур. груза","積載 +0.25/Lv","+0.25/级 货舱"
 "+4%/nv valor","+4%/nv valor","+4%/lv value","+4%/nv valor","+4%/nv valeur","+4%/Stufe Wert","+4%/liv valore","+4%/ур. стоимости","価値 +4%/Lv","+4%/级 价值"
@@ -430,24 +430,24 @@ Scegli la tua ricompensa:","Ты поймал золотой грузовой д
 "+%.0f%% lucros","+%.0f%% lucros","+%.0f%% profits","+%.0f%% ganancias","+%.0f%% profits","+%.0f%% Gewinn","+%.0f%% profitti","+%.0f%% к прибыли","+%.0f%% 利益","+%.0f%% 利润"
 "+%.0f%% velocidade","+%.0f%% velocidade","+%.0f%% speed","+%.0f%% velocidad","+%.0f%% vitesse","+%.0f%% Tempo","+%.0f%% velocità","+%.0f%% к скорости","+%.0f%% 速度","+%.0f%% 速度"
 "+%.0f%% valor","+%.0f%% valor","+%.0f%% value","+%.0f%% valor","+%.0f%% valeur","+%.0f%% Wert","+%.0f%% valore","+%.0f%% к стоимости","+%.0f%% 価値","+%.0f%% 价值"
-"-%.0f%% custo drones","-%.0f%% custo drones","-%.0f%% drone cost","-%.0f%% coste drones","-%.0f%% coût drones","-%.0f%% Drohnenkosten","-%.0f%% costo droni","-%.0f%% к цене дронов","-%.0f%% ドローンコスト","-%.0f%% 无人机成本"
-"+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Prestigio","+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Prestigio","+150 💎 + 1 ⬡ престиж","+150 💎 + 1 ⬡ プレステージ","+150 💎 + 1 ⬡ 转生"
-"Gestor Automático","Gestor Automático","Auto Manager","Gestor automático","Gérant automatique","Auto-Manager","Manager Automatico","Авто-управляющий","オートマネージャー","自动经理"
-"Gestor de Frota Automático","Gestor de Frota Automático","Automatic Fleet Manager","Gestor de flota automático","Gérant de flotte automatique","Automatischer Flottenmanager","Gestione Flotta Automatica","Автоматический управляющий флотом","自動艦隊マネージャー","自动机队经理"
-"Compra sozinho a opção mais barata a cada poucos segundos. Exclusivo VIP.","Compra sozinho a opção mais barata a cada poucos segundos. Exclusivo VIP.","Automatically buys the cheapest option every few seconds. VIP exclusive.","Compra solo la opción más barata cada pocos segundos. Exclusivo VIP.","Achète tout seul l'option la moins chère toutes les quelques secondes. Exclusif VIP.","Kauft automatisch die günstigste Option alle paar Sekunden. VIP-exklusiv.","Compra da solo l'opzione più economica ogni pochi secondi. Esclusiva VIP.","Сам покупает самое дешёвое каждые несколько секунд. Только для VIP.","数秒ごとに最安の選択肢を自動購入。VIP限定。","每隔几秒自动购买最便宜的选项。VIP 专属。"
-"VIP","VIP","VIP","VIP","VIP","VIP","VIP","VIP","VIP","VIP"
+"-%.0f%% custo drones","-%.0f%% custo drones","-%.0f%% drone cost","-%.0f%% coste drones","-%.0f%% coût drones","-%.0f%% Kurierkosten","-%.0f%% costo droni","-%.0f%% к цене дронов","-%.0f%% ドローンコスト","-%.0f%% 无人机成本"
+"+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Prestigio","+150 💎 + 1 ⬡ Prestige","+150 💎 + 1 ⬡ Vermächtnisrune","+150 💎 + 1 ⬡ Prestigio","+150 💎 + 1 ⬡ престиж","+150 💎 + 1 ⬡ プレステージ","+150 💎 + 1 ⬡ 转生"
+"Gestor Automático","Gestor Automático","Auto Manager","Gestor automático","Gérant automatique","Karawanenmeister","Manager Automatico","Авто-управляющий","オートマネージャー","自动经理"
+"Gestor de Frota Automático","Gestor de Frota Automático","Automatic Fleet Manager","Gestor de flota automático","Gérant de flotte automatique","Automatischer Karawanenmeister","Gestione Flotta Automatica","Автоматический управляющий флотом","自動艦隊マネージャー","自动机队经理"
+"Compra sozinho a opção mais barata a cada poucos segundos. Exclusivo VIP.","Compra sozinho a opção mais barata a cada poucos segundos. Exclusivo VIP.","Automatically buys the cheapest option every few seconds. VIP exclusive.","Compra solo la opción más barata cada pocos segundos. Exclusivo VIP.","Achète tout seul l'option la moins chère toutes les quelques secondes. Exclusif VIP.","Kauft alle paar Sekunden automatisch die günstigste Option.","Compra da solo l'opzione più economica ogni pochi secondi. Esclusiva VIP.","Сам покупает самое дешёвое каждые несколько секунд. Только для VIP.","数秒ごとに最安の選択肢を自動購入。VIP限定。","每隔几秒自动购买最便宜的选项。VIP 专属。"
+"VIP","VIP","VIP","VIP","VIP","GILDE","VIP","VIP","VIP","VIP"
 "pronto em %s","pronto em %s","ready in %s","listo en %s","prêt dans %s","bereit in %s","pronto tra %s","готово через %s","%s後に準備完了","%s 后就绪"
 "Núcleo Ascendente","Núcleo Ascendente","Ascendant Core","Núcleo ascendente","Noyau ascendant","Aufsteigender Kern","Nucleo Ascendente","Восходящее ядро","アセンダントコア","飞升核心"
 "Nv %d · +%d%% permanente · repetível","Nv %d · +%d%% permanente · repetível","Lv %d · +%d%% permanent · repeatable","Nv %d · +%d%% permanente · repetible","Nv %d · +%d%% permanent · répétable","Stufe %d · +%d%% dauerhaft · wiederholbar","Liv %d · +%d%% permanente · ripetibile","Ур. %d · +%d%% навсегда · повторяемо","Lv %d · +%d%% 永続 · 反復可能","Lv %d · +%d%% 永久 · 可重复"
 "Bem-vindo, Piloto!","Bem-vindo, Mercador!","Welcome, Merchant!","¡Bienvenido, Mercader!","Bienvenue, Marchand !","Willkommen, Händler!","Benvenuto, Mercante!","Добро пожаловать, торговец!","ようこそ、商人！","欢迎，商人！"
-"A tua frota de entregas está pronta a descolar.","A tua frota de entregas está pronta a descolar.","Your delivery fleet is ready for takeoff.","Tu flota de entregas está lista para despegar.","Votre flotte de livraison est prête à décoller.","Deine Lieferflotte ist startklar.","La tua flotta di consegne è pronta al decollo.","Твой флот доставки готов к взлёту.","配達艦隊は離陸準備完了。","你的送货机队已准备起飞。"
+"A tua frota de entregas está pronta a descolar.","A tua frota de entregas está pronta a descolar.","Your delivery fleet is ready for takeoff.","Tu flota de entregas está lista para despegar.","Votre flotte de livraison est prête à décoller.","Deine Greifenkarawane ist startklar.","La tua flotta di consegne è pronta al decollo.","Твой флот доставки готов к взлёту.","配達艦隊は離陸準備完了。","你的送货机队已准备起飞。"
 "Compra drones e melhorias","Contrata correios grifo","Hire griffin couriers","Contrata mensajeros grifo","Recrutez des coursiers griffons","Greifenkuriere anheuern","Assolda corrieri grifone","Нанимай грифонов-курьеров","グリフィン配達員を雇う","雇佣狮鹫信使"
 "Cada entrega gera créditos automaticamente.","Cada negócio gera ouro automaticamente.","Every trade earns gold automatically.","Cada trato genera oro automáticamente.","Chaque transaction rapporte automatiquement de l’or.","Jeder Handel erzeugt automatisch Gold.","Ogni scambio genera oro automaticamente.","Каждая сделка автоматически приносит золото.","取引ごとに自動でゴールドを獲得。","每笔交易都会自动赚取金币。"
 "Expande pelo mundo","Expande o teu reino","Expand your realm","Expande tu reino","Étendez votre royaume","Das Reich erweitern","Espandi il tuo regno","Расширяй своё королевство","王国を拡大","扩张你的王国"
 "Abre cidades e países para multiplicar os lucros.","Desbloqueia cidades e reinos para aumentar os lucros.","Unlock cities and realms to multiply profits.","Desbloquea ciudades y reinos para multiplicar beneficios.","Débloquez villes et royaumes pour multiplier les profits.","Erschließe Städte und Reiche für höheren Ertrag.","Sblocca città e regni per moltiplicare i profitti.","Открывай города и королевства, чтобы умножать прибыль.","都市と王国を開放して利益を増やそう。","解锁城市和王国来倍增收益。"
 "Gemas só de anúncios e ofertas","Gemas para objetivos especiais","Gems for special goals","Gemas para objetivos especiales","Des gemmes pour des objectifs spéciaux","Edelsteine für besondere Ziele","Gemme per obiettivi speciali","Самоцветы для особых целей","特別な目標のためのジェム","用于特殊目标的宝石"
 "Vê anúncios ou compra-as — nunca se ganham a jogar.","Ganha-as em missões, recompensas diárias e legados.","Earn them from quests, daily rewards, and legacies.","Consíguelas en misiones, recompensas diarias y legados.","Gagnez-les via les quêtes, récompenses quotidiennes et héritages.","Verdiene sie durch Aufträge, Tagesbelohnungen und Vermächtnisse.","Ottienile da missioni, ricompense giornaliere ed eredità.","Получай их за задания, ежедневные награды и наследия.","依頼、デイリー報酬、レガシーで獲得。","通过任务、每日奖励和传承获得。"
-"Faz Prestige para bónus permanentes","Faz Prestige para bónus permanentes","Prestige for permanent bonuses","Haz Prestigio para bonificaciones permanentes","Faites Prestige pour des bonus permanents","Mache Prestige für dauerhafte Boni","Fai Prestigio per bonus permanenti","Делай престиж ради постоянных бонусов","プレステージで永続ボーナス","转生以获得永久加成"
+"Faz Prestige para bónus permanentes","Faz Prestige para bónus permanentes","Prestige for permanent bonuses","Haz Prestigio para bonificaciones permanentes","Faites Prestige pour des bonus permanents","Begründe ein Vermächtnis für dauerhafte Boni","Fai Prestigio per bonus permanenti","Делай престиж ради постоянных бонусов","プレステージで永続ボーナス","转生以获得永久加成"
 "Reinicia com multiplicadores que ficam para sempre.","Reinicia com multiplicadores que ficam para sempre.","Reset with multipliers that last forever.","Reinicia con multiplicadores que duran para siempre.","Réinitialisez avec des multiplicateurs qui restent pour toujours.","Neustart mit Multiplikatoren, die für immer bleiben.","Riparti con moltiplicatori che restano per sempre.","Перезапуск с множителями, которые остаются навсегда.","永久に残る倍率でリスタート。","重置并获得永久保留的乘数。"
 "Vamos a voar!","Abrir o Basar!","Open the Bazaar!","¡Abrir el bazar!","Ouvrir le bazar !","Basar eröffnen!","Apri il bazar!","Открыть базар!","バザールを開く！","开启集市！"
 "Receber a DOBRAR (anúncio)","Receber a DOBRAR (anúncio)","Claim DOUBLE (ad)","Recibir el DOBLE (anuncio)","Récolter en DOUBLE (pub)","DOPPELT holen (Werbung)","Riscuoti il DOPPIO (annuncio)","Забрать ВДВОЙНЕ (реклама)","2倍で受け取る（広告）","双倍领取（广告）"
@@ -458,18 +458,18 @@ Scegli la tua ricompensa:","Ты поймал золотой грузовой д
 "Sair do jogo?","Sair do jogo?","Quit game?","¿Salir del juego?","Quitter le jeu ?","Spiel beenden?","Uscire dal gioco?","Выйти из игры?","ゲームを終了？","退出游戏？"
 "Sair","Sair","Quit","Salir","Quitter","Beenden","Esci","Выйти","終了","退出"
 "Resumo de Rendimento","Resumo de Rendimento","Income Summary","Resumen de ingresos","Résumé des revenus","Einkommens-Übersicht","Riepilogo Rendita","Сводка дохода","収益サマリー","收入摘要"
-"Créditos: %s","Créditos: %s","Credits: %s","Créditos: %s","Crédits : %s","Credits: %s","Crediti: %s","Кредиты: %s","クレジット：%s","信用点：%s"
+"Créditos: %s","Créditos: %s","Credits: %s","Créditos: %s","Crédits : %s","Gold: %s","Crediti: %s","Кредиты: %s","クレジット：%s","信用点：%s"
 "Rendimento: %s/s","Rendimento: %s/s","Income: %s/s","Ingresos: %s/s","Revenu : %s/s","Einkommen: %s/s","Rendita: %s/s","Доход: %s/с","収益：%s/s","收入：%s/s"
 "Multiplicadores","Multiplicadores","Multipliers","Multiplicadores","Multiplicateurs","Multiplikatoren","Moltiplicatori","Множители","倍率","乘数"
 "Total ×%.2f","Total ×%.2f","Total ×%.2f","Total ×%.2f","Total ×%.2f","Gesamt ×%.2f","Totale ×%.2f","Всего ×%.2f","合計 ×%.2f","总计 ×%.2f"
 "Bónus diário: %d anúncios → +%d gemas!","Bónus diário: %d anúncios → +%d gemas!","Daily bonus: %d ads → +%d gems!","Bonus diario: %d anuncios → ¡+%d gemas!","Bonus quotidien : %d pubs → +%d gemmes !","Täglicher Bonus: %d Werbungen → +%d Edelsteine!","Bonus giornaliero: %d annunci → +%d gemme!","Ежедневный бонус: %d рекламы → +%d гемов!","デイリーボーナス：%d 広告 → +%d ジェム！","每日奖励：%d 个广告 → +%d 宝石！"
 "JACKPOT! +120 Gemas + 30 min!","JACKPOT! +120 Gemas + 30 min!","JACKPOT! +120 Gems + 30 min!","¡JACKPOT! ¡+120 Gemas + 30 min!","JACKPOT ! +120 Gemmes + 30 min !","JACKPOT! +120 Edelsteine + 30 Min!","JACKPOT! +120 Gemme + 30 min!","ДЖЕКПОТ! +120 гемов + 30 мин!","ジャックポット！+120 ジェム + 30分！","大奖！+120 宝石 + 30分钟！"
 "Taxa: %s/s · limite offline %s","Taxa: %s/s · limite offline %s","Rate: %s/s · offline cap %s","Tasa: %s/s · límite sin conexión %s","Taux : %s/s · limite hors ligne %s","Rate: %s/s · Offline-Limit %s","Tasso: %s/s · limite offline %s","Ставка: %s/с · лимит офлайн %s","レート：%s/s · オフライン上限 %s","费率：%s/s · 离线上限 %s"
-"Limite atingido! O VIP estende o offline para 24 h.","Limite atingido! O VIP estende o offline para 24 h.","Cap reached! VIP extends offline to 24 h.","¡Límite alcanzado! El VIP amplía el modo sin conexión a 24 h.","Limite atteinte ! Le VIP étend le hors ligne à 24 h.","Limit erreicht! VIP verlängert offline auf 24 h.","Limite raggiunto! Il VIP estende l'offline a 24 h.","Лимит достигнут! VIP продлевает офлайн до 24ч.","上限到達！VIPでオフラインが24時間に延長。","已达上限！VIP 将离线延长至24小时。"
+"Limite atingido! O VIP estende o offline para 24 h.","Limite atingido! O VIP estende o offline para 24 h.","Cap reached! VIP extends offline to 24 h.","¡Límite alcanzado! El VIP amplía el modo sin conexión a 24 h.","Limite atteinte ! Le VIP étend le hors ligne à 24 h.","Limit erreicht! Der Gildenpass erweitert die Offline-Zeit auf 24 Std.","Limite raggiunto! Il VIP estende l'offline a 24 h.","Лимит достигнут! VIP продлевает офлайн до 24ч.","上限到達！VIPでオフラインが24時間に延長。","已达上限！VIP 将离线延长至24小时。"
 "Próximo: abrir %s","Próximo: abrir %s","Next: open %s","Siguiente: abrir %s","Prochain : ouvrir %s","Nächstes: %s öffnen","Prossimo: apri %s","Далее: открыть %s","次：%s を開放","下一个：开设 %s"
 "Próximo: expandir para %s","Próximo: expandir para %s","Next: expand to %s","Siguiente: expandir a %s","Prochain : s'étendre à %s","Nächstes: nach %s erweitern","Prossimo: espandi a %s","Далее: расширить в %s","次：%s へ拡大","下一个：扩张至 %s"
-"Próximo: Prestige disponível!","Próximo: Prestige disponível!","Next: Prestige available!","Siguiente: ¡Prestigio disponible!","Prochain : Prestige disponible !","Nächstes: Prestige verfügbar!","Prossimo: Prestigio disponibile!","Далее: престиж доступен!","次：プレステージ可能！","下一个：转生可用！"
-"Próximo: 5.º país para Prestige","Próximo: 5.º país para Prestige","Next: 5th country for Prestige","Siguiente: 5.º país para Prestigio","Prochain : 5e pays pour le Prestige","Nächstes: 5. Land für Prestige","Prossimo: 5º paese per il Prestigio","Далее: 5-я страна для престижа","次：プレステージへ5番目の国","下一个：第5个国家以转生"
+"Próximo: Prestige disponível!","Próximo: Prestige disponível!","Next: Prestige available!","Siguiente: ¡Prestigio disponible!","Prochain : Prestige disponible !","Nächstes Ziel: Vermächtnis verfügbar!","Prossimo: Prestigio disponibile!","Далее: престиж доступен!","次：プレステージ可能！","下一个：转生可用！"
+"Próximo: 5.º país para Prestige","Próximo: 5.º país para Prestige","Next: 5th country for Prestige","Siguiente: 5.º país para Prestigio","Prochain : 5e pays pour le Prestige","Nächstes Ziel: 5. Reich für das Vermächtnis","Prossimo: 5º paese per il Prestigio","Далее: 5-я страна для престижа","次：プレステージへ5番目の国","下一个：第5个国家以转生"
 "Como jogar / Ajuda","Como jogar / Ajuda","How to play / Help","Cómo jugar / Ayuda","Comment jouer / Aide","Anleitung / Hilfe","Come giocare / Aiuto","Как играть / Помощь","遊び方 / ヘルプ","玩法 / 帮助"
 "Como jogar","Como jogar","How to play","Cómo jugar","Comment jouer","Anleitung","Come giocare","Как играть","遊び方","玩法"
 "Moedas","Moedas","Currencies","Monedas","Monnaies","Währungen","Valute","Валюты","通貨","货币"
@@ -489,7 +489,22 @@ Scegli la tua ricompensa:","Ты поймал золотой грузовой д
 "Regiões","Regiões","Regions","Regiones","Régions","Regionen","Regioni","Регионы","地域","区域"
 "Lembretes","Lembretes","Reminders","Recordatorios","Rappels","Erinnerungen","Promemoria","Напоминания","リマインダー","提醒"
 "🚁 Armazém cheio!","🚁 Armazém cheio!","🚁 Warehouse full!","🚁 ¡Almacén lleno!","🚁 Entrepôt plein !","🚁 Lager voll!","🚁 Magazzino pieno!","🚁 Склад заполнен!","🚁 倉庫が満杯！","🚁 仓库已满！"
-"Os teus drones encheram o armazém. Volta para recolher os lucros!","Os teus drones encheram o armazém. Volta para recolher os lucros!","Your drones filled the warehouse. Come back to collect your profits!","Tus drones han llenado el almacén. ¡Vuelve para recoger tus beneficios!","Tes drones ont rempli l'entrepôt. Reviens récupérer tes profits !","Deine Drohnen haben das Lager gefüllt. Komm zurück und kassiere deine Gewinne!","I tuoi droni hanno riempito il magazzino. Torna a raccogliere i profitti!","Твои дроны заполнили склад. Возвращайся за прибылью!","ドローンが倉庫を満杯にしました。戻って利益を回収しよう！","你的无人机已装满仓库。回来领取收益吧！"
+"Os teus drones encheram o armazém. Volta para recolher os lucros!","Os teus drones encheram o armazém. Volta para recolher os lucros!","Your drones filled the warehouse. Come back to collect your profits!","Tus drones han llenado el almacén. ¡Vuelve para recoger tus beneficios!","Tes drones ont rempli l'entrepôt. Reviens récupérer tes profits !","Deine Greifenkuriere haben das Lager gefüllt. Kehre zurück und kassiere deinen Ertrag!","I tuoi droni hanno riempito il magazzino. Torna a raccogliere i profitti!","Твои дроны заполнили склад. Возвращайся за прибылью!","ドローンが倉庫を満杯にしました。戻って利益を回収しよう！","你的无人机已装满仓库。回来领取收益吧！"
 "🎁 Recompensa diária pronta","🎁 Recompensa diária pronta","🎁 Daily reward ready","🎁 Recompensa diaria lista","🎁 Récompense quotidienne prête","🎁 Tägliche Belohnung bereit","🎁 Ricompensa giornaliera pronta","🎁 Ежедневная награда готова","🎁 デイリー報酬の準備完了","🎁 每日奖励已就绪"
 "A tua recompensa diária está à espera. Entra e reclama!","A tua recompensa diária está à espera. Entra e reclama!","Your daily reward is waiting. Jump in and claim it!","Tu recompensa diaria te espera. ¡Entra y recógela!","Ta récompense quotidienne t'attend. Connecte-toi pour la réclamer !","Deine tägliche Belohnung wartet. Rein und abholen!","La tua ricompensa giornaliera ti aspetta. Entra e riscuotila!","Тебя ждёт ежедневная награда. Заходи и забери её!","デイリー報酬が待っています。ログインして受け取ろう！","每日奖励正在等你。快来领取吧！"
 "Notificações","Notificações","Notifications","Notificaciones","Notifications","Benachrichtigungen","Notifiche","Уведомления","通知","通知"
+"☁ Progresso restaurado da nuvem","☁ Progresso restaurado da nuvem","☁ Progress restored from cloud","☁ Progreso restaurado desde la nube","☁ Progression restaurée depuis le cloud","☁ Cloud-Fortschritt wiederhergestellt","☁ Progresso ripristinato dal cloud","☁ Прогресс восстановлен из облака","☁ クラウドから進行状況を復元しました","☁ 已从云端恢复进度"
+"Bênção","Bênção","Blessing","Bendición","Bénédiction","Segen","Benedizione","Благословение","祝福","祝福"
+"Coleção Arcana","Coleção Arcana","Arcane Collection","Colección Arcana","Collection arcanique","Arkane Sammlung","Collezione Arcana","Арканная коллекция","秘術コレクション","奥术收藏"
+"Trajes de Mensageiro","Trajes de Mensageiro","Courier Outfits","Atuendos de mensajero","Tenues de coursier","Kuriergewänder","Abiti da corriere","Наряды курьеров","運び手の衣装","信使装束"
+"Progresso reposto.","Progresso reposto.","Progress reset.","Progreso reiniciado.","Progression réinitialisée.","Fortschritt zurückgesetzt.","Progressi azzerati.","Прогресс сброшен.","進行状況をリセットしました。","进度已重置。"
+"Armazém offline completamente cheio.","Armazém offline completamente cheio.","Offline storage completely full.","Almacén sin conexión completamente lleno.","Stockage hors ligne complètement plein.","Offline-Lager vollständig gefüllt.","Magazzino offline completamente pieno.","Офлайн-хранилище полностью заполнено.","オフライン倉庫が満杯です。","离线仓库已满。"
+"JACKPOT! +30 Gemas e 5 min de lucros!","JACKPOT! +30 Gemas e 5 min de lucros!","JACKPOT! +30 Gems and 5 min profit!","¡JACKPOT! +30 gemas y 5 min de ganancias!","JACKPOT ! +30 gemmes et 5 min de gains !","JACKPOT! +30 Edelsteine und 5 Min. Ertrag!","JACKPOT! +30 Gemme e 5 min di profitti!","ДЖЕКПОТ! +30 самоцветов и 5 мин прибыли!","ジャックポット！ジェム+30、利益5分！","大奖！+30宝石和5分钟收益！"
+"Lucros ×2 durante 3 minutos!","Lucros ×2 durante 3 minutos!","2× profit for 3 minutes!","¡Ganancias ×2 durante 3 minutos!","Gains ×2 pendant 3 minutes !","Ertrag ×2 für 3 Minuten!","Profitti ×2 per 3 minuti!","Прибыль ×2 на 3 минуты!","3分間、利益×2！","收益×2，持续3分钟！"
+"+8 Gemas!","+8 Gemas!","+8 Gems!","¡+8 gemas!","+8 gemmes !","+8 Edelsteine!","+8 Gemme!","+8 самоцветов!","ジェム+8！","+8宝石！"
+"+3 minutos de lucros!","+3 minutos de lucros!","+3 minutes of profit!","¡+3 minutos de ganancias!","+3 minutes de gains !","+3 Minuten Handelsertrag!","+3 minuti di profitti!","+3 минуты прибыли!","利益3分追加！","+3分钟收益！"
+"A ABRIR ROTAS COMERCIAIS","A ABRIR ROTAS COMERCIAIS","OPENING TRADE ROUTES","ABRIENDO RUTAS COMERCIALES","OUVERTURE DES ROUTES COMMERCIALES","HANDELSROUTEN WERDEN GEÖFFNET","APERTURA DELLE ROTTE COMMERCIALI","ОТКРЫВАЕМ ТОРГОВЫЕ ПУТИ","交易路を開いています","正在开辟贸易路线"
+"Contribuição para o reino: %d%%","Contribuição para o reino: %d%%","Realm contribution: %d%%","Contribución al reino: %d%%","Contribution au royaume : %d%%","Anteil am Reichertrag: %d%%","Contributo al regno: %d%%","Вклад в доход королевства: %d%%","王国への貢献：%d%%","王国贡献：%d%%"
+"Custo: %s","Custo: %s","Cost: %s","Coste: %s","Coût : %s","Kosten: %s","Costo: %s","Стоимость: %s","コスト：%s","费用：%s"
+"Progresso: %d%%","Progresso: %d%%","Progress: %d%%","Progreso: %d%%","Progression : %d%%","Fortschritt: %d%%","Progresso: %d%%","Прогресс: %d%%","進行度：%d%%","进度：%d%%"
+"Progresso recuperado com segurança.","Progresso recuperado com segurança.","Progress recovered safely.","Progreso recuperado de forma segura.","Progression récupérée en toute sécurité.","Spielstand sicher wiederhergestellt.","Progressi recuperati in sicurezza.","Прогресс безопасно восстановлен.","進行状況を安全に復元しました。","进度已安全恢复。"
