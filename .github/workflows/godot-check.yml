@@ -32,6 +32,9 @@ jobs:
       - name: Validate privacy and Data Safety inventory
         run: python3 tests/privacy_docs_smoke.py
 
+      - name: Validate release credential hygiene
+        run: python3 tests/release_hygiene_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |

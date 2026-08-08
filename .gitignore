@@ -1,30 +1,11 @@
-# Godot 4+
 .godot/
-/android/
-/export/
-*.tmp
+export/
 *.apk
 *.aab
-
-# Signing keys — never commit key material
-/keystore/
 *.keystore
 *.jks
-
-# generated
-_montage.png
-gradle_build_log.txt
-
-# OS
-.DS_Store
-Thumbs.db
-
-tools/__pycache__/
-*.pyc
-
-# fastlane / Play publishing
-*.play.json
-play-key*.json
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/**/*.import
+keystore/
+secrets/
+*.pck
+godot-import.log
+godot-start.log
