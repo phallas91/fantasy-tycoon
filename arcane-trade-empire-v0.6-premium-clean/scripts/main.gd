@@ -2579,7 +2579,9 @@ func _opt_tex(n: String) -> Texture2D:
 func _on_delivered(amount: float, _city_idx: int, _count: int) -> void:
 	_delivery_fx_bank += amount
 	var now_ms := Time.get_ticks_msec()
-	if now_ms - _last_delivery_fx_ms < 750:
+	# The label animation lasts 0.9s. A 1.05s gate guarantees that only one
+	# earnings value can ever occupy the map, even in extreme late-game income.
+	if now_ms - _last_delivery_fx_ms < 1050:
 		return
 	_last_delivery_fx_ms = now_ms
 	var shown_amount := _delivery_fx_bank
