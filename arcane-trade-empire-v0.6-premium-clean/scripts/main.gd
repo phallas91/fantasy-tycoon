@@ -2325,8 +2325,25 @@ func _show_city_inspector(index: int) -> void:
 	var status := tr("SEDE") if is_capital else (tr("Obtido") if is_active else tr("Bloqueado"))
 	var status_lbl := _lbl(status, 17, accent)
 	status_lbl.add_theme_font_override("font", UITheme.font("Bold")); iv.add_child(status_lbl)
-	iv.add_child(_lbl(tr("Rendimento: %s/s") % Fmt.short(GameState.income_per_sec()), 20, UITheme.GREEN))
-	iv.add_child(_lbl(tr("Tens %d drones") % GameState.drones, 16, UITheme.MUTED))
+	if is_active:
+		var realm_income := GameState.income_per_sec()
+		var city_income := realm_income if is_capital else GameState.route_income_per_sec(index - 1)
+		iv.add_child(_lbl(tr("Rendimento: %s/s") % Fmt.short(city_income), 20, UITheme.GREEN))
+		if not is_capital:
+			var share := 0 if realm_income <= 0.0 else int(round(city_income / realm_income * 100.0))
+			iv.add_child(_lbl(tr("Contribuição para o reino: %d%%") % share, 15, UITheme.CYAN))
+		iv.add_child(_lbl(tr("Tens %d drones") % GameState.drones, 16, UITheme.MUTED))
+	elif is_next:
+		var unlock_cost := GameState.next_city_cost()
+		var unlock_pct := clampf(GameState.credits / maxf(1.0, unlock_cost), 0.0, 1.0)
+		iv.add_child(_lbl(tr("Custo: %s") % Fmt.short(unlock_cost), 20, UITheme.GOLD))
+		var prog_bg := Panel.new(); prog_bg.custom_minimum_size = Vector2(0, 9)
+		prog_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); iv.add_child(prog_bg)
+		var prog_fill := Panel.new(); prog_fill.anchor_left = 0; prog_fill.anchor_right = unlock_pct
+		prog_fill.anchor_top = 0; prog_fill.anchor_bottom = 1
+		prog_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.ACCENT)); prog_bg.add_child(prog_fill)
+		var pct_lbl := _lbl(tr("Progresso: %d%%") % int(round(unlock_pct * 100.0)), 15, UITheme.MUTED)
+		pct_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; iv.add_child(pct_lbl)
 	box.add_child(info)
 
 	var action := _buy_btn(accent)
