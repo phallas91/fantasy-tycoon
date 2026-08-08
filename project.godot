@@ -1,0 +1,61 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Arcane Trade Empire"
+config/version="0.6.0-premium-clean"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/show_image=false
+config/icon="res://appicon.png"
+
+[autoload]
+
+Fmt="*res://scripts/format.gd"
+Economy="*res://scripts/economy.gd"
+AntiCheat="*res://scripts/anti_cheat.gd"
+Fx="*res://scripts/fx.gd"
+Events="*res://scripts/events.gd"
+Prestige="*res://scripts/prestige.gd"
+Achievements="*res://scripts/achievements.gd"
+Daily="*res://scripts/daily.gd"
+GameState="*res://scripts/game_state.gd"
+Audio="*res://scripts/audio.gd"
+SaveSystem="*res://scripts/save_system.gd"
+Contracts="*res://scripts/contracts.gd"
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=540
+window/size/window_height_override=960
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray()
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/ui.pt.translation", "res://translations/ui.en.translation", "res://translations/ui.es.translation", "res://translations/ui.fr.translation", "res://translations/ui.de.translation", "res://translations/ui.it.translation", "res://translations/ui.ru.translation", "res://translations/ui.ja.translation", "res://translations/ui.zh.translation")
+
+[physics]
+
+common/physics_ticks_per_second=1
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
