@@ -1,0 +1,60 @@
+name: Godot 4.7 project check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Import and startup check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.1
+        uses: solarlabyrinth/action-setup-godot@v3
+        with:
+          version: 4.7.1-stable
+
+      - name: Show Godot version
+        run: godot --version
+
+      - name: Import project resources
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . --editor --import 2>&1 | tee godot-import.log
+
+      - name: Start project briefly
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . --quit-after 10 2>&1 | tee godot-start.log
+
+      - name: Fail on parser or script errors
+        shell: bash
+        run: |
+          if grep -Eiq "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" godot-import.log godot-start.log; then
+            echo "Godot reported a parser or script error."
+            grep -Ein "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" godot-import.log godot-start.log
+            exit 1
+          fi
+          echo "Godot project check passed."
+
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-check-logs
+          path: |
+            godot-import.log
+            godot-start.log
+          if-no-files-found: ignore
+          retention-days: 7
