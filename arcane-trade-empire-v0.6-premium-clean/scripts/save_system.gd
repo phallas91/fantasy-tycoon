@@ -2,11 +2,14 @@ extends Node
 ## Persistence (autoload: SaveSystem). JSON with XOR obfuscation + checksum.
 ## v3 keeps the game fully local and validates primary plus backup saves.
 
+signal session_offline_ready(amount: float, seconds: float)
+
 const SAVE_PATH   := "user://dts_save.json"
 const BACKUP_PATH := "user://dts_save_bak.json"
 const SAVE_VERSION := 3
 
 var _save_n := 0   # counts saves; the backup is written every 4th (see save_game)
+var _backgrounded_at := 0
 
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH) or FileAccess.file_exists(BACKUP_PATH)
@@ -146,4 +149,31 @@ func wipe() -> void:
 ## the regular autosave remains responsible during uninterrupted play.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if _backgrounded_at == 0:
+			_backgrounded_at = int(Time.get_unix_time_from_system())
 		save_game()
+	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		_apply_session_offline()
+
+## A suspended mobile process usually survives, so load_game() never runs again.
+## Credit that background interval here using the same cap/efficiency rules as a
+## cold start. Existing uncollected earnings are preserved and fill the remaining
+## warehouse capacity instead of being replaced or counted twice.
+func _apply_session_offline() -> void:
+	if _backgrounded_at <= 0:
+		return
+	var paused_at := _backgrounded_at
+	_backgrounded_at = 0
+	var elapsed := AntiCheat.validate_elapsed(paused_at)
+	if elapsed < 2.0:
+		return
+	var cap := GameState.offline_cap()
+	var existing_seconds := clampf(GameState.pending_offline_seconds, 0.0, cap)
+	var credited_seconds := minf(elapsed, maxf(0.0, cap - existing_seconds))
+	if credited_seconds <= 0.0:
+		return
+	var offline_eff := GameState.OFFLINE_EFF + Prestige.extra_offline_pct()
+	GameState.pending_offline_seconds = existing_seconds + credited_seconds
+	GameState.pending_offline += GameState.income_per_sec() * credited_seconds * offline_eff
+	save_game()
+	session_offline_ready.emit(GameState.pending_offline, GameState.pending_offline_seconds)

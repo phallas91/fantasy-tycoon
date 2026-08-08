@@ -124,6 +124,7 @@ var _income_milestone_idx := 0
 var _delivery_fx_bank := 0.0
 var _last_delivery_fx_ms := 0
 var _fountain_counter := 0
+var _resume_reward_queued := false
 
 func _ready() -> void:
 	if OS.has_feature("mobile"):
@@ -145,6 +146,7 @@ func _ready() -> void:
 	Daily.reward_ready.connect(func(): _show_daily_popup())
 	Prestige.prestiged.connect(_on_prestige)
 	Contracts.completed.connect(_on_contract_completed)
+	SaveSystem.session_offline_ready.connect(_on_session_offline_ready)
 
 	var loaded := SaveSystem.load_game()
 	_disp_credits = GameState.credits
@@ -164,6 +166,26 @@ func _post_boot(loaded: bool) -> void:
 		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
 	elif Daily.pending:
 		_show_daily_popup()
+
+## A warm resume does not reload the scene. Queue its offline reward until any
+## modal the player left open has closed, preventing stacked popups while still
+## guaranteeing that the newly earned credits are presented and collectable.
+func _on_session_offline_ready(_amount: float, _seconds: float) -> void:
+	if _resume_reward_queued:
+		return
+	_resume_reward_queued = true
+	await get_tree().process_frame
+	while _has_modal_overlay():
+		await get_tree().create_timer(0.35).timeout
+	_resume_reward_queued = false
+	if GameState.pending_offline > 1.0:
+		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
+
+func _has_modal_overlay() -> bool:
+	for child in get_children():
+		if child is CanvasLayer and (child as CanvasLayer).layer == 150:
+			return true
+	return false
 
 ## First-ever launch only (SaveSystem.load_game() found no save).  The former
 ## tall list of tips felt like a terms screen and could overflow on small phones.
