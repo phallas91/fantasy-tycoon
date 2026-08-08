@@ -110,7 +110,6 @@ const GOLD      := Color(0.941, 0.737, 0.345)
 const MINT      := Color(0.275, 0.780, 0.576)
 const SHADOW    := Color(0.025, 0.012, 0.035)
 
-const POP_CAP := 4
 const TRAIL_LEN := 8
 
 func _ready() -> void:
@@ -839,7 +838,11 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 		elif i <= GameState.cities_unlocked:
 			_draw_city_district(cp, i, false)
 			_active_marker(cp, flash)
-			_label(cp, nm, Color(0.80, 1.0, 1.0))
+			# On the overview only the frontier city is named. Pinch-zooming turns
+			# the map into inspection mode and reveals the remaining labels. This
+			# keeps dense late-game realms legible on a 540px portrait viewport.
+			if i == GameState.cities_unlocked or zoom >= 1.65:
+				_label(cp, nm, Color(0.80, 1.0, 1.0))
 		else:
 			var is_next := (i == GameState.cities_unlocked + 1)
 			_locked_marker(cp, is_next)
@@ -1038,7 +1041,7 @@ func _cost_chip(p: Vector2, cost: String) -> void:
 
 # ---------------------------------------------------------------- pops / fx
 
-func _on_delivered(amount: float, city_index: int, _count: int) -> void:
+func _on_delivered(_amount: float, city_index: int, _count: int) -> void:
 	# Deliveries fire on the fast economic cadence, but drones move on the 20x
 	# slower cosmetic clock — so at high income the beacons strobe far faster
 	# than any drone visibly arrives (reads as random flicker). Throttle to
@@ -1049,13 +1052,11 @@ func _on_delivered(amount: float, city_index: int, _count: int) -> void:
 		return
 	var cities := Economy.country_cities(GameState.current_country)
 	var idx: int = clampi(city_index, 0, cities.size() - 1)
-	var p := _proj(Vector2(cities[idx]["x"], cities[idx]["y"]))
 	# beacon flash on the destination
 	_flash[idx] = 0.5
-	if _pops.size() > POP_CAP:
-		return
-	var side := -1.0 if (_deliver_seen % 2 == 0) else 1.0
-	_pops.append({"text": "+" + Fmt.short(amount), "x": p.x + side * 26.0, "y": p.y - 42.0, "life": 0.85})
+	# Earnings text is intentionally owned by main.gd. Drawing a second value
+	# here caused gold and green numbers to stack over the same city at high
+	# delivery rates. The map keeps only the concise destination beacon.
 
 func _draw_pops() -> void:
 	if _font == null:
