@@ -15,7 +15,14 @@ const FANTASY_REALMS := [
 	"Freihafen", "Sonnenimperium", "Ewige Wildnis", "Hochreich", "Aetheria"
 ]
 const GOLDHAIN_CITIES := ["Königsbasar", "Runenhafen", "Dämmerfels", "Goldfurt", "Mondbrück", "Greifenwacht", "Smaragdhain"]
-const FANTASY_CITY_SUFFIXES := ["Krone", "Hafen", "Wacht", "Furt", "Hain", "Tor", "Markt"]
+const FANTASY_CITY_ROOTS := [
+	"Auren", "Brann", "Cael", "Dämmer", "Eldra", "Falken", "Glimmer", "Helia",
+	"Isen", "Jade", "Keld", "Lun", "Morgen", "Nebel", "Onyx", "Pyra",
+	"Quarz", "Raben", "Saphir", "Thorn", "Umbra", "Valen", "Wind", "Xanth",
+	"Ylva", "Zora", "Arken", "Briar", "Cyr", "Draken", "Erynd", "Fiora",
+	"Greifen", "Hohen", "Ilyr", "Kron", "Lyra", "Myr", "Nyx", "Orin",
+]
+const FANTASY_CITY_SUFFIXES := ["krone", "hafen", "wacht", "furt", "hain", "tor", "markt"]
 
 const UPGRADES := {
 	# Deliberately WEAK gains (player asked: upgrades less powerful), steep cost.
@@ -95,7 +102,11 @@ func _apply_fantasy_world_names() -> void:
 				cities[city_idx]["name"] = GOLDHAIN_CITIES[city_idx]
 			else:
 				var suffix: String = FANTASY_CITY_SUFFIXES[city_idx % FANTASY_CITY_SUFFIXES.size()]
-				cities[city_idx]["name"] = "%s-%s" % [realm_name, suffix]
+				# Pair a rotating root with the role suffix. Every realm gets a
+				# recognisable set of proper place names instead of seven repetitive
+				# "Realm-Hafen / Realm-Hain" debug-style labels.
+				var root_idx := (i * 7 + city_idx * 11) % FANTASY_CITY_ROOTS.size()
+				cities[city_idx]["name"] = FANTASY_CITY_ROOTS[root_idx] + suffix
 
 func num_countries() -> int:
 	return WORLD.size()
