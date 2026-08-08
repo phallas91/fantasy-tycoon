@@ -37,7 +37,8 @@ var _event_row: HBoxContainer
 var _event_icon: TextureRect
 var _event_name_lbl: Label
 var _event_time_lbl: Label
-var _next_obj_lbl: Label
+var _next_obj_lbl: Button
+var _objective_cache: Dictionary = {}
 var _achieve_count_lbl: Label
 var _claim_all_btn: Button
 var _event_timer_bar: Panel
@@ -438,10 +439,22 @@ func _build_hud() -> void:
 	_ribbon_fill.anchor_top = 0; _ribbon_fill.anchor_bottom = 1
 	_ribbon_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.ACCENT))
 	ribbon_bg.add_child(_ribbon_fill)
-	# labels what the ribbon is filling toward, so the goal is never a mystery
-	_next_obj_lbl = _lbl("", 13, UITheme.MUTED)
-	_next_obj_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_next_obj_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL; v.add_child(_next_obj_lbl)
+	# Smart objective ribbon: one tap opens the exact dashboard page containing
+	# the recommended action. This replaces a passive, city-only caption.
+	_next_obj_lbl = Button.new(); _next_obj_lbl.text = ""
+	_next_obj_lbl.custom_minimum_size = Vector2(0, 34)
+	_next_obj_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_next_obj_lbl.add_theme_font_size_override("font_size", 13)
+	_next_obj_lbl.add_theme_font_override("font", UITheme.font("Bold"))
+	_next_obj_lbl.add_theme_color_override("font_color", UITheme.MUTED)
+	_next_obj_lbl.add_theme_color_override("font_hover_color", UITheme.INK)
+	_next_obj_lbl.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	_next_obj_lbl.add_theme_stylebox_override("hover", UITheme.nav_item(true))
+	_next_obj_lbl.add_theme_stylebox_override("pressed", UITheme.nav_item(true))
+	_next_obj_lbl.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	_next_obj_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_next_obj_lbl.pressed.connect(_jump_to_objective)
+	v.add_child(_next_obj_lbl)
 
 	# Row 4: event banner (hidden when no event)
 	_event_row = HBoxContainer.new(); _event_row.add_theme_constant_override("separation", 8)
@@ -1462,9 +1475,11 @@ func _process(delta: float) -> void:
 	_bonus.band_top = _map.band_top
 	_bonus.band_bottom = _map.band_bottom
 
-	# progress ribbon (HUD): % to next city or expand
-	_set_fill(_ribbon_fill, _unlock_progress())
-	_next_obj_lbl.text = _next_objective_text()
+	# Smart objective refreshes four times per second; the progress fill itself
+	# remains frame-smooth while credits rise.
+	if _objective_cache.is_empty() or Engine.get_frames_drawn() % 15 == 0:
+		_refresh_smart_objective()
+	_set_fill(_ribbon_fill, _objective_progress())
 	# cities tab progress bar + the city button/detail block below both need
 	# this — computed once here instead of twice per frame (each call does
 	# two pow() calls internally)
@@ -1659,26 +1674,110 @@ func _set_fill(p: Panel, pct: float) -> void:
 	p.anchor_right = pct
 	p.visible = pct >= 0.02
 
-## Short label for what the HUD ribbon is filling toward (never a mystery).
-func _next_objective_text() -> String:
-	if not GameState.all_cities_unlocked():
-		var ci := GameState.current_country
-		var cities := Economy.country_cities(ci)
-		var nx: int = clampi(GameState.cities_unlocked + 1, 1, cities.size() - 1)
-		return tr("Próximo: abrir %s") % cities[nx]["name"]
-	if GameState.expand_cost() >= 0.0:
-		return tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1)
+## Chooses the most useful action available now. Ready rewards and major
+## progression beats outrank routine purchases; otherwise the advisor picks an
+## affordable early-growth action before returning to the next unlock target.
+func _smart_objective() -> Dictionary:
+	for i in range(Contracts.slots.size()):
+		var contract: Dictionary = Contracts.slots[i]
+		if contract.get("ready", false) and not contract.get("claimed", false):
+			var claim_focus: Control = _mission_claim_btns[i] if i < _mission_claim_btns.size() else null
+			return {"text": tr("REIVINDICAR") + " · " + tr("Missões"),
+				"tab": 5, "focus": claim_focus, "cost": -1.0, "progress": 1.0,
+				"accent": UITheme.GREEN, "icon": "ic_achieve"}
 	if Prestige.can_prestige():
-		return tr("Próximo: Prestige disponível!")
-	return "Nächstes Ziel: 5. Reich für das Vermächtnis"
+		return {"text": tr("Próximo: Prestige disponível!"), "tab": 0,
+			"focus": _prestige_btn, "cost": -1.0, "progress": 1.0,
+			"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
+	if GameState.can_unlock_city():
+		var ready_cities := Economy.country_cities(GameState.current_country)
+		var ready_city_idx := clampi(GameState.cities_unlocked + 1, 1, ready_cities.size() - 1)
+		return {"text": tr("Próximo: abrir %s") % ready_cities[ready_city_idx]["name"], "tab": 1,
+			"focus": _city_btn, "cost": GameState.next_city_cost(), "progress": 1.0,
+			"accent": UITheme.CYAN, "icon": "ic_city"}
+	if GameState.can_expand():
+		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
+			"tab": 1, "focus": _expand_btn, "cost": GameState.expand_cost(), "progress": 1.0,
+			"accent": UITheme.GOLD, "icon": "ic_range"}
+	# Keep the first few minutes simple: establish the courier loop before
+	# suggesting one of four similarly-priced stat upgrades.
+	if GameState.drones < 4:
+		return {"text": tr("Compra drones e melhorias"), "tab": 0, "focus": _drone_btn,
+			"cost": GameState.drone_cost_multi(1), "progress": 0.0,
+			"accent": UITheme.ACCENT, "icon": "ic_drone"}
+	for key: String in Economy.TALENT_ORDER:
+		if GameState.can_buy_talent(key):
+			var talent_focus: Control = _talent_rows[key]["btn"] if _talent_rows.has(key) else null
+			return {"text": tr(str(Economy.TALENTS[key]["name"])), "tab": 2,
+				"focus": talent_focus, "cost": -1.0, "progress": 1.0,
+				"accent": UITheme.CYAN, "icon": str(Economy.TALENTS[key].get("icon", "ic_prestige"))}
+	for key: String in ["speed", "cargo", "value", "routes"]:
+		var upgrade_cost := GameState.upgrade_cost_multi(key, 1)
+		if GameState.credits >= upgrade_cost:
+			var upgrade_focus: Control = _rows[key]["btn"] if _rows.has(key) else null
+			return {"text": tr(str(Economy.UPGRADES[key]["name"])), "tab": 0,
+				"focus": upgrade_focus, "cost": upgrade_cost, "progress": 1.0,
+				"accent": UITheme.ACCENT, "icon": str(Economy.UPGRADES[key].get("icon", "ic_value"))}
+	if not GameState.all_cities_unlocked():
+		var pending_cities := Economy.country_cities(GameState.current_country)
+		var pending_city_idx := clampi(GameState.cities_unlocked + 1, 1, pending_cities.size() - 1)
+		return {"text": tr("Próximo: abrir %s") % pending_cities[pending_city_idx]["name"], "tab": 1,
+			"focus": _city_btn, "cost": GameState.next_city_cost(), "progress": 0.0,
+			"accent": UITheme.CYAN, "icon": "ic_city"}
+	var expand_cost := GameState.expand_cost()
+	if expand_cost >= 0.0:
+		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
+			"tab": 1, "focus": _expand_btn, "cost": expand_cost, "progress": 0.0,
+			"accent": UITheme.GOLD, "icon": "ic_range"}
+	return {"text": "Nächstes Ziel: 5. Reich für das Vermächtnis", "tab": 0,
+		"focus": _prestige_btn, "cost": -1.0,
+		"progress": clampf(float(GameState.current_country + 1) / float(Prestige.MIN_COUNTRY + 1), 0.0, 1.0),
+		"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
 
-func _unlock_progress() -> float:
-	var cc := GameState.next_city_cost()
-	if cc < 0.0:
-		var ec := GameState.expand_cost()
-		if ec <= 0.0: return 1.0
-		return clampf(GameState.credits / ec, 0.0, 1.0)
-	return clampf(GameState.credits / cc, 0.0, 1.0)
+func _refresh_smart_objective() -> void:
+	_objective_cache = _smart_objective()
+	var accent: Color = _objective_cache.get("accent", UITheme.ACCENT)
+	_next_obj_lbl.text = "✦  " + str(_objective_cache.get("text", "")) + "   ›"
+	_next_obj_lbl.icon = _opt_tex(str(_objective_cache.get("icon", "ic_range")))
+	_next_obj_lbl.expand_icon = true
+	_next_obj_lbl.add_theme_constant_override("icon_max_width", 17)
+	_next_obj_lbl.add_theme_color_override("font_color", accent)
+	_next_obj_lbl.tooltip_text = str(_objective_cache.get("text", ""))
+	var accent_key := accent.to_html()
+	if str(_ribbon_fill.get_meta("objective_accent", "")) != accent_key:
+		_ribbon_fill.set_meta("objective_accent", accent_key)
+		_ribbon_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(accent))
+
+func _objective_progress() -> float:
+	if _objective_cache.is_empty(): return 0.0
+	var cost := float(_objective_cache.get("cost", -1.0))
+	if cost > 0.0:
+		return clampf(GameState.credits / cost, 0.0, 1.0)
+	return clampf(float(_objective_cache.get("progress", 0.0)), 0.0, 1.0)
+
+func _jump_to_objective() -> void:
+	if _objective_cache.is_empty(): return
+	Fx.press(_next_obj_lbl); Audio.play("tap")
+	var tab := clampi(int(_objective_cache.get("tab", 0)), 0, _pages.size() - 1)
+	_switch_tab(tab)
+	var focus: Control = _objective_cache.get("focus", null)
+	if is_instance_valid(focus):
+		_show_control_page(_pages[tab] as ScrollContainer, focus)
+		Fx.shimmer(focus, _objective_cache.get("accent", UITheme.ACCENT))
+		Fx.ring_pulse(focus, focus.size * 0.5, _objective_cache.get("accent", UITheme.ACCENT), 1.4)
+	_toast(str(_objective_cache.get("text", "")), _objective_cache.get("accent", UITheme.ACCENT),
+		str(_objective_cache.get("icon", "ic_range")))
+
+## Finds the discrete management page containing a nested button/card. This
+## keeps smart-goal jumps correct even when page composition changes later.
+func _show_control_page(sc: ScrollContainer, target: Control) -> void:
+	if not _page_groups.has(sc): return
+	var items: Array = _page_groups[sc]
+	for i in range(items.size()):
+		var item := items[i] as Node
+		if item == target or item.is_ancestor_of(target):
+			_show_management_page(sc, floori(float(i) / 4.0))
+			return
 
 func _update_nav_dots() -> void:
 	if _nav_dots.size() < 6: return
