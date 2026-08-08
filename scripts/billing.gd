@@ -53,7 +53,7 @@ func buy(product_id: String) -> void:
 	if not PRODUCTS.has(product_id):
 		purchase_failed.emit(product_id, "produto desconhecido"); return
 	if _client == null or not _connected:
-		if OS.get_name() != "Android":
+		if _purchase_simulator_allowed():
 			_grant(product_id)   # editor/desktop purchase-flow simulator
 		else:
 			purchase_failed.emit(product_id, "billing_unavailable")
@@ -136,6 +136,11 @@ func restore() -> bool:
 		return false
 	_client.query_purchases(BillingClient.ProductType.INAPP)
 	return true
+
+## Never simulate purchases on an exported mobile build. Until StoreKit is
+## integrated, iOS fails closed instead of granting paid products for free.
+func _purchase_simulator_allowed() -> bool:
+	return OS.has_feature("editor") or OS.get_name() in ["Windows", "macOS", "Linux"]
 
 func to_dict() -> Dictionary:
 	return {"ads_removed": ads_removed, "perm_mult": perm_mult, "vip": vip,

@@ -38,6 +38,9 @@ jobs:
       - name: Validate Play Store identity and assets
         run: python3 tests/store_metadata_smoke.py
 
+      - name: Validate iOS release baseline
+        run: python3 tests/ios_export_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |

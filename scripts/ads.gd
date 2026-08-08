@@ -90,7 +90,7 @@ func is_rewarded_ready() -> bool:
 		return false
 	# The simulator is a desktop/editor aid only. An Android build missing the
 	# native plugin must never become an unlimited free-reward generator.
-	return OS.get_name() != "Android" if _admob == null else _ad_ready
+	return _reward_simulator_allowed() if _admob == null else _ad_ready
 
 ## Show a rewarded ad. On completion, `on_reward` is called and the signal fires.
 ## `kind` is a free-form tag identifying the placement (e.g. "refuel", "x2", "offline").
@@ -98,7 +98,7 @@ func show_rewarded(kind: String, on_reward: Callable = Callable()) -> void:
 	if _busy:
 		return
 	_busy = true
-	if _admob == null and OS.get_name() != "Android":
+	if _admob == null and _reward_simulator_allowed():
 		# Editor/desktop preview keeps the placement testable without an SDK.
 		_play_overlay(kind, on_reward)
 		return
@@ -111,6 +111,11 @@ func show_rewarded(kind: String, on_reward: Callable = Callable()) -> void:
 	_watch_token += 1
 	_admob.show_rewarded_ad()
 	_watchdog(_watch_token)
+
+## Desktop/editor preview only. Exported iOS builds must fail closed until an
+## iOS ads SDK is installed, otherwise an unavailable ad would mint free rewards.
+func _reward_simulator_allowed() -> bool:
+	return OS.has_feature("editor") or OS.get_name() in ["Windows", "macOS", "Linux"]
 
 ## Safety net for a native ad that produces no terminal callback. Release the UI
 ## lock, but never mint a reward without Google's earned-reward callback.
