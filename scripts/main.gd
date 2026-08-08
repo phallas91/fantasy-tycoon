@@ -11,6 +11,11 @@ var _map: MapView
 var _bonus: BonusDrone
 var _hud: PanelContainer
 var _map_floor_anchor: Control
+var _bottom_bg: Panel
+var _nav_bar: HBoxContainer
+var _nav_sep: ColorRect
+var _safe_top := 0.0
+var _safe_bottom := 0.0
 var _pages: Array
 var _nav_btns: Array
 var _nav_icons: Array
@@ -119,6 +124,7 @@ var _income_milestone_idx := 0
 var _delivery_fx_bank := 0.0
 var _last_delivery_fx_ms := 0
 var _fountain_counter := 0
+var _resume_reward_queued := false
 
 func _ready() -> void:
 	if OS.has_feature("mobile"):
@@ -127,6 +133,8 @@ func _ready() -> void:
 	theme = UITheme.build()
 	_bg(); _build_map(); _build_bonus_drone(); _build_hud()
 	_build_bottom_bg(); _build_map_floor_anchor(); _build_pages(); _build_nav(); _build_toasts()
+	_apply_safe_area()
+	call_deferred("_apply_safe_area")
 
 	GameState.city_unlocked.connect(_on_city_unlocked)
 	GameState.country_changed.connect(_on_country_changed)
@@ -138,6 +146,7 @@ func _ready() -> void:
 	Daily.reward_ready.connect(func(): _show_daily_popup())
 	Prestige.prestiged.connect(_on_prestige)
 	Contracts.completed.connect(_on_contract_completed)
+	SaveSystem.session_offline_ready.connect(_on_session_offline_ready)
 
 	var loaded := SaveSystem.load_game()
 	_disp_credits = GameState.credits
@@ -157,6 +166,26 @@ func _post_boot(loaded: bool) -> void:
 		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
 	elif Daily.pending:
 		_show_daily_popup()
+
+## A warm resume does not reload the scene. Queue its offline reward until any
+## modal the player left open has closed, preventing stacked popups while still
+## guaranteeing that the newly earned credits are presented and collectable.
+func _on_session_offline_ready(_amount: float, _seconds: float) -> void:
+	if _resume_reward_queued:
+		return
+	_resume_reward_queued = true
+	await get_tree().process_frame
+	while _has_modal_overlay():
+		await get_tree().create_timer(0.35).timeout
+	_resume_reward_queued = false
+	if GameState.pending_offline > 1.0:
+		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
+
+func _has_modal_overlay() -> bool:
+	for child in get_children():
+		if child is CanvasLayer and (child as CanvasLayer).layer == 150:
+			return true
+	return false
 
 ## First-ever launch only (SaveSystem.load_game() found no save).  The former
 ## tall list of tips felt like a terms screen and could overflow on small phones.
@@ -257,12 +286,17 @@ func _boot_intro(loaded: bool) -> void:
 	var layer := CanvasLayer.new(); layer.layer = 200
 	add_child(layer)
 	var cover := TextureRect.new()
-	cover.texture = load("res://assets/fantasy/arcane_realm.webp")
+	cover.texture = load("res://assets/fantasy/arcane_empire_keyart_v2.webp")
 	cover.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	cover.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	cover.modulate = Color(0.58, 0.50, 0.68, 1.0)
+	cover.modulate = Color(0.94, 0.91, 1.0, 1.0)
 	cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(cover)
+	# A restrained cinematic grade preserves the new key-art's gold detail while
+	# guaranteeing clean title contrast across every phone crop.
+	var grade := ColorRect.new(); grade.color = Color(0.035, 0.018, 0.075, 0.20)
+	grade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	grade.mouse_filter = Control.MOUSE_FILTER_IGNORE; cover.add_child(grade)
 
 	# Let the just-built UI settle its portrait layout for a couple of frames
 	# before we start tweening the HUD/adbar in (the title/hero are anchored
@@ -270,56 +304,76 @@ func _boot_intro(loaded: bool) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	# Span the FULL screen width (not PRESET_CENTER) so the title is centred
-	# horizontally. PRESET_CENTER anchors the box at the centre POINT using its
-	# size at call time — which is zero here (no children laid out yet) — so the
-	# labels overflowed to the right of centre instead of straddling it. With a
-	# full-rect box + ALIGNMENT_CENTER (vertical), each label fills the whole
-	# width and its CENTER text alignment lands dead-centre on screen.
+	# Title occupies the calm upper sky; the generated griffin remains the single
+	# hero instead of being covered by a second sprite. This reads like authored
+	# key art rather than an illustration with UI dropped on its focal point.
 	var box := VBoxContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 8)
+	box.offset_left = 32; box.offset_right = -32; box.offset_top = 64 + _safe_top
+	box.alignment = BoxContainer.ALIGNMENT_BEGIN
+	box.add_theme_constant_override("separation", 3)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cover.add_child(box)
-	# Signature griffin courier hovering above the wordmark.
-	var hero: TextureRect = GRIFFIN_FLIGHT.new()
-	hero.custom_minimum_size = Vector2(260, 240)
-	hero.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	box.add_child(hero)
-	var t1 := _lbl("ARCANE TRADE", 44, UITheme.INK)
+	var eyebrow := _lbl("FANTASY  ·  IDLE  ·  TYCOON", 14, UITheme.CYAN)
+	eyebrow.add_theme_font_override("font", UITheme.font("SemiBold"))
+	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	eyebrow.size_flags_horizontal = Control.SIZE_EXPAND_FILL; box.add_child(eyebrow)
+	var t1 := _lbl("ARCANE TRADE", 46, UITheme.INK)
 	t1.add_theme_font_override("font", UITheme.font("Bold"))
 	t1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t1.size_flags_horizontal = Control.SIZE_EXPAND_FILL; box.add_child(t1)
-	var t2 := _lbl("EMPIRE", 24, UITheme.GOLD)
+	var t2 := _lbl("EMPIRE", 27, UITheme.GOLD)
+	t2.add_theme_font_override("font", UITheme.font("Bold"))
 	t2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t2.size_flags_horizontal = Control.SIZE_EXPAND_FILL; box.add_child(t2)
-	# entrance: hero drops+fades in, wordmark rises in just after
-	hero.modulate = Color(1, 1, 1, 0)
-	hero.pivot_offset = hero.custom_minimum_size * 0.5
+
+	# Bottom loading ceremony: a real branded transition instead of a timed blank
+	# cover. It stays compact and never needs scrolling, even on short displays.
+	var load_box := VBoxContainer.new()
+	load_box.anchor_left = 0; load_box.anchor_right = 1
+	load_box.anchor_top = 1; load_box.anchor_bottom = 1
+	load_box.offset_left = 42; load_box.offset_right = -42
+	load_box.offset_top = -118 - _safe_bottom; load_box.offset_bottom = -42 - _safe_bottom
+	load_box.add_theme_constant_override("separation", 8); cover.add_child(load_box)
+	var load_lbl := _lbl("A ABRIR ROTAS COMERCIAIS", 13, Color(0.86, 0.82, 0.91))
+	load_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; load_box.add_child(load_lbl)
+	var load_bg := Panel.new(); load_bg.custom_minimum_size = Vector2(0, 7)
+	load_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); load_box.add_child(load_bg)
+	var load_fill := Panel.new(); load_fill.anchor_left = 0; load_fill.anchor_right = 0
+	load_fill.anchor_top = 0; load_fill.anchor_bottom = 1
+	load_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.GOLD)); load_bg.add_child(load_fill)
+
+	# entrance: slow camera settle, then typography and loading progress
+	cover.pivot_offset = cover.size * 0.5
+	if not Fx.reduce_motion: cover.scale = Vector2(1.045, 1.045)
+	eyebrow.modulate = Color(1, 1, 1, 0)
 	t1.modulate = Color(1, 1, 1, 0); t2.modulate = Color(1, 1, 1, 0)
+	load_box.modulate = Color(1, 1, 1, 0)
 	if not Fx.reduce_motion:
-		hero.scale = Vector2(0.7, 0.7)
 		var intro := create_tween(); intro.set_parallel(true)
-		intro.tween_property(hero, "modulate:a", 1.0, 0.4)
-		intro.tween_property(hero, "scale", Vector2.ONE, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		intro.tween_property(t1, "modulate:a", 1.0, 0.4).set_delay(0.25)
-		intro.tween_property(t2, "modulate:a", 1.0, 0.4).set_delay(0.38)
+		intro.tween_property(cover, "scale", Vector2.ONE, 1.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		intro.tween_property(eyebrow, "modulate:a", 1.0, 0.30).set_delay(0.08)
+		intro.tween_property(t1, "modulate:a", 1.0, 0.38).set_delay(0.17)
+		intro.tween_property(t2, "modulate:a", 1.0, 0.38).set_delay(0.28)
+		intro.tween_property(load_box, "modulate:a", 1.0, 0.28).set_delay(0.32)
+		intro.tween_property(load_fill, "anchor_right", 1.0, 1.05).set_delay(0.20).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 		# one-shot light sweep across the wordmark once it's settled — a branded
-		# reveal on the first-impression frame instead of a flat cross-fade. Chained
-		# so t1.size is real by the time it runs. (already inside `not reduce_motion`)
+		# reveal on the first-impression frame instead of a flat cross-fade.
 		intro.chain().tween_callback(func():
-			if is_instance_valid(t1): Fx.shimmer(t1, UITheme.CYAN))
+			if is_instance_valid(t1): Fx.shimmer(t1, UITheme.GOLD)
+			if is_instance_valid(load_fill): Fx.shimmer(load_fill, UITheme.CYAN)
+		)
 	else:
-		hero.modulate = Color.WHITE; t1.modulate = Color.WHITE; t2.modulate = Color.WHITE
+		eyebrow.modulate = Color.WHITE; t1.modulate = Color.WHITE; t2.modulate = Color.WHITE
+		load_box.modulate = Color.WHITE; load_fill.anchor_right = 1.0
 
 	_hud.offset_top = -160.0
 	_map.zoom = 1.15
 
 	var tw := create_tween()
-	tw.tween_interval(1.15)   # let the hero drone hover on screen a beat before the reveal
+	tw.tween_interval(1.45)   # let the authored key-art and brand land before revealing play
 	tw.tween_property(cover, "modulate:a", 0.0, 0.4)
-	tw.parallel().tween_property(_hud, "offset_top", 20.0, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(_hud, "offset_top", 20.0 + _safe_top, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(_map, "zoom", 1.0, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(func():
 		if is_instance_valid(layer):
@@ -352,6 +406,7 @@ func _bg() -> void:
 
 func _build_map() -> void:
 	_map = MapView.new(); _map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); add_child(_map)
+	_map.city_selected.connect(_show_city_inspector)
 	# vignette over the map (under the UI chrome added later)
 	var vig := _opt_tex("vignette")
 	if vig != null:
@@ -392,7 +447,7 @@ func _build_hud() -> void:
 	_blessing_badge = PanelContainer.new(); _blessing_badge.add_theme_stylebox_override("panel", UITheme.solid(UITheme.GOLD, 14))
 	var vb := HBoxContainer.new(); vb.add_theme_constant_override("separation", 3); _blessing_badge.add_child(vb)
 	vb.add_child(_icon("ic_blessing", 18))
-	var vl := Label.new(); vl.text = "SEGEN"; vl.add_theme_font_size_override("font_size", 15)
+	var vl := Label.new(); vl.text = "Bênção"; vl.add_theme_font_size_override("font_size", 15)
 	vl.add_theme_color_override("font_color", Color(0.12, 0.08, 0.0))
 	vl.add_theme_font_override("font", UITheme.font("Bold")); vb.add_child(vl)
 	_blessing_badge.visible = false; r1.add_child(_blessing_badge)
@@ -498,12 +553,12 @@ func _build_map_floor_anchor() -> void:
 # ── Bottom bg ─────────────────────────────────────────────────────────────────
 
 func _build_bottom_bg() -> void:
-	var bg := Panel.new()
-	bg.anchor_left = 0; bg.anchor_right = 1
-	bg.anchor_top = 1; bg.anchor_bottom = 1
-	bg.offset_top = -(NAV_H + TABS_H); bg.offset_bottom = 0
-	bg.add_theme_stylebox_override("panel", UITheme.bottom_panel())
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(bg)
+	_bottom_bg = Panel.new()
+	_bottom_bg.anchor_left = 0; _bottom_bg.anchor_right = 1
+	_bottom_bg.anchor_top = 1; _bottom_bg.anchor_bottom = 1
+	_bottom_bg.offset_top = -(NAV_H + TABS_H); _bottom_bg.offset_bottom = 0
+	_bottom_bg.add_theme_stylebox_override("panel", UITheme.bottom_panel())
+	_bottom_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(_bottom_bg)
 
 # ── Pages ──────────────────────────────────────────────────────────────────────
 
@@ -694,21 +749,23 @@ func _can_tap() -> bool:
 # ── Nav bar ─────────────────────────────────────────────────────────────────────
 
 func _build_nav() -> void:
-	var sep := ColorRect.new(); sep.color = UITheme.BORDER
-	sep.anchor_left = 0; sep.anchor_right = 1; sep.anchor_top = 1; sep.anchor_bottom = 1
-	sep.offset_top = -NAV_H - 1; sep.offset_bottom = -NAV_H
-	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(sep)
+	_nav_sep = ColorRect.new(); _nav_sep.color = UITheme.BORDER
+	_nav_sep.anchor_left = 0; _nav_sep.anchor_right = 1; _nav_sep.anchor_top = 1; _nav_sep.anchor_bottom = 1
+	_nav_sep.offset_top = -NAV_H - 1; _nav_sep.offset_bottom = -NAV_H
+	_nav_sep.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(_nav_sep)
 
-	var nav := HBoxContainer.new()
-	nav.anchor_left = 0; nav.anchor_right = 1
-	nav.anchor_top = 1; nav.anchor_bottom = 1
-	nav.offset_top = -NAV_H; nav.offset_bottom = 0
-	nav.add_theme_constant_override("separation", 0)
-	add_child(nav)
+	_nav_bar = HBoxContainer.new()
+	_nav_bar.anchor_left = 0; _nav_bar.anchor_right = 1
+	_nav_bar.anchor_top = 1; _nav_bar.anchor_bottom = 1
+	_nav_bar.offset_top = -NAV_H; _nav_bar.offset_bottom = 0
+	_nav_bar.add_theme_constant_override("separation", 0)
+	add_child(_nav_bar)
 
-	var defs := [["ic_nav_fleet","Karawane"],["ic_nav_cities","Reiche"],["ic_nav_talents","Forschung"],["ic_nav_legado","Vermächtnis"],["ic_nav_shop","Sammlung"],["ic_nav_missions","Aufträge"]]
+	var defs := [["ic_nav_fleet","Frota"],["ic_nav_cities","Cidades"],
+		["ic_nav_talents","Talentos"],["ic_nav_legado","Legado"],
+		["ic_nav_shop","Loja"],["ic_nav_missions","Missões"]]
 	for i in defs.size():
-		nav.add_child(_make_nav_btn(defs[i][0], defs[i][1], i))
+		_nav_bar.add_child(_make_nav_btn(defs[i][0], defs[i][1], i))
 
 	# sliding accent indicator resting on top edge of the nav bar (glowing pill)
 	_nav_ind = Panel.new()
@@ -867,7 +924,7 @@ func _build_fleet_tab() -> ScrollContainer:
 		seg_row.add_child(b); _mode_btns[mode_val] = b
 
 	var dr := _row(UITheme.ACCENT, "ic_drone")
-	dr["title"].text = "Greifenkuriere anheuern"
+	dr["title"].text = "Comprar Drones"
 	_drone_detail = dr["detail"]
 	_drone_btn = _cbuy(UITheme.GREEN, 160.0)
 	_drone_btn.pressed.connect(func():
@@ -937,7 +994,7 @@ func _build_cities_tab() -> ScrollContainer:
 	cr["right"].add_child(_city_btn); v.add_child(cr["card"])
 
 	var er := _row(UITheme.GOLD, "ic_city")
-	er["title"].text = "Nächstes Reich erschließen"
+	er["title"].text = "Expandir país"
 	er["detail"].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_expand_detail = er["detail"]
 	_expand_btn = _cbuy(UITheme.GOLD.darkened(0.08), 150.0)
@@ -995,7 +1052,7 @@ func _rebuild_city_list() -> void:
 
 func _build_talents_tab() -> ScrollContainer:
 	var r := _scroll("Talentos"); var v: VBoxContainer = r[1]
-	var info := _lbl("Einfluss entsteht beim Erschließen neuer Reiche.\nNutze ihn für Boni bis zum nächsten Vermächtnis.", 16, UITheme.MUTED)
+	var info := _lbl("Influência ganha-se ao expandir países.\nGasta-a em bónus válidos até ao próximo Prestige.", 16, UITheme.MUTED)
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(info)
 	for key: String in Economy.TALENT_ORDER:
 		v.add_child(_make_talent_row(key))
@@ -1011,7 +1068,7 @@ func _build_legado_tab() -> ScrollContainer:
 	var ps_h := HBoxContainer.new(); ps_h.add_theme_constant_override("separation", 6); ps_v.add_child(ps_h)
 	ps_h.add_child(_icon("ic_prestige", 24))
 	ps_h.add_child(_lbl("Sistema de Prestige", 21, UITheme.PRESTIGE))
-	var ps_info := _lbl("Neustart mit dauerhaftem Multiplikator.\nErfordert das 5. freigeschaltete Reich.", 15, UITheme.MUTED)
+	var ps_info := _lbl("Reinicia com multiplicador permanente.\nRequer 5.º país desbloqueado.", 15, UITheme.MUTED)
 	ps_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; ps_v.add_child(ps_info)
 
 	# Prestige Gems balance — distinct from the HUD's Influência chip, which
@@ -1173,11 +1230,11 @@ func _make_achievement_row(id: String) -> PanelContainer:
 
 func _build_shop_tab() -> ScrollContainer:
 	var r := _scroll("Loja"); var v: VBoxContainer = r[1]
-	v.add_child(_section("Arkane Sammlung", UITheme.GOLD, "ic_gems"))
+	v.add_child(_section("Coleção Arcana", UITheme.GOLD, "ic_gems"))
 	for id: String in Economy.GEM_SHOP_ORDER:
 		v.add_child(_make_gem_row(id))
 
-	v.add_child(_section("Kuriergewänder", UITheme.CYAN, "ic_drone"))
+	v.add_child(_section("Trajes de Mensageiro", UITheme.CYAN, "ic_drone"))
 	var sk_info := _lbl("Skins permanentes para a tua frota. Cada skin extra dá +2% de lucros.", 15, UITheme.MUTED)
 	sk_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(sk_info)
 	for id: String in Economy.SKIN_ORDER:
@@ -1606,7 +1663,7 @@ func _process(delta: float) -> void:
 	var ec := GameState.expand_cost()
 	if ec < 0.0:
 		_expand_btn.disabled = true; _expand_btn.text = tr("FIM")
-		_expand_detail.text = "Du hast das letzte Reich erreicht. Glückwunsch!"
+		_expand_detail.text = tr("Chegaste ao último país. Parabéns!")
 	elif not GameState.all_cities_unlocked():
 		_expand_btn.disabled = true; _expand_btn.text = tr("Bloqueado")
 		_expand_detail.text = tr("Abre todas as cidades de %s primeiro.") % Economy.country_name(GameState.current_country)
@@ -1627,14 +1684,14 @@ func _process(delta: float) -> void:
 	var ready := Prestige.can_prestige()
 	_prestige_btn.disabled = not ready
 	if ready:
-		_prestige_btn.text = "PRESTIGE  (+%d)" % Prestige.pgems_on_next_prestige()
+		_prestige_btn.text = tr("Prestige") + "  (+%d)" % Prestige.pgems_on_next_prestige()
 	else:
-		_prestige_btn.text = "Vermächtnis (erfordert 5. Reich)"
+		_prestige_btn.text = tr("Prestige (requer 5.º país)")
 	if ready != _prestige_ready_prev or _prestige_info_lbl.text == "":
 		if ready:
 			_prestige_info_lbl.text = tr("Tier: %s · Prestige #%d · ×%.2f\nReinicias mantendo gemas e conquistas.") % [Prestige.tier_name(), Prestige.count + 1, Prestige.effective_mult() * 1.15]
 		else:
-			_prestige_info_lbl.text = "Erreiche das 5. Reich für ein Vermächtnis.\nRang: %s · Vermächtnis %d · ×%.2f" % [Prestige.tier_name(), Prestige.count, Prestige.effective_mult()]
+			_prestige_info_lbl.text = tr("Chega ao 5.º país para fazer prestige.\nTier: %s · Prestige %d · ×%.2f") % [Prestige.tier_name(), Prestige.count, Prestige.effective_mult()]
 		if ready != _prestige_ready_prev:
 			Fx.breathe(_prestige_btn, ready)
 		_prestige_ready_prev = ready
@@ -1731,7 +1788,7 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
 			"tab": 1, "focus": _expand_btn, "cost": expand_cost, "progress": 0.0,
 			"accent": UITheme.GOLD, "icon": "ic_range"}
-	return {"text": "Nächstes Ziel: 5. Reich für das Vermächtnis", "tab": 0,
+	return {"text": tr("Próximo: 5.º país para Prestige"), "tab": 0,
 		"focus": _prestige_btn, "cost": -1.0,
 		"progress": clampf(float(GameState.current_country + 1) / float(Prestige.MIN_COUNTRY + 1), 0.0, 1.0),
 		"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
@@ -1840,7 +1897,7 @@ func _talent_effect_total(key: String, lvl: int) -> String:
 # ── Signal handlers ──────────────────────────────────────────────────────────────
 
 func _on_city_unlocked(i: int) -> void:
-	_toast("Cidade desbloqueada!", UITheme.CYAN, "ic_city")
+	_toast(tr("Cidade desbloqueada!"), UITheme.CYAN, "ic_city")
 	var c := Vector2(size.x * 0.5, size.y * 0.42)
 	Fx.confetti(self, c, 22)
 	Fx.ring_pulse(self, c, UITheme.CYAN, 2.2)
@@ -1852,7 +1909,7 @@ func _on_country_changed(i: int) -> void:
 	_rebuild_city_list()
 	var c := Vector2(size.x * 0.5, size.y * 0.40)
 	if i >= Economy.num_countries() - 1:
-		_toast("🏆 MISSÃO COMPLETA! Conquistaste o mundo!", UITheme.GOLD, "ic_city")
+		_toast(tr("🏆 MISSÃO COMPLETA! Conquistaste o mundo!"), UITheme.GOLD, "ic_city")
 		_banana_rain()
 		Fx.confetti(self, c, 80, [UITheme.GOLD, UITheme.CYAN, UITheme.GREEN, UITheme.PINK, Color(1,0.9,0.1)])
 		Fx.screen_flash(self, UITheme.GOLD, 0.30)
@@ -1976,7 +2033,7 @@ func _show_event_banner(def: Dictionary) -> void:
 func _on_prestige(_count: int) -> void:
 	_disp_credits = 0.0
 	_prev_gems = GameState.gems; _prev_infl = GameState.influence
-	_toast("PRESTIGE! Bem-vindo ao recomeço!", UITheme.PRESTIGE, "ic_prestige")
+	_toast(tr("PRESTIGE! Bem-vindo ao recomeço!"), UITheme.PRESTIGE, "ic_prestige")
 
 # ── FX helpers ───────────────────────────────────────────────────────────────────
 
@@ -2039,7 +2096,7 @@ func _show_daily_popup() -> void:
 	if Daily.pending:
 		if Daily.pending_restore:
 			# One free recovery keeps the daily system friendly in the test build.
-			var rs := Button.new(); rs.text = "Tagesserie retten"
+			var rs := Button.new(); rs.text = tr("Restaurar sequência (anúncio)")
 			rs.icon = _opt_tex("ic_daily"); rs.expand_icon = true; rs.add_theme_constant_override("icon_max_width", 24)
 			rs.add_theme_font_size_override("font_size", 18); rs.custom_minimum_size = Vector2(0, 62)
 			rs.add_theme_stylebox_override("normal", UITheme.solid(UITheme.GREEN.darkened(0.05)))
@@ -2047,13 +2104,13 @@ func _show_daily_popup() -> void:
 			rs.pressed.connect(func():
 				layer.queue_free()
 				Daily.restore_streak()
-				_toast("Tagesserie gerettet!", UITheme.GREEN, "ic_daily")
+				_toast(tr("Sequência restaurada!"), UITheme.GREEN, "ic_daily")
 				_show_daily_popup()
 			)
 			box.add_child(rs)
 			Fx.shimmer(rs, UITheme.GREEN, true)
 		var claim_btn := _wide_btn(UITheme.GOLD.darkened(0.06))
-		claim_btn.text = "Tagesbelohnung erhalten"
+		claim_btn.text = tr("Recolher")
 		claim_btn.add_theme_color_override("font_color", Color(0.12, 0.08, 0.0))
 		claim_btn.pressed.connect(func():
 			Fx.press(claim_btn)
@@ -2072,14 +2129,14 @@ func _show_bonus_popup(reward: Dictionary) -> void:
 	if has_node("/root/Achievements"): Achievements.note_golden()
 	var layer := _overlay(); var box := _popup_box(layer, UITheme.GOLD)
 	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
-	hd.add_child(_icon("ic_drone", 30)); hd.add_child(_lbl("Goldener Greif!", 30, UITheme.GOLD)); box.add_child(hd)
-	var info := _lbl("Du hast einen seltenen Goldgreif entdeckt.\nÖffne seinen Greifenschatz!", 18, UITheme.MUTED)
+	hd.add_child(_icon("ic_drone", 30)); hd.add_child(_lbl(tr("Drone Bónus!"), 30, UITheme.GOLD)); box.add_child(hd)
+	var info := _lbl(tr("Apanhaste um drone de carga dourado.\nEscolhe a tua recompensa:"), 18, UITheme.MUTED)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(info)
 
 	var kind: String = str(reward.get("kind", "cash"))
 	var rare_btn := _wide_btn(UITheme.GREEN)
-	rare_btn.text = "Greifenschatz öffnen"
+	rare_btn.text = tr("Abrir")
 	rare_btn.icon = _opt_tex("ic_gems"); rare_btn.expand_icon = true
 	rare_btn.add_theme_constant_override("icon_max_width", 24)
 	rare_btn.custom_minimum_size = Vector2(0, 70)
@@ -2091,16 +2148,16 @@ func _show_bonus_popup(reward: Dictionary) -> void:
 				_disp_credits = GameState.credits
 				Fx.chip_pop(_credits_chip, UITheme.GOLD); Fx.chip_pop(_gems_chip, UITheme.CYAN)
 				Fx.confetti(self, Vector2(size.x * 0.5, size.y * 0.4), 40, [UITheme.VIOLET, UITheme.GOLD, UITheme.CYAN])
-				_toast("JACKPOT! +30 Edelsteine und 5 Min. Ertrag!", UITheme.VIOLET, "ic_gems")
+				_toast(tr("JACKPOT! +30 Gemas e 5 min de lucros!"), UITheme.VIOLET, "ic_gems")
 			"boost":
 				GameState.earn_boost_timer = 180.0
-				_toast("Ertrag ×2 für 3 Minuten!", UITheme.GREEN, "ic_boost")
+				_toast(tr("Lucros ×2 durante 3 minutos!"), UITheme.GREEN, "ic_boost")
 			"gems":
-				GameState.grant_gems(8); _toast("+8 Edelsteine!", UITheme.CYAN, "ic_gems")
+				GameState.grant_gems(8); _toast(tr("+8 Gemas!"), UITheme.CYAN, "ic_gems")
 			_:
 				GameState.grant_cash_minutes(3.0); _disp_credits = GameState.credits
 				Fx.chip_pop(_credits_chip, UITheme.GOLD)
-				_toast("+3 Minuten Handelsertrag!", UITheme.GREEN, "ic_cash")
+				_toast(tr("+3 minutos de lucros!"), UITheme.GREEN, "ic_cash")
 	)
 	box.add_child(rare_btn)
 	Fx.shimmer(rare_btn, UITheme.GREEN, true)
@@ -2110,7 +2167,7 @@ func _show_prestige_confirm() -> void:
 	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
 	hd.add_child(_icon("ic_prestige", 28)); hd.add_child(_lbl("Confirmar Prestige", 28, UITheme.PRESTIGE)); box.add_child(hd)
 	var gain := Prestige.pgems_on_next_prestige()
-	var info := _lbl("Du erhältst %d Vermächtnisrunen\nund einen dauerhaften ×%.2f-Multiplikator.\n\nDu verlierst Gold, Greifenkuriere und Ausbauten.\nEdelsteine und Erfolge bleiben erhalten." % [gain, Prestige.effective_mult() * 1.15], 18, UITheme.MUTED)
+	var info := _lbl(tr("Vais ganhar  %d  Gemas Prestige\ne um multiplicador ×%.2f permanente.\n\nPerdes créditos, drones e upgrades.\nMantens gemas normais e conquistas.") % [gain, Prestige.effective_mult() * 1.15], 18, UITheme.MUTED)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(info)
 	var confirm := Button.new(); confirm.text = "SIM, FAZER PRESTIGE"
@@ -2199,6 +2256,51 @@ func _set_language(l: String) -> void:
 	Fx.set_locale(l)
 	SaveSystem.save_game()
 
+## Keep every persistent control clear of camera cut-outs, rounded display
+## corners and the Android gesture area. DisplayServer reports safe bounds in
+## physical screen pixels, so convert them into this project's logical canvas
+## before moving the anchored HUD/page stack. Desktop remains pixel-identical.
+func _apply_safe_area() -> void:
+	if not is_inside_tree():
+		return
+	var top_inset := 0.0
+	var bottom_inset := 0.0
+	if OS.has_feature("mobile"):
+		var screen := DisplayServer.screen_get_size()
+		var safe := DisplayServer.get_display_safe_area()
+		var logical := get_viewport().get_visible_rect().size
+		if screen.y > 0 and logical.y > 0.0:
+			var scale_y := logical.y / float(screen.y)
+			top_inset = float(maxi(0, safe.position.y)) * scale_y
+			var bottom_px := maxi(0, screen.y - (safe.position.y + safe.size.y))
+			bottom_inset = float(bottom_px) * scale_y
+	_safe_top = clampf(top_inset, 0.0, 96.0)
+	_safe_bottom = clampf(bottom_inset, 0.0, 96.0)
+
+	if is_instance_valid(_hud):
+		_hud.offset_top = 20.0 + _safe_top
+	var nav_bottom := NAV_H + _safe_bottom
+	var panel_top := NAV_H + TABS_H + _safe_bottom
+	if is_instance_valid(_bottom_bg):
+		_bottom_bg.offset_top = -panel_top
+		_bottom_bg.offset_bottom = 0.0
+	if is_instance_valid(_map_floor_anchor):
+		_map_floor_anchor.offset_top = -panel_top
+		_map_floor_anchor.offset_bottom = -panel_top
+	for page in _pages:
+		if is_instance_valid(page):
+			page.offset_top = -panel_top
+			page.offset_bottom = -nav_bottom
+	if is_instance_valid(_nav_sep):
+		_nav_sep.offset_top = -nav_bottom - 1.0
+		_nav_sep.offset_bottom = -nav_bottom
+	if is_instance_valid(_nav_bar):
+		_nav_bar.offset_top = -nav_bottom
+		_nav_bar.offset_bottom = -_safe_bottom
+	if is_instance_valid(_nav_ind):
+		_nav_ind.offset_top = -nav_bottom - 2.0
+		_nav_ind.offset_bottom = -nav_bottom + 4.0
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED:
 		for l: Label in _section_lbls:
@@ -2231,6 +2333,10 @@ func _notification(what: int) -> void:
 			_rows[key]["_sig"] = null
 		for key: String in _talent_rows:
 			_talent_rows[key]["_lvl"] = -1
+	elif what == NOTIFICATION_RESIZED:
+		# Multi-window, foldables and orientation/configuration changes can alter
+		# the usable display rectangle while the game is already running.
+		call_deferred("_apply_safe_area")
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		# Android hardware/gesture Back: close the top popup instead of killing
 		# the app; if nothing is open, ask before quitting. (Was unhandled — Back
@@ -2269,6 +2375,78 @@ func _show_income_breakdown() -> void:
 	tot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; box.add_child(tot)
 	box.add_child(_close_btn(layer))
 
+## Compact map-first city inspector. It deliberately reuses existing translated
+## vocabulary and the same city action as the management dashboard, so tapping
+## the world never opens a dead-end information panel.
+func _show_city_inspector(index: int) -> void:
+	var cities := Economy.country_cities(GameState.current_country)
+	if index < 0 or index >= cities.size():
+		return
+	Audio.play("tap")
+	var is_capital := index == 0
+	var is_active := index <= GameState.cities_unlocked
+	var is_next := index == GameState.cities_unlocked + 1
+	var accent := UITheme.GOLD if is_capital else (UITheme.CYAN if is_active else UITheme.ACCENT)
+	var layer := _overlay()
+	var box := _popup_box(layer, accent)
+
+	var head := HBoxContainer.new(); head.add_theme_constant_override("separation", 12)
+	head.add_child(_icon_badge("ic_city" if is_capital or is_next else "ic_range", accent, 56, 30))
+	var titles := VBoxContainer.new(); titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var title := _lbl(str(cities[index]["name"]), 28, UITheme.INK)
+	title.add_theme_font_override("font", UITheme.font("Bold")); titles.add_child(title)
+	titles.add_child(_lbl(Economy.country_name(GameState.current_country), 16, UITheme.MUTED))
+	head.add_child(titles); box.add_child(head)
+
+	var info := _card(accent)
+	var iv := VBoxContainer.new(); iv.add_theme_constant_override("separation", 8); info.add_child(iv)
+	var status := tr("SEDE") if is_capital else (tr("Obtido") if is_active else tr("Bloqueado"))
+	var status_lbl := _lbl(status, 17, accent)
+	status_lbl.add_theme_font_override("font", UITheme.font("Bold")); iv.add_child(status_lbl)
+	if is_active:
+		var realm_income := GameState.income_per_sec()
+		var city_income := realm_income if is_capital else GameState.route_income_per_sec(index - 1)
+		iv.add_child(_lbl(tr("Rendimento: %s/s") % Fmt.short(city_income), 20, UITheme.GREEN))
+		if not is_capital:
+			var share := 0 if realm_income <= 0.0 else int(round(city_income / realm_income * 100.0))
+			iv.add_child(_lbl(tr("Contribuição para o reino: %d%%") % share, 15, UITheme.CYAN))
+		iv.add_child(_lbl(tr("Tens %d drones") % GameState.drones, 16, UITheme.MUTED))
+	elif is_next:
+		var unlock_cost := GameState.next_city_cost()
+		var unlock_pct := clampf(GameState.credits / maxf(1.0, unlock_cost), 0.0, 1.0)
+		iv.add_child(_lbl(tr("Custo: %s") % Fmt.short(unlock_cost), 20, UITheme.GOLD))
+		var prog_bg := Panel.new(); prog_bg.custom_minimum_size = Vector2(0, 9)
+		prog_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); iv.add_child(prog_bg)
+		var prog_fill := Panel.new(); prog_fill.anchor_left = 0; prog_fill.anchor_right = unlock_pct
+		prog_fill.anchor_top = 0; prog_fill.anchor_bottom = 1
+		prog_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.ACCENT)); prog_bg.add_child(prog_fill)
+		var pct_lbl := _lbl(tr("Progresso: %d%%") % int(round(unlock_pct * 100.0)), 15, UITheme.MUTED)
+		pct_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; iv.add_child(pct_lbl)
+	box.add_child(info)
+
+	var action := _buy_btn(accent)
+	action.custom_minimum_size = Vector2(0, 72)
+	if is_next:
+		var cost := GameState.next_city_cost()
+		action.text = tr("Abrir") + "  ·  " + Fmt.short(cost)
+		action.disabled = GameState.credits < cost
+		action.pressed.connect(func():
+			if GameState.unlock_city():
+				Fx.press(action); Audio.play("unlock"); _dismiss(layer)
+			else:
+				Fx.error_shake(action)
+		)
+	elif is_active:
+		action.text = tr("Cidades")
+		action.pressed.connect(func():
+			Fx.press(action); _dismiss(layer); _switch_tab(1)
+		)
+	else:
+		action.text = tr("Bloqueado")
+		action.disabled = true
+	box.add_child(action)
+	box.add_child(_close_btn(layer))
+
 ## "Sair do jogo?" — only reached via the Android Back button with no popup open.
 func _show_exit_confirm() -> void:
 	var layer := _overlay(); var box := _popup_box(layer, UITheme.ACCENT)
@@ -2281,7 +2459,7 @@ func _show_exit_confirm() -> void:
 	box.add_child(_close_btn(layer))
 
 func _settings_stats_text() -> String:
-	return "Handel: %s  ·  Verdient: %s\nErtrag: %s/s  ·  Serie: %d\nKuriere: %d  ·  Reiche: %d/%d  ·  Folge: %d T.\nVermächtnis: %d  ·  Erfolge: %d/%d" % [
+	return tr("Entregas: %s  ·  Ganhos: %s\nRendimento: %s/s  ·  Combo: %d\nDrones: %d  ·  Países: %d/%d  ·  Streak: %dd\nPrestige: %d  ·  Conquistas: %d/%d") % [
 		Fmt.short(float(GameState.total_deliveries)), Fmt.short(GameState.total_earned),
 		Fmt.short(GameState.income_per_sec()), GameState.combo,
 		GameState.drones, GameState.current_country + 1, Economy.num_countries(), Daily.streak,
@@ -2424,13 +2602,13 @@ func _full_reset() -> void:
 	_rebuild_prestige_shop()
 	_rebuild_achievements()
 	_switch_tab(0)
-	_toast("Fortschritt zurückgesetzt.", UITheme.RED, "ic_gear")
+	_toast(tr("Progresso reposto."), UITheme.RED, "ic_gear")
 
 func _show_offline_popup(amount: float, seconds: float) -> void:
 	var layer := _overlay(); var box := _popup_box(layer, UITheme.ACCENT)
 	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
 	hd.add_child(_icon("ic_income", 28)); hd.add_child(_lbl("Bem-vindo de volta!", 30, UITheme.INK)); box.add_child(hd)
-	var m := _lbl("Deine Greifenkuriere handelten %s lang:" % Fmt.duration(seconds), 19, UITheme.MUTED)
+	var m := _lbl(tr("Os drones entregaram durante %s:") % Fmt.duration(seconds), 19, UITheme.MUTED)
 	m.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; m.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(m)
 	var big := _lbl(Fmt.short(amount), 40, UITheme.GOLD)
 	big.add_theme_font_override("font", UITheme.font("Bold"))
@@ -2442,7 +2620,7 @@ func _show_offline_popup(amount: float, seconds: float) -> void:
 	var rate_lbl := _lbl(tr("Taxa: %s/s · limite offline %s") % [Fmt.short(GameState.income_per_sec()), Fmt.duration(cap)], 14, UITheme.MUTED)
 	rate_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; box.add_child(rate_lbl)
 	if seconds >= cap - 1.0:
-		var up := _lbl("Offline-Lager vollständig gefüllt.", 15, UITheme.GOLD)
+		var up := _lbl(tr("Armazém offline completamente cheio."), 15, UITheme.GOLD)
 		up.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; up.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		box.add_child(up)
 	if not Fx.reduce_motion:
@@ -2454,7 +2632,7 @@ func _show_offline_popup(amount: float, seconds: float) -> void:
 				big.text = Fmt.short(v)
 		ctw.tween_method(_set_big_text, 0.0, amount, 0.9) \
 			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	var collect := Button.new(); collect.text = "Offline-Ertrag einsammeln"
+	var collect := Button.new(); collect.text = tr("Recolher")
 	collect.add_theme_font_size_override("font_size", 24); collect.custom_minimum_size = Vector2(0, 70)
 	collect.add_theme_stylebox_override("normal", UITheme.action_btn(UITheme.GREEN))
 	collect.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
@@ -2579,7 +2757,9 @@ func _opt_tex(n: String) -> Texture2D:
 func _on_delivered(amount: float, _city_idx: int, _count: int) -> void:
 	_delivery_fx_bank += amount
 	var now_ms := Time.get_ticks_msec()
-	if now_ms - _last_delivery_fx_ms < 750:
+	# The label animation lasts 0.9s. A 1.05s gate guarantees that only one
+	# earnings value can ever occupy the map, even in extreme late-game income.
+	if now_ms - _last_delivery_fx_ms < 1050:
 		return
 	_last_delivery_fx_ms = now_ms
 	var shown_amount := _delivery_fx_bank
@@ -2597,7 +2777,7 @@ func _on_delivered(amount: float, _city_idx: int, _count: int) -> void:
 # ── Contract signal handlers ──────────────────────────────────────────────────────
 
 func _on_contract_completed(_slot: int) -> void:
-	_toast("Missão concluída! Recompensa recebida", UITheme.CYAN, "ic_achieve")
+	_toast(tr("Missão concluída! Recompensa recebida"), UITheme.CYAN, "ic_achieve")
 	Fx.confetti(self, Vector2(size.x * 0.5, size.y * 0.45), 30, [UITheme.CYAN, UITheme.GREEN, UITheme.GOLD])
 	Fx.screen_flash(self, UITheme.CYAN, 0.10)
 	Audio.play("milestone")
@@ -2733,7 +2913,7 @@ func _build_missions_tab() -> ScrollContainer:
 			if not _can_tap(): return
 			Fx.press(rbtn)
 			if Contracts.reroll(ri):
-				_toast("Auftrag ausgetauscht!", UITheme.CYAN, "ic_achieve")
+				_toast(tr("Missão substituída!"), UITheme.CYAN, "ic_achieve")
 		)
 		top.add_child(rbtn)
 		_mission_reroll_btns.append(rbtn)
@@ -2799,7 +2979,7 @@ func _build_missions_tab() -> ScrollContainer:
 			if Contracts.claim(ci, 2.0):
 				Audio.play("milestone")
 				Fx.chip_pop(_credits_chip, UITheme.GOLD)
-				_toast("Doppelte Auftragsbelohnung!", UITheme.GREEN, "ic_achieve")
+				_toast(tr("Recompensa a DOBRAR!"), UITheme.GREEN, "ic_achieve")
 		)
 		bot.add_child(xbtn)
 		_mission_x2_btns.append(xbtn)
