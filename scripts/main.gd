@@ -21,6 +21,7 @@ var _toasts: VBoxContainer
 var _page_groups: Dictionary = {}
 var _page_indices: Dictionary = {}
 var _page_labels: Dictionary = {}
+var _page_gestures: Dictionary = {}
 
 # HUD
 var _credits_lbl: Label
@@ -83,7 +84,7 @@ var _achieve_prog_fills := {}
 var _achieve_prog_lbls := {}
 var _settings_stats_lbl: Label = null
 var _prestige_ready_prev := false
-var _tap_block_until := 0   # ms; drag-scroll guard so dragging never buys
+var _tap_block_until := 0   # ms; swipe guard so paging never triggers a purchase
 var _auto_mgr_toggle: Control
 var _ascendant_lbl: Label
 var _ascendant_btn: Button
@@ -516,7 +517,7 @@ func _enable_page_mode(sc: ScrollContainer) -> void:
 	pager.custom_minimum_size = Vector2(0, 48)
 	pager.set_meta("page_pager", true)
 	var prev := Button.new(); prev.text = "‹"; prev.custom_minimum_size = Vector2(64, 44)
-	var status := _lbl("", 14, UITheme.MUTED); status.custom_minimum_size = Vector2(74, 0)
+	var status := _lbl("", 18, UITheme.CYAN); status.custom_minimum_size = Vector2(170, 0)
 	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var next := Button.new(); next.text = "›"; next.custom_minimum_size = Vector2(64, 44)
 	for button: Button in [prev, next]:
@@ -528,11 +529,19 @@ func _enable_page_mode(sc: ScrollContainer) -> void:
 	pager.add_child(prev); pager.add_child(status); pager.add_child(next)
 	box.add_child(pager)
 	_page_labels[sc] = status
-	prev.pressed.connect(func(): _change_management_page(sc, -1))
-	next.pressed.connect(func(): _change_management_page(sc, 1))
+	prev.pressed.connect(func():
+		if not _can_tap(): return
+		Fx.press(prev); _change_management_page(sc, -1)
+	)
+	next.pressed.connect(func():
+		if not _can_tap(): return
+		Fx.press(next); _change_management_page(sc, 1)
+	)
 	prev.set_meta("pager_peer", next)
 	next.set_meta("pager_peer", prev)
 	sc.set_meta("pager_prev", prev); sc.set_meta("pager_next", next)
+	_page_gestures[sc] = {"delta": Vector2.ZERO, "locked": false}
+	sc.gui_input.connect(func(event: InputEvent): _on_page_swipe(sc, event))
 	_refresh_page_units(sc)
 	_show_management_page(sc, 0)
 
@@ -571,20 +580,40 @@ func _show_management_page(sc: ScrollContainer, requested: int) -> void:
 	var items: Array = _page_groups[sc]
 	const PAGE_SIZE := 4
 	var total := maxi(1, ceili(float(items.size()) / float(PAGE_SIZE)))
+	var old_page := int(_page_indices.get(sc, 0))
 	var page := clampi(requested, 0, total - 1)
 	_page_indices[sc] = page
 	for i in range(items.size()):
-		(items[i] as CanvasItem).visible = floori(float(i) / float(PAGE_SIZE)) == page
+		var item := items[i] as CanvasItem
+		item.modulate.a = 1.0
+		item.visible = floori(float(i) / float(PAGE_SIZE)) == page
 	var status: Label = _page_labels[sc]
-	status.text = "%d / %d" % [page + 1, total]
+	if total <= 7:
+		var dots := PackedStringArray()
+		for i in total:
+			dots.append("●" if i == page else "•")
+		status.text = "  ".join(dots)
+	else:
+		status.text = "%d / %d" % [page + 1, total]
 	var prev := sc.get_meta("pager_prev") as Button
 	var next := sc.get_meta("pager_next") as Button
 	prev.disabled = page <= 0
 	next.disabled = page >= total - 1
+	# A restrained stagger makes the discrete page swap read as an intentional
+	# dashboard transition instead of content abruptly blinking in and out.
+	if page != old_page and not Fx.reduce_motion:
+		var order := 0
+		for i in range(items.size()):
+			if floori(float(i) / float(PAGE_SIZE)) != page: continue
+			var item := items[i] as CanvasItem
+			item.modulate.a = 0.0
+			var tw := item.create_tween()
+			tw.tween_interval(float(order) * 0.035)
+			tw.tween_property(item, "modulate:a", 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			order += 1
 
-## Make the WHOLE card surface drag-scrollable. Buttons → PASS (so drags over
-## them still bubble to the ScrollContainer for scrolling) but guarded by
-## _can_tap() so a drag never triggers a purchase. Everything else → IGNORE.
+## Make the WHOLE card surface swipe-aware. Buttons stay usable but pass gesture
+## events to the page container; non-interactive decoration never intercepts.
 func _make_scrollable(n: Node) -> void:
 	for child in n.get_children():
 		if child is BaseButton:
@@ -593,16 +622,56 @@ func _make_scrollable(n: Node) -> void:
 			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_make_scrollable(child)
 
-## Detect a scroll drag and block taps briefly so dragging over a button never
-## fires it. Built-in ScrollContainer handles the actual scrolling.
-func _on_scroll_gui_input(event: InputEvent) -> void:
+## Horizontal swipe paging for touch and mouse. Vertical movement never scrolls
+## the panel; it only cancels horizontal intent. Once a gesture turns into a
+## swipe, purchase taps remain blocked through the release frame.
+func _on_page_swipe(sc: ScrollContainer, event: InputEvent) -> void:
+	if not _page_gestures.has(sc): return
+	var gesture: Dictionary = _page_gestures[sc]
+	if event is InputEventScreenTouch:
+		var touch := event as InputEventScreenTouch
+		if touch.pressed:
+			gesture["delta"] = Vector2.ZERO
+			gesture["locked"] = false
+		else:
+			var touch_delta: Vector2 = gesture["delta"]
+			if bool(gesture["locked"]) or touch_delta.length_squared() > 9.0:
+				_tap_block_until = maxi(_tap_block_until, Time.get_ticks_msec() + 120)
+			gesture["delta"] = Vector2.ZERO
+			gesture["locked"] = false
+		return
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				gesture["delta"] = Vector2.ZERO
+				gesture["locked"] = false
+			else:
+				var mouse_delta: Vector2 = gesture["delta"]
+				if bool(gesture["locked"]) or mouse_delta.length_squared() > 9.0:
+					_tap_block_until = maxi(_tap_block_until, Time.get_ticks_msec() + 120)
+				gesture["delta"] = Vector2.ZERO
+				gesture["locked"] = false
+		return
+	var relative := Vector2.ZERO
 	if event is InputEventScreenDrag:
-		if absf((event as InputEventScreenDrag).relative.y) > 1.5:
-			_tap_block_until = Time.get_ticks_msec() + 160
+		relative = (event as InputEventScreenDrag).relative
 	elif event is InputEventMouseMotion:
 		var mm := event as InputEventMouseMotion
-		if (mm.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0 and absf(mm.relative.y) > 1.5:
-			_tap_block_until = Time.get_ticks_msec() + 160
+		if (mm.button_mask & MOUSE_BUTTON_MASK_LEFT) == 0: return
+		relative = mm.relative
+	else:
+		return
+	if gesture["locked"]: return
+	var delta: Vector2 = gesture["delta"]
+	delta += relative
+	gesture["delta"] = delta
+	if delta.length_squared() > 9.0:
+		_tap_block_until = Time.get_ticks_msec() + 180
+	if absf(delta.x) >= 72.0 and absf(delta.x) > absf(delta.y) * 1.25:
+		gesture["locked"] = true
+		sc.accept_event()
+		_change_management_page(sc, 1 if delta.x < 0.0 else -1)
 
 func _can_tap() -> bool:
 	return Time.get_ticks_msec() >= _tap_block_until
