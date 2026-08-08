@@ -119,8 +119,8 @@ func _ready() -> void:
 	_griffin_flight_sheet = load("res://assets/art/generated/griffin_flight_sheet.png")
 	_package = load("res://assets/art/package.png")
 	_cloud = load("res://assets/art/cloud.png")
-	_hub_home = load("res://assets/art/hub_home.png")
-	_hub_city = load("res://assets/art/hub_city.png")
+	_hub_home = load("res://assets/art/generated/arcane_capital_hub_v2.png")
+	_hub_city = load("res://assets/art/generated/arcane_city_hub_v2.png")
 	_hub_city2 = load("res://assets/art/hub_city2.png")
 	_grid_tile = load("res://assets/art/grid_tile.png")
 	_dot = _make_dot_tex()
@@ -833,7 +833,8 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 		var nm: String = cities[i]["name"]
 		var flash: float = float(_flash.get(i, 0.0))
 		if i == 0:
-			_draw_city_district(cp, i, true)
+			if _hub_home == null:
+				_draw_city_district(cp, i, true)
 			_capital_marker(cp, flash)
 			_label(cp, nm, GOLD)
 			occupied.append(cp)
@@ -847,7 +848,8 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 			if dense:
 				_compact_marker(cp, flash)
 			else:
-				_draw_city_district(cp, i, false)
+				if _hub_city == null:
+					_draw_city_district(cp, i, false)
 				_active_marker(cp, flash)
 			occupied.append(cp)
 			# On the overview only the frontier city is named. Pinch-zooming turns
@@ -970,8 +972,11 @@ func _capital_marker(p: Vector2, flash: float) -> void:
 	# tall ambient ground glow
 	draw_circle(p, 30.0 + breath * 6.0, Color(GOLD.r, GOLD.g, GOLD.b, 0.10 + 0.05 * breath))
 	if _hub_home != null:
-		var s := 41.0 if zoom < 1.65 else 48.0
-		draw_texture_rect(_hub_home, Rect2(p.x - s * 0.5, p.y - s * 0.5, s, s), false)
+		var s := 62.0 if zoom < 1.65 else 76.0
+		# Buildings stand above their route node; the landing platform rests on
+		# `p` while the label remains below it. Centering the old crest on `p`
+		# made artwork, route and name collide in the same 40px square.
+		draw_texture_rect(_hub_home, Rect2(p.x - s * 0.5, p.y - s + 8.0, s, s), false)
 	else:
 		draw_circle(p, 11.0, GOLD)
 		draw_circle(p, 5.0, INK)
@@ -989,8 +994,8 @@ func _active_marker(p: Vector2, flash: float) -> void:
 	var pulse: float = 0.5 + 0.5 * sin(_t * 3.0)
 	draw_circle(p, 14.0 + pulse * 4.0, Color(CYAN.r, CYAN.g, CYAN.b, 0.16))
 	if _hub_city != null:
-		var s := 27.0 if zoom < 1.65 else 34.0
-		draw_texture_rect(_hub_city, Rect2(p.x - s * 0.5, p.y - s * 0.5, s, s), false)
+		var s := 44.0 if zoom < 1.65 else 56.0
+		draw_texture_rect(_hub_city, Rect2(p.x - s * 0.5, p.y - s + 6.0, s, s), false)
 	else:
 		draw_circle(p, 8.0, CYAN)
 		draw_circle(p, 3.6, INK)
