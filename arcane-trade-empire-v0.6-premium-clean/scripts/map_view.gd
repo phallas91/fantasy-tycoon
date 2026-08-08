@@ -1,5 +1,6 @@
 extends Control
 class_name MapView
+signal city_selected(index: int)
 ## Premium arcane trade map. Draws each realm with routes, couriers and hubs.
 ## outline polygon, geographically-placed cities (capital / active / locked),
 ## flowing route lanes and delivery drones with trails. Reads GameState/Economy.
@@ -49,6 +50,8 @@ var _bbox_ci := -1   # country the bbox/outline was last computed for (self-heal
 var _deliver_seen := 0   # throttles beacon flashes to perceived drone-arrival rate
 var _tap_start_pos := Vector2.ZERO
 var _tap_start_ms := 0
+var _mouse_start_pos := Vector2.ZERO
+var _mouse_start_ms := 0
 var _cam_tween: Tween
 
 # --- landmass geometry cache (rebuilt only when zoom/pan actually change) ---
@@ -413,6 +416,7 @@ func _gui_input(event: InputEvent) -> void:
 			if was_single and t.position.distance_to(_tap_start_pos) < 14.0 \
 					and Time.get_ticks_msec() - _tap_start_ms < 250:
 				_tap_ripple(t.position)
+				_try_select_city(t.position)
 	elif event is InputEventScreenDrag:
 		var d := event as InputEventScreenDrag
 		_touches[d.index] = d.position
@@ -432,7 +436,15 @@ func _gui_input(event: InputEvent) -> void:
 		if not _touches.is_empty():
 			return
 		var mb := event as InputEventMouseButton
-		if mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				_mouse_start_pos = mb.position
+				_mouse_start_ms = Time.get_ticks_msec()
+			elif mb.position.distance_to(_mouse_start_pos) < 14.0 \
+					and Time.get_ticks_msec() - _mouse_start_ms < 300:
+				_tap_ripple(mb.position)
+				_try_select_city(mb.position)
+		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
 			_zoom_at(zoom * 1.12, mb.position); accept_event()
 		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_zoom_at(zoom / 1.12, mb.position); accept_event()
@@ -444,6 +456,27 @@ func _gui_input(event: InputEvent) -> void:
 			pan += mm.relative
 			_clamp_pan()
 			accept_event()
+
+## Turns the illustrated map into a direct interface. The nearest visible city
+## wins inside a touch-friendly radius; empty-space taps remain simple ripples.
+func _try_select_city(screen_pos: Vector2) -> void:
+	if screen_pos.y < band_top or screen_pos.y > band_bottom:
+		return
+	var cities := Economy.country_cities(GameState.current_country)
+	var best_idx := -1
+	var best_dist := 46.0
+	for i in range(cities.size()):
+		# Far-future locked dots are intentionally not interactive; the next city
+		# is selectable so its inspector can present the unlock action.
+		if i > GameState.cities_unlocked + 1:
+			continue
+		var cp := _proj(Vector2(cities[i]["x"], cities[i]["y"]))
+		var dist := screen_pos.distance_to(cp)
+		if dist < best_dist:
+			best_dist = dist
+			best_idx = i
+	if best_idx >= 0:
+		city_selected.emit(best_idx)
 
 func _zoom_at(target: float, focus: Vector2) -> void:
 	var old := zoom

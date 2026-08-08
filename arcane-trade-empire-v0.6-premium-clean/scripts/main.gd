@@ -352,6 +352,7 @@ func _bg() -> void:
 
 func _build_map() -> void:
 	_map = MapView.new(); _map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); add_child(_map)
+	_map.city_selected.connect(_show_city_inspector)
 	# vignette over the map (under the UI chrome added later)
 	var vig := _opt_tex("vignette")
 	if vig != null:
@@ -2267,6 +2268,61 @@ func _show_income_breakdown() -> void:
 	var tot := _lbl(tr("Total ×%.2f") % total, 19, UITheme.GOLD)
 	tot.add_theme_font_override("font", UITheme.font("Bold"))
 	tot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; box.add_child(tot)
+	box.add_child(_close_btn(layer))
+
+## Compact map-first city inspector. It deliberately reuses existing translated
+## vocabulary and the same city action as the management dashboard, so tapping
+## the world never opens a dead-end information panel.
+func _show_city_inspector(index: int) -> void:
+	var cities := Economy.country_cities(GameState.current_country)
+	if index < 0 or index >= cities.size():
+		return
+	Audio.play("tap")
+	var is_capital := index == 0
+	var is_active := index <= GameState.cities_unlocked
+	var is_next := index == GameState.cities_unlocked + 1
+	var accent := UITheme.GOLD if is_capital else (UITheme.CYAN if is_active else UITheme.ACCENT)
+	var layer := _overlay()
+	var box := _popup_box(layer, accent)
+
+	var head := HBoxContainer.new(); head.add_theme_constant_override("separation", 12)
+	head.add_child(_icon_badge("ic_city" if is_capital or is_next else "ic_range", accent, 56, 30))
+	var titles := VBoxContainer.new(); titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var title := _lbl(str(cities[index]["name"]), 28, UITheme.INK)
+	title.add_theme_font_override("font", UITheme.font("Bold")); titles.add_child(title)
+	titles.add_child(_lbl(Economy.country_name(GameState.current_country), 16, UITheme.MUTED))
+	head.add_child(titles); box.add_child(head)
+
+	var info := _card(accent)
+	var iv := VBoxContainer.new(); iv.add_theme_constant_override("separation", 8); info.add_child(iv)
+	var status := tr("SEDE") if is_capital else (tr("Obtido") if is_active else tr("Bloqueado"))
+	var status_lbl := _lbl(status, 17, accent)
+	status_lbl.add_theme_font_override("font", UITheme.font("Bold")); iv.add_child(status_lbl)
+	iv.add_child(_lbl(tr("Rendimento: %s/s") % Fmt.short(GameState.income_per_sec()), 20, UITheme.GREEN))
+	iv.add_child(_lbl(tr("Tens %d drones") % GameState.drones, 16, UITheme.MUTED))
+	box.add_child(info)
+
+	var action := _buy_btn(accent)
+	action.custom_minimum_size = Vector2(0, 72)
+	if is_next:
+		var cost := GameState.next_city_cost()
+		action.text = tr("Abrir") + "  ·  " + Fmt.short(cost)
+		action.disabled = GameState.credits < cost
+		action.pressed.connect(func():
+			if GameState.unlock_city():
+				Fx.press(action); Audio.play("unlock"); _dismiss(layer)
+			else:
+				Fx.error_shake(action)
+		)
+	elif is_active:
+		action.text = tr("Cidades")
+		action.pressed.connect(func():
+			Fx.press(action); _dismiss(layer); _switch_tab(1)
+		)
+	else:
+		action.text = tr("Bloqueado")
+		action.disabled = true
+	box.add_child(action)
 	box.add_child(_close_btn(layer))
 
 ## "Sair do jogo?" — only reached via the Android Back button with no popup open.
