@@ -393,7 +393,7 @@ func _build_hud() -> void:
 	_blessing_badge = PanelContainer.new(); _blessing_badge.add_theme_stylebox_override("panel", UITheme.solid(UITheme.GOLD, 14))
 	var vb := HBoxContainer.new(); vb.add_theme_constant_override("separation", 3); _blessing_badge.add_child(vb)
 	vb.add_child(_icon("ic_blessing", 18))
-	var vl := Label.new(); vl.text = "SEGEN"; vl.add_theme_font_size_override("font_size", 15)
+	var vl := Label.new(); vl.text = "Bênção"; vl.add_theme_font_size_override("font_size", 15)
 	vl.add_theme_color_override("font_color", Color(0.12, 0.08, 0.0))
 	vl.add_theme_font_override("font", UITheme.font("Bold")); vb.add_child(vl)
 	_blessing_badge.visible = false; r1.add_child(_blessing_badge)
@@ -707,7 +707,9 @@ func _build_nav() -> void:
 	nav.add_theme_constant_override("separation", 0)
 	add_child(nav)
 
-	var defs := [["ic_nav_fleet","Karawane"],["ic_nav_cities","Reiche"],["ic_nav_talents","Forschung"],["ic_nav_legado","Vermächtnis"],["ic_nav_shop","Sammlung"],["ic_nav_missions","Aufträge"]]
+	var defs := [["ic_nav_fleet","Frota"],["ic_nav_cities","Cidades"],
+		["ic_nav_talents","Talentos"],["ic_nav_legado","Legado"],
+		["ic_nav_shop","Loja"],["ic_nav_missions","Missões"]]
 	for i in defs.size():
 		nav.add_child(_make_nav_btn(defs[i][0], defs[i][1], i))
 
@@ -868,7 +870,7 @@ func _build_fleet_tab() -> ScrollContainer:
 		seg_row.add_child(b); _mode_btns[mode_val] = b
 
 	var dr := _row(UITheme.ACCENT, "ic_drone")
-	dr["title"].text = "Greifenkuriere anheuern"
+	dr["title"].text = "Comprar Drones"
 	_drone_detail = dr["detail"]
 	_drone_btn = _cbuy(UITheme.GREEN, 160.0)
 	_drone_btn.pressed.connect(func():
@@ -938,7 +940,7 @@ func _build_cities_tab() -> ScrollContainer:
 	cr["right"].add_child(_city_btn); v.add_child(cr["card"])
 
 	var er := _row(UITheme.GOLD, "ic_city")
-	er["title"].text = "Nächstes Reich erschließen"
+	er["title"].text = "Expandir país"
 	er["detail"].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_expand_detail = er["detail"]
 	_expand_btn = _cbuy(UITheme.GOLD.darkened(0.08), 150.0)
@@ -996,7 +998,7 @@ func _rebuild_city_list() -> void:
 
 func _build_talents_tab() -> ScrollContainer:
 	var r := _scroll("Talentos"); var v: VBoxContainer = r[1]
-	var info := _lbl("Einfluss entsteht beim Erschließen neuer Reiche.\nNutze ihn für Boni bis zum nächsten Vermächtnis.", 16, UITheme.MUTED)
+	var info := _lbl("Influência ganha-se ao expandir países.\nGasta-a em bónus válidos até ao próximo Prestige.", 16, UITheme.MUTED)
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(info)
 	for key: String in Economy.TALENT_ORDER:
 		v.add_child(_make_talent_row(key))
@@ -1012,7 +1014,7 @@ func _build_legado_tab() -> ScrollContainer:
 	var ps_h := HBoxContainer.new(); ps_h.add_theme_constant_override("separation", 6); ps_v.add_child(ps_h)
 	ps_h.add_child(_icon("ic_prestige", 24))
 	ps_h.add_child(_lbl("Sistema de Prestige", 21, UITheme.PRESTIGE))
-	var ps_info := _lbl("Neustart mit dauerhaftem Multiplikator.\nErfordert das 5. freigeschaltete Reich.", 15, UITheme.MUTED)
+	var ps_info := _lbl("Reinicia com multiplicador permanente.\nRequer 5.º país desbloqueado.", 15, UITheme.MUTED)
 	ps_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; ps_v.add_child(ps_info)
 
 	# Prestige Gems balance — distinct from the HUD's Influência chip, which
@@ -1174,11 +1176,11 @@ func _make_achievement_row(id: String) -> PanelContainer:
 
 func _build_shop_tab() -> ScrollContainer:
 	var r := _scroll("Loja"); var v: VBoxContainer = r[1]
-	v.add_child(_section("Arkane Sammlung", UITheme.GOLD, "ic_gems"))
+	v.add_child(_section("Coleção Arcana", UITheme.GOLD, "ic_gems"))
 	for id: String in Economy.GEM_SHOP_ORDER:
 		v.add_child(_make_gem_row(id))
 
-	v.add_child(_section("Kuriergewänder", UITheme.CYAN, "ic_drone"))
+	v.add_child(_section("Trajes de Mensageiro", UITheme.CYAN, "ic_drone"))
 	var sk_info := _lbl("Skins permanentes para a tua frota. Cada skin extra dá +2% de lucros.", 15, UITheme.MUTED)
 	sk_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(sk_info)
 	for id: String in Economy.SKIN_ORDER:
@@ -1607,7 +1609,7 @@ func _process(delta: float) -> void:
 	var ec := GameState.expand_cost()
 	if ec < 0.0:
 		_expand_btn.disabled = true; _expand_btn.text = tr("FIM")
-		_expand_detail.text = "Du hast das letzte Reich erreicht. Glückwunsch!"
+		_expand_detail.text = tr("Chegaste ao último país. Parabéns!")
 	elif not GameState.all_cities_unlocked():
 		_expand_btn.disabled = true; _expand_btn.text = tr("Bloqueado")
 		_expand_detail.text = tr("Abre todas as cidades de %s primeiro.") % Economy.country_name(GameState.current_country)
@@ -1628,14 +1630,14 @@ func _process(delta: float) -> void:
 	var ready := Prestige.can_prestige()
 	_prestige_btn.disabled = not ready
 	if ready:
-		_prestige_btn.text = "PRESTIGE  (+%d)" % Prestige.pgems_on_next_prestige()
+		_prestige_btn.text = tr("Prestige") + "  (+%d)" % Prestige.pgems_on_next_prestige()
 	else:
-		_prestige_btn.text = "Vermächtnis (erfordert 5. Reich)"
+		_prestige_btn.text = tr("Prestige (requer 5.º país)")
 	if ready != _prestige_ready_prev or _prestige_info_lbl.text == "":
 		if ready:
 			_prestige_info_lbl.text = tr("Tier: %s · Prestige #%d · ×%.2f\nReinicias mantendo gemas e conquistas.") % [Prestige.tier_name(), Prestige.count + 1, Prestige.effective_mult() * 1.15]
 		else:
-			_prestige_info_lbl.text = "Erreiche das 5. Reich für ein Vermächtnis.\nRang: %s · Vermächtnis %d · ×%.2f" % [Prestige.tier_name(), Prestige.count, Prestige.effective_mult()]
+			_prestige_info_lbl.text = tr("Chega ao 5.º país para fazer prestige.\nTier: %s · Prestige %d · ×%.2f") % [Prestige.tier_name(), Prestige.count, Prestige.effective_mult()]
 		if ready != _prestige_ready_prev:
 			Fx.breathe(_prestige_btn, ready)
 		_prestige_ready_prev = ready
@@ -1841,7 +1843,7 @@ func _talent_effect_total(key: String, lvl: int) -> String:
 # ── Signal handlers ──────────────────────────────────────────────────────────────
 
 func _on_city_unlocked(i: int) -> void:
-	_toast("Cidade desbloqueada!", UITheme.CYAN, "ic_city")
+	_toast(tr("Cidade desbloqueada!"), UITheme.CYAN, "ic_city")
 	var c := Vector2(size.x * 0.5, size.y * 0.42)
 	Fx.confetti(self, c, 22)
 	Fx.ring_pulse(self, c, UITheme.CYAN, 2.2)
@@ -1853,7 +1855,7 @@ func _on_country_changed(i: int) -> void:
 	_rebuild_city_list()
 	var c := Vector2(size.x * 0.5, size.y * 0.40)
 	if i >= Economy.num_countries() - 1:
-		_toast("🏆 MISSÃO COMPLETA! Conquistaste o mundo!", UITheme.GOLD, "ic_city")
+		_toast(tr("🏆 MISSÃO COMPLETA! Conquistaste o mundo!"), UITheme.GOLD, "ic_city")
 		_banana_rain()
 		Fx.confetti(self, c, 80, [UITheme.GOLD, UITheme.CYAN, UITheme.GREEN, UITheme.PINK, Color(1,0.9,0.1)])
 		Fx.screen_flash(self, UITheme.GOLD, 0.30)
@@ -1977,7 +1979,7 @@ func _show_event_banner(def: Dictionary) -> void:
 func _on_prestige(_count: int) -> void:
 	_disp_credits = 0.0
 	_prev_gems = GameState.gems; _prev_infl = GameState.influence
-	_toast("PRESTIGE! Bem-vindo ao recomeço!", UITheme.PRESTIGE, "ic_prestige")
+	_toast(tr("PRESTIGE! Bem-vindo ao recomeço!"), UITheme.PRESTIGE, "ic_prestige")
 
 # ── FX helpers ───────────────────────────────────────────────────────────────────
 
@@ -2040,7 +2042,7 @@ func _show_daily_popup() -> void:
 	if Daily.pending:
 		if Daily.pending_restore:
 			# One free recovery keeps the daily system friendly in the test build.
-			var rs := Button.new(); rs.text = "Tagesserie retten"
+			var rs := Button.new(); rs.text = tr("Restaurar sequência (anúncio)")
 			rs.icon = _opt_tex("ic_daily"); rs.expand_icon = true; rs.add_theme_constant_override("icon_max_width", 24)
 			rs.add_theme_font_size_override("font_size", 18); rs.custom_minimum_size = Vector2(0, 62)
 			rs.add_theme_stylebox_override("normal", UITheme.solid(UITheme.GREEN.darkened(0.05)))
@@ -2048,13 +2050,13 @@ func _show_daily_popup() -> void:
 			rs.pressed.connect(func():
 				layer.queue_free()
 				Daily.restore_streak()
-				_toast("Tagesserie gerettet!", UITheme.GREEN, "ic_daily")
+				_toast(tr("Sequência restaurada!"), UITheme.GREEN, "ic_daily")
 				_show_daily_popup()
 			)
 			box.add_child(rs)
 			Fx.shimmer(rs, UITheme.GREEN, true)
 		var claim_btn := _wide_btn(UITheme.GOLD.darkened(0.06))
-		claim_btn.text = "Tagesbelohnung erhalten"
+		claim_btn.text = tr("Recolher")
 		claim_btn.add_theme_color_override("font_color", Color(0.12, 0.08, 0.0))
 		claim_btn.pressed.connect(func():
 			Fx.press(claim_btn)
@@ -2073,14 +2075,14 @@ func _show_bonus_popup(reward: Dictionary) -> void:
 	if has_node("/root/Achievements"): Achievements.note_golden()
 	var layer := _overlay(); var box := _popup_box(layer, UITheme.GOLD)
 	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
-	hd.add_child(_icon("ic_drone", 30)); hd.add_child(_lbl("Goldener Greif!", 30, UITheme.GOLD)); box.add_child(hd)
-	var info := _lbl("Du hast einen seltenen Goldgreif entdeckt.\nÖffne seinen Greifenschatz!", 18, UITheme.MUTED)
+	hd.add_child(_icon("ic_drone", 30)); hd.add_child(_lbl(tr("Drone Bónus!"), 30, UITheme.GOLD)); box.add_child(hd)
+	var info := _lbl(tr("Apanhaste um drone de carga dourado.\nEscolhe a tua recompensa:"), 18, UITheme.MUTED)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(info)
 
 	var kind: String = str(reward.get("kind", "cash"))
 	var rare_btn := _wide_btn(UITheme.GREEN)
-	rare_btn.text = "Greifenschatz öffnen"
+	rare_btn.text = tr("Abrir")
 	rare_btn.icon = _opt_tex("ic_gems"); rare_btn.expand_icon = true
 	rare_btn.add_theme_constant_override("icon_max_width", 24)
 	rare_btn.custom_minimum_size = Vector2(0, 70)
@@ -2092,16 +2094,16 @@ func _show_bonus_popup(reward: Dictionary) -> void:
 				_disp_credits = GameState.credits
 				Fx.chip_pop(_credits_chip, UITheme.GOLD); Fx.chip_pop(_gems_chip, UITheme.CYAN)
 				Fx.confetti(self, Vector2(size.x * 0.5, size.y * 0.4), 40, [UITheme.VIOLET, UITheme.GOLD, UITheme.CYAN])
-				_toast("JACKPOT! +30 Edelsteine und 5 Min. Ertrag!", UITheme.VIOLET, "ic_gems")
+				_toast(tr("JACKPOT! +30 Gemas e 5 min de lucros!"), UITheme.VIOLET, "ic_gems")
 			"boost":
 				GameState.earn_boost_timer = 180.0
-				_toast("Ertrag ×2 für 3 Minuten!", UITheme.GREEN, "ic_boost")
+				_toast(tr("Lucros ×2 durante 3 minutos!"), UITheme.GREEN, "ic_boost")
 			"gems":
-				GameState.grant_gems(8); _toast("+8 Edelsteine!", UITheme.CYAN, "ic_gems")
+				GameState.grant_gems(8); _toast(tr("+8 Gemas!"), UITheme.CYAN, "ic_gems")
 			_:
 				GameState.grant_cash_minutes(3.0); _disp_credits = GameState.credits
 				Fx.chip_pop(_credits_chip, UITheme.GOLD)
-				_toast("+3 Minuten Handelsertrag!", UITheme.GREEN, "ic_cash")
+				_toast(tr("+3 minutos de lucros!"), UITheme.GREEN, "ic_cash")
 	)
 	box.add_child(rare_btn)
 	Fx.shimmer(rare_btn, UITheme.GREEN, true)
@@ -2111,7 +2113,7 @@ func _show_prestige_confirm() -> void:
 	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
 	hd.add_child(_icon("ic_prestige", 28)); hd.add_child(_lbl("Confirmar Prestige", 28, UITheme.PRESTIGE)); box.add_child(hd)
 	var gain := Prestige.pgems_on_next_prestige()
-	var info := _lbl("Du erhältst %d Vermächtnisrunen\nund einen dauerhaften ×%.2f-Multiplikator.\n\nDu verlierst Gold, Greifenkuriere und Ausbauten.\nEdelsteine und Erfolge bleiben erhalten." % [gain, Prestige.effective_mult() * 1.15], 18, UITheme.MUTED)
+	var info := _lbl(tr("Vais ganhar  %d  Gemas Prestige\ne um multiplicador ×%.2f permanente.\n\nPerdes créditos, drones e upgrades.\nMantens gemas normais e conquistas.") % [gain, Prestige.effective_mult() * 1.15], 18, UITheme.MUTED)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(info)
 	var confirm := Button.new(); confirm.text = "SIM, FAZER PRESTIGE"
@@ -2337,7 +2339,7 @@ func _show_exit_confirm() -> void:
 	box.add_child(_close_btn(layer))
 
 func _settings_stats_text() -> String:
-	return "Handel: %s  ·  Verdient: %s\nErtrag: %s/s  ·  Serie: %d\nKuriere: %d  ·  Reiche: %d/%d  ·  Folge: %d T.\nVermächtnis: %d  ·  Erfolge: %d/%d" % [
+	return tr("Entregas: %s  ·  Ganhos: %s\nRendimento: %s/s  ·  Combo: %d\nDrones: %d  ·  Países: %d/%d  ·  Streak: %dd\nPrestige: %d  ·  Conquistas: %d/%d") % [
 		Fmt.short(float(GameState.total_deliveries)), Fmt.short(GameState.total_earned),
 		Fmt.short(GameState.income_per_sec()), GameState.combo,
 		GameState.drones, GameState.current_country + 1, Economy.num_countries(), Daily.streak,
@@ -2480,13 +2482,13 @@ func _full_reset() -> void:
 	_rebuild_prestige_shop()
 	_rebuild_achievements()
 	_switch_tab(0)
-	_toast("Fortschritt zurückgesetzt.", UITheme.RED, "ic_gear")
+	_toast(tr("Progresso reposto."), UITheme.RED, "ic_gear")
 
 func _show_offline_popup(amount: float, seconds: float) -> void:
 	var layer := _overlay(); var box := _popup_box(layer, UITheme.ACCENT)
 	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
 	hd.add_child(_icon("ic_income", 28)); hd.add_child(_lbl("Bem-vindo de volta!", 30, UITheme.INK)); box.add_child(hd)
-	var m := _lbl("Deine Greifenkuriere handelten %s lang:" % Fmt.duration(seconds), 19, UITheme.MUTED)
+	var m := _lbl(tr("Os drones entregaram durante %s:") % Fmt.duration(seconds), 19, UITheme.MUTED)
 	m.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; m.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(m)
 	var big := _lbl(Fmt.short(amount), 40, UITheme.GOLD)
 	big.add_theme_font_override("font", UITheme.font("Bold"))
@@ -2498,7 +2500,7 @@ func _show_offline_popup(amount: float, seconds: float) -> void:
 	var rate_lbl := _lbl(tr("Taxa: %s/s · limite offline %s") % [Fmt.short(GameState.income_per_sec()), Fmt.duration(cap)], 14, UITheme.MUTED)
 	rate_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; box.add_child(rate_lbl)
 	if seconds >= cap - 1.0:
-		var up := _lbl("Offline-Lager vollständig gefüllt.", 15, UITheme.GOLD)
+		var up := _lbl(tr("Armazém offline completamente cheio."), 15, UITheme.GOLD)
 		up.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; up.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		box.add_child(up)
 	if not Fx.reduce_motion:
@@ -2510,7 +2512,7 @@ func _show_offline_popup(amount: float, seconds: float) -> void:
 				big.text = Fmt.short(v)
 		ctw.tween_method(_set_big_text, 0.0, amount, 0.9) \
 			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	var collect := Button.new(); collect.text = "Offline-Ertrag einsammeln"
+	var collect := Button.new(); collect.text = tr("Recolher")
 	collect.add_theme_font_size_override("font_size", 24); collect.custom_minimum_size = Vector2(0, 70)
 	collect.add_theme_stylebox_override("normal", UITheme.action_btn(UITheme.GREEN))
 	collect.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
@@ -2655,7 +2657,7 @@ func _on_delivered(amount: float, _city_idx: int, _count: int) -> void:
 # ── Contract signal handlers ──────────────────────────────────────────────────────
 
 func _on_contract_completed(_slot: int) -> void:
-	_toast("Missão concluída! Recompensa recebida", UITheme.CYAN, "ic_achieve")
+	_toast(tr("Missão concluída! Recompensa recebida"), UITheme.CYAN, "ic_achieve")
 	Fx.confetti(self, Vector2(size.x * 0.5, size.y * 0.45), 30, [UITheme.CYAN, UITheme.GREEN, UITheme.GOLD])
 	Fx.screen_flash(self, UITheme.CYAN, 0.10)
 	Audio.play("milestone")
@@ -2791,7 +2793,7 @@ func _build_missions_tab() -> ScrollContainer:
 			if not _can_tap(): return
 			Fx.press(rbtn)
 			if Contracts.reroll(ri):
-				_toast("Auftrag ausgetauscht!", UITheme.CYAN, "ic_achieve")
+				_toast(tr("Missão substituída!"), UITheme.CYAN, "ic_achieve")
 		)
 		top.add_child(rbtn)
 		_mission_reroll_btns.append(rbtn)
@@ -2857,7 +2859,7 @@ func _build_missions_tab() -> ScrollContainer:
 			if Contracts.claim(ci, 2.0):
 				Audio.play("milestone")
 				Fx.chip_pop(_credits_chip, UITheme.GOLD)
-				_toast("Doppelte Auftragsbelohnung!", UITheme.GREEN, "ic_achieve")
+				_toast(tr("Recompensa a DOBRAR!"), UITheme.GREEN, "ic_achieve")
 		)
 		bot.add_child(xbtn)
 		_mission_x2_btns.append(xbtn)
