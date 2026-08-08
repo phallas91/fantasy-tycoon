@@ -257,12 +257,17 @@ func _boot_intro(loaded: bool) -> void:
 	var layer := CanvasLayer.new(); layer.layer = 200
 	add_child(layer)
 	var cover := TextureRect.new()
-	cover.texture = load("res://assets/fantasy/arcane_realm.webp")
+	cover.texture = load("res://assets/fantasy/arcane_empire_keyart_v2.webp")
 	cover.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	cover.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	cover.modulate = Color(0.58, 0.50, 0.68, 1.0)
+	cover.modulate = Color(0.94, 0.91, 1.0, 1.0)
 	cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(cover)
+	# A restrained cinematic grade preserves the new key-art's gold detail while
+	# guaranteeing clean title contrast across every phone crop.
+	var grade := ColorRect.new(); grade.color = Color(0.035, 0.018, 0.075, 0.20)
+	grade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	grade.mouse_filter = Control.MOUSE_FILTER_IGNORE; cover.add_child(grade)
 
 	# Let the just-built UI settle its portrait layout for a couple of frames
 	# before we start tweening the HUD/adbar in (the title/hero are anchored
@@ -270,54 +275,74 @@ func _boot_intro(loaded: bool) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	# Span the FULL screen width (not PRESET_CENTER) so the title is centred
-	# horizontally. PRESET_CENTER anchors the box at the centre POINT using its
-	# size at call time — which is zero here (no children laid out yet) — so the
-	# labels overflowed to the right of centre instead of straddling it. With a
-	# full-rect box + ALIGNMENT_CENTER (vertical), each label fills the whole
-	# width and its CENTER text alignment lands dead-centre on screen.
+	# Title occupies the calm upper sky; the generated griffin remains the single
+	# hero instead of being covered by a second sprite. This reads like authored
+	# key art rather than an illustration with UI dropped on its focal point.
 	var box := VBoxContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 8)
+	box.offset_left = 32; box.offset_right = -32; box.offset_top = 64
+	box.alignment = BoxContainer.ALIGNMENT_BEGIN
+	box.add_theme_constant_override("separation", 3)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cover.add_child(box)
-	# Signature griffin courier hovering above the wordmark.
-	var hero: TextureRect = GRIFFIN_FLIGHT.new()
-	hero.custom_minimum_size = Vector2(260, 240)
-	hero.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	box.add_child(hero)
-	var t1 := _lbl("ARCANE TRADE", 44, UITheme.INK)
+	var eyebrow := _lbl("FANTASY  ·  IDLE  ·  TYCOON", 14, UITheme.CYAN)
+	eyebrow.add_theme_font_override("font", UITheme.font("SemiBold"))
+	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	eyebrow.size_flags_horizontal = Control.SIZE_EXPAND_FILL; box.add_child(eyebrow)
+	var t1 := _lbl("ARCANE TRADE", 46, UITheme.INK)
 	t1.add_theme_font_override("font", UITheme.font("Bold"))
 	t1.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t1.size_flags_horizontal = Control.SIZE_EXPAND_FILL; box.add_child(t1)
-	var t2 := _lbl("EMPIRE", 24, UITheme.GOLD)
+	var t2 := _lbl("EMPIRE", 27, UITheme.GOLD)
+	t2.add_theme_font_override("font", UITheme.font("Bold"))
 	t2.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	t2.size_flags_horizontal = Control.SIZE_EXPAND_FILL; box.add_child(t2)
-	# entrance: hero drops+fades in, wordmark rises in just after
-	hero.modulate = Color(1, 1, 1, 0)
-	hero.pivot_offset = hero.custom_minimum_size * 0.5
+
+	# Bottom loading ceremony: a real branded transition instead of a timed blank
+	# cover. It stays compact and never needs scrolling, even on short displays.
+	var load_box := VBoxContainer.new()
+	load_box.anchor_left = 0; load_box.anchor_right = 1
+	load_box.anchor_top = 1; load_box.anchor_bottom = 1
+	load_box.offset_left = 42; load_box.offset_right = -42
+	load_box.offset_top = -118; load_box.offset_bottom = -42
+	load_box.add_theme_constant_override("separation", 8); cover.add_child(load_box)
+	var load_lbl := _lbl("A ABRIR ROTAS COMERCIAIS", 13, Color(0.86, 0.82, 0.91))
+	load_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; load_box.add_child(load_lbl)
+	var load_bg := Panel.new(); load_bg.custom_minimum_size = Vector2(0, 7)
+	load_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); load_box.add_child(load_bg)
+	var load_fill := Panel.new(); load_fill.anchor_left = 0; load_fill.anchor_right = 0
+	load_fill.anchor_top = 0; load_fill.anchor_bottom = 1
+	load_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.GOLD)); load_bg.add_child(load_fill)
+
+	# entrance: slow camera settle, then typography and loading progress
+	cover.pivot_offset = cover.size * 0.5
+	if not Fx.reduce_motion: cover.scale = Vector2(1.045, 1.045)
+	eyebrow.modulate = Color(1, 1, 1, 0)
 	t1.modulate = Color(1, 1, 1, 0); t2.modulate = Color(1, 1, 1, 0)
+	load_box.modulate = Color(1, 1, 1, 0)
 	if not Fx.reduce_motion:
-		hero.scale = Vector2(0.7, 0.7)
 		var intro := create_tween(); intro.set_parallel(true)
-		intro.tween_property(hero, "modulate:a", 1.0, 0.4)
-		intro.tween_property(hero, "scale", Vector2.ONE, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		intro.tween_property(t1, "modulate:a", 1.0, 0.4).set_delay(0.25)
-		intro.tween_property(t2, "modulate:a", 1.0, 0.4).set_delay(0.38)
+		intro.tween_property(cover, "scale", Vector2.ONE, 1.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		intro.tween_property(eyebrow, "modulate:a", 1.0, 0.30).set_delay(0.08)
+		intro.tween_property(t1, "modulate:a", 1.0, 0.38).set_delay(0.17)
+		intro.tween_property(t2, "modulate:a", 1.0, 0.38).set_delay(0.28)
+		intro.tween_property(load_box, "modulate:a", 1.0, 0.28).set_delay(0.32)
+		intro.tween_property(load_fill, "anchor_right", 1.0, 1.05).set_delay(0.20).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 		# one-shot light sweep across the wordmark once it's settled — a branded
-		# reveal on the first-impression frame instead of a flat cross-fade. Chained
-		# so t1.size is real by the time it runs. (already inside `not reduce_motion`)
+		# reveal on the first-impression frame instead of a flat cross-fade.
 		intro.chain().tween_callback(func():
-			if is_instance_valid(t1): Fx.shimmer(t1, UITheme.CYAN))
+			if is_instance_valid(t1): Fx.shimmer(t1, UITheme.GOLD)
+			if is_instance_valid(load_fill): Fx.shimmer(load_fill, UITheme.CYAN)
+		)
 	else:
-		hero.modulate = Color.WHITE; t1.modulate = Color.WHITE; t2.modulate = Color.WHITE
+		eyebrow.modulate = Color.WHITE; t1.modulate = Color.WHITE; t2.modulate = Color.WHITE
+		load_box.modulate = Color.WHITE; load_fill.anchor_right = 1.0
 
 	_hud.offset_top = -160.0
 	_map.zoom = 1.15
 
 	var tw := create_tween()
-	tw.tween_interval(1.15)   # let the hero drone hover on screen a beat before the reveal
+	tw.tween_interval(1.45)   # let the authored key-art and brand land before revealing play
 	tw.tween_property(cover, "modulate:a", 0.0, 0.4)
 	tw.parallel().tween_property(_hud, "offset_top", 20.0, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(_map, "zoom", 1.0, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
