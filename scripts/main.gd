@@ -4,6 +4,7 @@ extends Control
 const NAV_H := 70.0
 const SIDE_PANEL_W := 410.0
 const LANDSCAPE_PANEL_TOP := 150.0
+const MANAGEMENT_PAGE_SIZE := 3
 const ART    := "res://assets/art/"
 const GUTTER := 12.0
 const GRIFFIN_FLIGHT := preload("res://scripts/griffin_flight.gd")
@@ -599,7 +600,8 @@ func _build_pages() -> void:
 		_enable_page_mode(pg as ScrollContainer)
 
 ## Premium dashboard navigation: management content changes in discrete pages
-## instead of moving behind a scrollbar. Four compact blocks fit the panel.
+## instead of moving behind a scrollbar. Three blocks plus the pager fit even
+## the compact 720 px landscape height without touching the navigation bar.
 func _enable_page_mode(sc: ScrollContainer) -> void:
 	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -676,15 +678,14 @@ func _change_management_page(sc: ScrollContainer, delta: int) -> void:
 func _show_management_page(sc: ScrollContainer, requested: int) -> void:
 	if not _page_groups.has(sc): return
 	var items: Array = _page_groups[sc]
-	const PAGE_SIZE := 4
-	var total := maxi(1, ceili(float(items.size()) / float(PAGE_SIZE)))
+	var total := maxi(1, ceili(float(items.size()) / float(MANAGEMENT_PAGE_SIZE)))
 	var old_page := int(_page_indices.get(sc, 0))
 	var page := clampi(requested, 0, total - 1)
 	_page_indices[sc] = page
 	for i in range(items.size()):
 		var item := items[i] as CanvasItem
 		item.modulate.a = 1.0
-		item.visible = floori(float(i) / float(PAGE_SIZE)) == page
+		item.visible = floori(float(i) / float(MANAGEMENT_PAGE_SIZE)) == page
 	var status: Label = _page_labels[sc]
 	if total <= 7:
 		var dots := PackedStringArray()
@@ -702,7 +703,7 @@ func _show_management_page(sc: ScrollContainer, requested: int) -> void:
 	if page != old_page and not Fx.reduce_motion:
 		var order := 0
 		for i in range(items.size()):
-			if floori(float(i) / float(PAGE_SIZE)) != page: continue
+			if floori(float(i) / float(MANAGEMENT_PAGE_SIZE)) != page: continue
 			var item := items[i] as CanvasItem
 			item.modulate.a = 0.0
 			var tw := item.create_tween()
@@ -1957,7 +1958,7 @@ func _show_control_page(sc: ScrollContainer, target: Control) -> void:
 	for i in range(items.size()):
 		var item := items[i] as Node
 		if item == target or item.is_ancestor_of(target):
-			_show_management_page(sc, floori(float(i) / 4.0))
+			_show_management_page(sc, floori(float(i) / float(MANAGEMENT_PAGE_SIZE)))
 			return
 
 func _update_nav_dots() -> void:
@@ -3134,3 +3135,4 @@ func _build_missions_tab() -> ScrollContainer:
 		_mission_x2_btns.append(xbtn)
 
 	return r[0]
+
