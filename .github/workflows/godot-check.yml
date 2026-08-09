@@ -59,6 +59,9 @@ jobs:
       - name: Validate fantasy world and progressive onboarding
         run: python3 tests/fantasy_onboarding_smoke.py
 
+      - name: Validate fair monetization pacing
+        run: python3 tests/monetization_pacing_smoke.py
+
       - name: Enforce source asset performance budgets
         run: python3 tests/performance_budget_smoke.py
 

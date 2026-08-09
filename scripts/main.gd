@@ -75,6 +75,9 @@ var _talent_rows := {}
 var _gem_rows := {}
 var _skin_rows := {}
 var _iap_rows := {}
+var _iap_section: Control
+var _iap_intro_card: PanelContainer
+var _restore_iap_btn: Button
 var _section_lbls: Array = []   # section header labels, re-translated on locale change
 var _mode_btns := {}
 var _drone_btn: Button
@@ -957,6 +960,9 @@ func _refresh_progressive_nav() -> void:
 	if _nav_btns.is_empty():
 		return
 	var stage := _progression_stage()
+	# Prestige can advance the paid catalogue without changing the navigation
+	# stage, so refresh this before the cheap navigation early-out.
+	_refresh_shop_catalog()
 	if stage == _nav_stage:
 		return
 	_nav_stage = stage
@@ -1356,17 +1362,25 @@ func _make_achievement_row(id: String) -> PanelContainer:
 
 func _build_shop_tab() -> ScrollContainer:
 	var r := _scroll("Loja"); var v: VBoxContainer = r[1]
-	v.add_child(_section("Compras com dinheiro real", UITheme.VIOLET, "ic_cash"))
+	_iap_section = _section("Apoiar a guilda", UITheme.VIOLET, "ic_cash")
+	v.add_child(_iap_section)
+	_iap_intro_card = _card(UITheme.VIOLET); v.add_child(_iap_intro_card)
+	var intro := VBoxContainer.new(); intro.add_theme_constant_override("separation", 3)
+	_iap_intro_card.add_child(intro)
+	var intro_title := _lbl("A tua cidade cresce primeiro", 18, UITheme.INK)
+	intro_title.add_theme_font_override("font", UITheme.font("Bold")); intro.add_child(intro_title)
+	var intro_detail := _lbl("Todas as rotas e reinos podem ser conquistados gratuitamente. As ofertas opcionais aparecem aos poucos, apenas depois de conheceres o seu valor.", 14, UITheme.MUTED)
+	intro_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; intro.add_child(intro_detail)
 	for product_id: String in Billing.PRODUCT_ORDER:
 		v.add_child(_make_iap_row(product_id))
-	var restore_btn := _wide_btn(UITheme.VIOLET.darkened(0.18))
-	restore_btn.text = tr("Restaurar compras")
-	restore_btn.custom_minimum_size = Vector2(0, 54)
-	restore_btn.pressed.connect(func():
-		Fx.press(restore_btn)
-		if not Billing.restore(): Fx.error_shake(restore_btn)
+	_restore_iap_btn = _wide_btn(UITheme.VIOLET.darkened(0.18))
+	_restore_iap_btn.text = tr("Restaurar compras")
+	_restore_iap_btn.custom_minimum_size = Vector2(0, 54)
+	_restore_iap_btn.pressed.connect(func():
+		Fx.press(_restore_iap_btn)
+		if not Billing.restore(): Fx.error_shake(_restore_iap_btn)
 	)
-	v.add_child(restore_btn)
+	v.add_child(_restore_iap_btn)
 
 	v.add_child(_section("Coleção Arcana", UITheme.GOLD, "ic_gems"))
 	for id: String in Economy.GEM_SHOP_ORDER:
@@ -1396,7 +1410,51 @@ func _build_shop_tab() -> ScrollContainer:
 	)
 	daily_v.add_child(daily_btn)
 
+	_refresh_shop_catalog()
 	return r[0]
+
+## Paid choices are earned context, never an opening-screen catalogue. Players
+## first learn the core loop, then see permanent convenience, and only encounter
+## consumable currency after completing a full run. No offer is ever modal.
+func _shop_catalog_stage() -> int:
+	if GameState.current_country < 1 and Prestige.count <= 0:
+		return 0
+	if Prestige.count >= 2:
+		return 4
+	if Prestige.count >= 1:
+		return 3
+	if GameState.current_country >= 3:
+		return 2
+	return 1
+
+func _shop_product_unlocked(product_id: String, stage := -1) -> bool:
+	var catalog_stage := _shop_catalog_stage() if stage < 0 else stage
+	match product_id:
+		"starter": return catalog_stage >= 1 and not Billing.owns(product_id)
+		"vip", "perm_x2": return catalog_stage >= 2
+		"gems_xs", "gems_s", "gems_m": return catalog_stage >= 3
+		"gems_l", "gems_xl": return catalog_stage >= 4
+	return false
+
+func _refresh_shop_catalog() -> void:
+	if _iap_rows.is_empty():
+		return
+	var catalog_stage := _shop_catalog_stage()
+	for product_id: String in _iap_rows:
+		var row: Dictionary = _iap_rows[product_id]
+		var card := row.get("card") as CanvasItem
+		if card != null:
+			card.visible = _shop_product_unlocked(product_id, catalog_stage)
+	if _iap_section != null:
+		_iap_section.visible = catalog_stage > 0
+	if _iap_intro_card != null:
+		_iap_intro_card.visible = catalog_stage > 0
+	if _restore_iap_btn != null:
+		_restore_iap_btn.visible = catalog_stage > 0
+	var shop_page := _pages[4] as ScrollContainer if _pages != null and _pages.size() > 4 else null
+	if shop_page != null and _page_labels.has(shop_page):
+		_refresh_page_units(shop_page)
+		_show_management_page(shop_page, int(_page_indices.get(shop_page, 0)))
 
 func _make_iap_row(product_id: String) -> PanelContainer:
 	var product: Dictionary = Billing.PRODUCTS[product_id]
@@ -1412,7 +1470,7 @@ func _make_iap_row(product_id: String) -> PanelContainer:
 		Fx.press(btn); Billing.buy(product_id)
 	)
 	r["right"].add_child(btn)
-	_iap_rows[product_id] = {"btn": btn, "price": str(product["price"])}
+	_iap_rows[product_id] = {"card": r["card"], "btn": btn, "price": str(product["price"])}
 	_update_iap_row(product_id)
 	return r["card"]
 
@@ -1426,6 +1484,7 @@ func _update_iap_row(product_id: String) -> void:
 
 func _on_iap_purchased(product_id: String) -> void:
 	_update_iap_row(product_id)
+	_refresh_shop_catalog()
 	if Billing.PRODUCTS.has(product_id):
 		_toast(tr(str(Billing.PRODUCTS[product_id]["name"])), UITheme.GOLD, "ic_gems")
 
