@@ -1,9 +1,11 @@
 extends Control
-class_name MapView
+class_name ArcaneMapView
 ## Premium arcane trade map. Draws each realm with routes, couriers and hubs.
 ## outline polygon, geographically-placed cities (capital / active / locked),
 ## flowing route lanes and delivery drones with trails. Reads GameState/Economy.
 ## mouse_filter IGNORE, draws via _draw()/queue_redraw(). Performant for mobile.
+
+signal city_selected(index: int)
 
 # --- public API (set every frame by main.gd) ---
 var band_top := 150.0

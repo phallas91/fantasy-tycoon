@@ -1,5 +1,5 @@
 extends Control
-class_name BonusDrone
+class_name ArcaneBonusDrone
 ## Golden bonus drone that periodically crosses the map band. Tapping it opens
 ## a compact, fully gameplay-earned reward in main.gd.
 

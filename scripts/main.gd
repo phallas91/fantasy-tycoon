@@ -2,13 +2,18 @@ extends Control
 ## Main scene — Arcane Trade Empire. Built on Drone Tycoon: Sky Fleet (MIT).
 
 const NAV_H  := 92.0
-const TABS_H := 430.0
+# The discrete management pages require 493 px at the compact 720x1280
+# reference size. Keep a small margin so their minimum size never grows behind
+# the bottom navigation when vertical dashboard scrolling is disabled.
+const TABS_H := 500.0
 const ART    := "res://assets/art/"
 const GUTTER := 12.0
 const GRIFFIN_FLIGHT := preload("res://scripts/griffin_flight.gd")
+const MAP_VIEW := preload("res://scripts/map_view.gd")
+const BONUS_DRONE := preload("res://scripts/bonus_drone.gd")
 
-var _map: MapView
-var _bonus: BonusDrone
+var _map: Control
+var _bonus: Control
 var _hud: PanelContainer
 var _map_floor_anchor: Control
 var _bottom_bg: Panel
@@ -303,7 +308,7 @@ func _boot_intro(loaded: bool) -> void:
 	var layer := CanvasLayer.new(); layer.layer = 200
 	add_child(layer)
 	var cover := TextureRect.new()
-	cover.texture = load("res://assets/fantasy/arcane_empire_keyart_v2.webp")
+	cover.texture = load("res://assets/fantasy/arcane_realm.webp")
 	cover.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	cover.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	cover.modulate = Color(0.94, 0.91, 1.0, 1.0)
@@ -422,7 +427,7 @@ func _bg() -> void:
 			aur_tw.tween_property(ab, "modulate:a", 0.42, 4.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 func _build_map() -> void:
-	_map = MapView.new(); _map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); add_child(_map)
+	_map = MAP_VIEW.new(); _map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); add_child(_map)
 	_map.city_selected.connect(_show_city_inspector)
 	# vignette over the map (under the UI chrome added later)
 	var vig := _opt_tex("vignette")
@@ -434,7 +439,7 @@ func _build_map() -> void:
 		add_child(vr)
 
 func _build_bonus_drone() -> void:
-	_bonus = BonusDrone.new()
+	_bonus = BONUS_DRONE.new()
 	_bonus.caught.connect(_show_bonus_popup)
 	add_child(_bonus)
 
@@ -514,7 +519,7 @@ func _build_hud() -> void:
 	# Smart objective ribbon: one tap opens the exact dashboard page containing
 	# the recommended action. This replaces a passive, city-only caption.
 	_next_obj_lbl = Button.new(); _next_obj_lbl.text = ""
-	_next_obj_lbl.custom_minimum_size = Vector2(0, 34)
+	_next_obj_lbl.custom_minimum_size = Vector2(0, 44)
 	_next_obj_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_next_obj_lbl.add_theme_font_size_override("font_size", 13)
 	_next_obj_lbl.add_theme_font_override("font", UITheme.font("Bold"))

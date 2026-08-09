@@ -78,7 +78,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          godot --headless --path . --script res://tests/ui_layout_smoke.gd 2>&1 | tee godot-ui-layout.log
+          godot --headless --path . res://tests/ui_layout_smoke.tscn 2>&1 | tee godot-ui-layout.log
 
       - name: Run 30-minute economy stress simulation
         shell: bash
