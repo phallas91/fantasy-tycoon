@@ -37,7 +37,7 @@ func _exit_tree() -> void:
 
 
 class AndroidExportPlugin extends EditorExportPlugin:
-	const PLUGIN_ASSETS_DIRECTORY = "res://assets/%s/android" % PLUGIN_NAME
+	const PLUGIN_ASSETS_DIRECTORY = "res://assets/%s" % PLUGIN_NAME
 	const ANDROID_RES_DIRECTORY = "res://android/build/res"
 
 
