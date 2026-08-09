@@ -1,4 +1,8 @@
 .godot/
+# Godot regenerates these import sidecars and script identifiers locally.
+# Existing tracked legacy files remain tracked, while new cache noise is hidden.
+*.import
+*.uid
 # Stale local backup from the original import. The active Godot project lives
 # at the repository root; importing this nested copy creates misleading changes.
 arcane-trade-empire-v0.6-premium-clean/

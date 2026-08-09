@@ -9,12 +9,14 @@ PROJECT = (ROOT / "project.godot").read_text(encoding="utf-8")
 ADS = (ROOT / "scripts" / "ads.gd").read_text(encoding="utf-8")
 BILLING = (ROOT / "scripts" / "billing.gd").read_text(encoding="utf-8")
 ADMOB = (ROOT / "addons" / "AdmobPlugin" / "android_export.cfg").read_text(encoding="utf-8")
+PLUGIN_INVENTORY = (ROOT / "addons" / "PLUGIN_VERSIONS.md").read_text(encoding="utf-8")
 
 autoloads = {
     'Billing="*res://scripts/billing.gd"',
     'Ads="*res://scripts/ads.gd"',
     'Notifications="*res://scripts/notifications.gd"',
     'CloudSave="*res://scripts/cloud_save.gd"',
+    'GodotPlayGameServices="*res://addons/GodotPlayGameServices/scripts/autoloads/godot_play_game_services.gd"',
 }
 for entry in autoloads:
     assert entry in PROJECT, f"Missing Android service autoload: {entry}"
@@ -35,6 +37,13 @@ release_aars = (
 for relative in release_aars:
     path = ROOT / relative
     assert path.is_file() and path.stat().st_size > 10_000, f"Missing/empty release AAR: {relative}"
+
+for version in ("AdMob 7.0", "Billing | 3.3.0", "scheduler | 6.0", "Services | 3.4.0"):
+    assert version in PLUGIN_INVENTORY, f"Native plugin provenance missing: {version}"
+
+play_games_aar = ROOT / "addons" / "GodotPlayGameServices" / "bin" / "release" / "GodotPlayGameServices-release.aar"
+assert play_games_aar.is_file() and play_games_aar.stat().st_size > 10_000, \
+    "Play Games SDK code/AAR must exist so guarded cloud-save types compile"
 
 app_id = "ca-app-pub-6257070310596477~3020396061"
 rewarded_id = "ca-app-pub-6257070310596477/2848051384"

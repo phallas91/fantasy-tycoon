@@ -35,6 +35,7 @@ Billing="*res://scripts/billing.gd"
 Ads="*res://scripts/ads.gd"
 Notifications="*res://scripts/notifications.gd"
 CloudSave="*res://scripts/cloud_save.gd"
+GodotPlayGameServices="*res://addons/GodotPlayGameServices/scripts/autoloads/godot_play_game_services.gd"
 
 [display]
 

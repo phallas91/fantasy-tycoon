@@ -33,9 +33,12 @@ func _ready() -> void:
 	# Guard: only wire up on Android with the native plugin actually present.
 	if OS.get_name() != "Android" or not has_node("/root/GodotPlayGameServices"):
 		return
-	if GodotPlayGameServices.android_plugin == null:
-		GodotPlayGameServices.initialize()
-	if GodotPlayGameServices.android_plugin == null:
+	# Resolve the optional autoload dynamically so editor/desktop/CI parsing
+	# remains valid while Play Games export stays disabled until a real game ID.
+	var play_games := get_node("/root/GodotPlayGameServices")
+	if play_games.get("android_plugin") == null:
+		play_games.call("initialize")
+	if play_games.get("android_plugin") == null:
 		return   # plugin not baked into this build — stay local-only
 	_active = true
 	_sign_in = PlayGamesSignInClient.new(); add_child(_sign_in)

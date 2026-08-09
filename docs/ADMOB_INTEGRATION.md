@@ -36,14 +36,20 @@ fallback for purchase-flow testing. Gameplay code uses
   `android/build/` (generated from the editor's bundled `android_source.zip`,
   version-stamped at `android/.build_version`).
 - **AdMob plugin**: `addons/AdmobPlugin/` (godot-sdk-integrations/godot-admob
-  v6.0, Godot 4.6-compatible). Registered in `project.godot`
+  v7.0, built and tested upstream for Godot 4.7). Registered in `project.godot`
   `[editor_plugins]`. Config file `addons/AdmobPlugin/android_export.cfg`
   supplies the App ID at export time (bypasses the plugin's editor-only
   scene-scanning fallback, which doesn't work in headless CLI exports).
 - **Play Billing plugin**: `addons/GodotGooglePlayBilling/`
-  (godot-sdk-integrations/godot-google-play-billing v3.2.0). Registered the
+  (godot-sdk-integrations/godot-google-play-billing v3.3.0). Registered the
   same way. No App ID config needed — it only adds the Billing Library
   dependency.
+- **Notification Scheduler plugin**: `addons/NotificationSchedulerPlugin/`
+  (godot-mobile-plugins/godot-notification-scheduler v6.0, built and tested
+  upstream for Godot 4.7). It supplies the Android 13+ permission handling and
+  warehouse/daily reminders used by `scripts/notifications.gd`.
+- Exact archive names and SHA-256 checksums are recorded in
+  `addons/PLUGIN_VERSIONS.md`.
 - **`scripts/ads.gd`**: instantiates `Admob` (only when
   `Engine.has_singleton("AdmobPlugin")` on Android), initializes it, loads a
   rewarded ad, and drives `show_rewarded_ad()` on request. Reward is granted
