@@ -33,6 +33,12 @@ required_main = (
 required_map = (
 	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
 	"func _draw_realm_details(",
+	"func _draw_ground_traffic(",
+	"func _draw_district_investments(",
+	'GameState.levels.get("cargo", 0)',
+	'GameState.levels.get("value", 0)',
+	'GameState.levels.get("speed", 0)',
+	'GameState.levels.get("routes", 0)',
     "# A luminous river crosses the realm",
     "# Mountain chain:",
     "# Forest groves",
@@ -60,4 +66,3 @@ if slides.count('["ic_') != 1:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: first launch must teach one action")
 
 print("FANTASY_ONBOARDING: PASS (fantasy geometry + staged navigation)")
-

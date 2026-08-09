@@ -96,6 +96,8 @@ var _stars: Array = []                # faint ambient star/dust field
 var _caustics: Array = []             # animated sea shimmer blobs
 var _flash: Dictionary = {}           # city_index -> remaining flash time on delivery
 var _city_growth: Dictionary = {}     # city_index -> remaining build reveal time
+var _investment_signature := ""
+var _investment_reveal := 0.0
 
 # --- Arcane Trade Empire palette ---
 const VOID      := Color(0.025, 0.016, 0.035)
@@ -295,6 +297,17 @@ func _process(delta: float) -> void:
 		# pan aren't persisted (already default on load) and resetting them here
 		# would stomp the boot intro's zoom-in tween on the first frame.
 		_recalc_bbox(); _refresh_next_cost()
+	var investment_signature := "%d:%d:%d:%d" % [
+		int(GameState.levels.get("speed", 0)), int(GameState.levels.get("cargo", 0)),
+		int(GameState.levels.get("value", 0)), int(GameState.levels.get("routes", 0))]
+	if _investment_signature.is_empty():
+		_investment_signature = investment_signature
+	elif investment_signature != _investment_signature:
+		_investment_signature = investment_signature
+		if not Fx.reduce_motion:
+			_investment_reveal = 0.9
+	if _investment_reveal > 0.0:
+		_investment_reveal = maxf(0.0, _investment_reveal - delta)
 	# advance floating pops (mutate in place; skip entirely when idle — the
 	# common case outside the few seconds right after a delivery/unlock)
 	if not _pops.is_empty():
@@ -493,6 +506,7 @@ func _draw() -> void:
 
 	var cap := _proj(Vector2(cities[0]["x"], cities[0]["y"]))
 	var route_geom := _draw_routes(cap, cities)
+	_draw_ground_traffic(cap, route_geom)
 	_draw_drones(cap, cities, route_geom)
 	_draw_cities(cap, cities, ci)
 	_draw_clouds(w, h)
@@ -805,6 +819,32 @@ func _draw_routes(cap: Vector2, cities: Array) -> Dictionary:
 			draw_circle(flow, 6.0, Color(CYAN.r, CYAN.g, CYAN.b, 0.35))
 	return route_geom
 
+## Merchant wagons keep active routes visibly productive between griffin
+## arrivals. Route investment increases traffic density in the world.
+func _draw_ground_traffic(cap: Vector2, route_geom: Dictionary) -> void:
+	var route_level := int(GameState.levels.get("routes", 0))
+	var wagons_per_route := 1 + mini(2, route_level / 10)
+	for route_key in route_geom:
+		var geom: Dictionary = route_geom[route_key]
+		var destination: Vector2 = geom["b"]
+		var ctrl: Vector2 = geom["ctrl"]
+		for wagon in range(wagons_per_route):
+			var phase := fmod(_t * (0.055 + float(route_level) * 0.0015)
+					+ float(route_key) * 0.31 + float(wagon) / float(wagons_per_route), 1.0)
+			var pos := _route_point(cap, ctrl, destination, phase)
+			var tangent := (ctrl - cap).lerp(destination - ctrl, phase)
+			draw_set_transform(pos + Vector2(0, 9), tangent.angle(), Vector2.ONE)
+			draw_circle(Vector2(-5, 4), 2.2, Color(SHADOW.r, SHADOW.g, SHADOW.b, 0.72))
+			draw_circle(Vector2(5, 4), 2.2, Color(SHADOW.r, SHADOW.g, SHADOW.b, 0.72))
+			draw_colored_polygon(PackedVector2Array([
+				Vector2(-8, -3), Vector2(5, -3), Vector2(8, 3), Vector2(-6, 3)
+			]), Color(0.32, 0.16, 0.08, 0.94))
+			draw_colored_polygon(PackedVector2Array([
+				Vector2(-5, -4), Vector2(0, -10), Vector2(6, -4)
+			]), Color(GOLD.r, GOLD.g * 0.72, GOLD.b * 0.42, 0.92))
+			draw_circle(Vector2(1, -5), 1.6, Color(GOLD.r, GOLD.g, GOLD.b, 0.88))
+	draw_set_transform_matrix(Transform2D.IDENTITY)
+
 # ---------------------------------------------------------------- drones
 
 func _draw_drones(cap: Vector2, cities: Array, route_geom: Dictionary) -> void:
@@ -1006,9 +1046,70 @@ func _draw_city_district(p: Vector2, city_index: int, is_capital: bool) -> void:
 
 	# A fine baseline unifies the separate towers into one readable district.
 	draw_line(Vector2(p.x - width * 0.5, base_y), Vector2(p.x + width * 0.5, base_y), Color(col.r, col.g, col.b, 0.42 * reveal), 1.4)
+	_draw_district_investments(p, city_index, is_capital, reveal, width, base_y)
 	if _city_growth.has(city_index) and not Fx.reduce_motion:
 		var ring_alpha := clampf(float(_city_growth[city_index]) / 1.25, 0.0, 1.0)
 		draw_arc(p, 24.0 + (1.0 - ring_alpha) * 38.0, 0.0, TAU, 36, Color(col.r, col.g, col.b, ring_alpha * 0.75), 2.4)
+
+## Upgrade families own distinct world structures: cargo builds warehouses,
+## value opens markets, speed raises beacons and routes add street lamps.
+func _draw_district_investments(p: Vector2, city_index: int, is_capital: bool,
+		reveal: float, width: float, base_y: float) -> void:
+	var district_scale := 1.18 if is_capital else 0.88
+	var speed_level := int(GameState.levels.get("speed", 0))
+	var cargo_level := int(GameState.levels.get("cargo", 0))
+	var value_level := int(GameState.levels.get("value", 0))
+	var route_level := int(GameState.levels.get("routes", 0))
+
+	if cargo_level > 0:
+		for side in [-1.0, 1.0]:
+			var wx := p.x + side * width * 0.48
+			var wh := (8.0 + minf(8.0, float(cargo_level) * 0.45)) * district_scale * reveal
+			var ww := (13.0 + minf(7.0, float(cargo_level) * 0.35)) * district_scale
+			draw_rect(Rect2(wx - ww * 0.5, base_y - wh, ww, wh), Color(0.18, 0.09, 0.16, 0.94 * reveal))
+			draw_colored_polygon(PackedVector2Array([
+				Vector2(wx - ww * 0.62, base_y - wh), Vector2(wx, base_y - wh - 5.0 * district_scale),
+				Vector2(wx + ww * 0.62, base_y - wh)
+			]), Color(0.43, 0.20, 0.15, 0.96 * reveal))
+			draw_rect(Rect2(wx - 2.0, base_y - 5.0, 4.0, 5.0), Color(GOLD.r, GOLD.g, GOLD.b, 0.56 * reveal))
+
+	if value_level > 0:
+		var stalls := 1 + mini(2, value_level / 8)
+		for stall in range(stalls):
+			var sx := p.x + (float(stall) - float(stalls - 1) * 0.5) * 13.0 * district_scale
+			var sy := base_y + 7.0 + float(city_index % 2) * 2.0
+			draw_rect(Rect2(sx - 5.0 * district_scale, sy - 5.0 * district_scale, 10.0 * district_scale, 5.0 * district_scale), Color(0.20, 0.10, 0.23, 0.92 * reveal))
+			draw_colored_polygon(PackedVector2Array([
+				Vector2(sx - 6.0 * district_scale, sy - 5.0 * district_scale), Vector2(sx - 3.0 * district_scale, sy - 10.0 * district_scale),
+				Vector2(sx + 3.0 * district_scale, sy - 10.0 * district_scale), Vector2(sx + 6.0 * district_scale, sy - 5.0 * district_scale)
+			]), Color(SKY.r, SKY.g, SKY.b, 0.90 * reveal))
+			draw_circle(Vector2(sx, sy - 8.0 * district_scale), 1.3 * district_scale, Color(GOLD.r, GOLD.g, GOLD.b, 0.92 * reveal))
+
+	if speed_level > 0:
+		var beacon_height := (34.0 + minf(22.0, float(speed_level) * 0.8)) * district_scale * reveal
+		var beacon_x := p.x + width * 0.28
+		draw_line(Vector2(beacon_x, base_y), Vector2(beacon_x, base_y - beacon_height), Color(0.30, 0.16, 0.38, 0.96 * reveal), 4.0 * district_scale)
+		var pulse := 0.5 + 0.5 * sin(_t * (2.0 + float(speed_level) * 0.04) + float(city_index))
+		var beacon := Vector2(beacon_x, base_y - beacon_height)
+		draw_circle(beacon, (3.0 + pulse * 2.0) * district_scale, Color(CYAN.r, CYAN.g, CYAN.b, (0.45 + pulse * 0.35) * reveal))
+		draw_line(beacon, beacon + Vector2(0, -18.0 * district_scale), Color(CYAN.r, CYAN.g, CYAN.b, 0.18 * reveal), 2.0)
+
+	if route_level > 0:
+		var lamps := 2 + mini(2, route_level / 10)
+		for lamp in range(lamps):
+			var side := -1.0 if lamp % 2 == 0 else 1.0
+			var lx := p.x + side * (width * 0.30 + float(lamp / 2) * 7.0)
+			var ly := base_y + 4.0 + float(lamp / 2) * 5.0
+			draw_line(Vector2(lx, ly), Vector2(lx, ly - 9.0 * district_scale), Color(0.24, 0.14, 0.25, 0.92 * reveal), 1.6)
+			draw_circle(Vector2(lx, ly - 10.0 * district_scale), 2.2 * district_scale, Color(GOLD.r, GOLD.g, GOLD.b, 0.88 * reveal))
+
+	if _investment_reveal > 0.0 and is_capital and not Fx.reduce_motion:
+		var alpha := clampf(_investment_reveal / 0.9, 0.0, 1.0)
+		draw_arc(p, 42.0 + (1.0 - alpha) * 38.0, 0.0, TAU, 40, Color(GOLD.r, GOLD.g, GOLD.b, alpha * 0.72), 3.0)
+		for spark in range(7):
+			var angle := TAU * float(spark) / 7.0 + _t
+			var radius := 24.0 + (1.0 - alpha) * 24.0
+			draw_circle(p + Vector2.from_angle(angle) * radius, 2.2, Color(GOLD.r, GOLD.g, GOLD.b, alpha))
 
 ## CanvasItem has no soft ellipse primitive. Layered ellipses keep this cheap,
 ## deterministic and compatible with the mobile renderer.

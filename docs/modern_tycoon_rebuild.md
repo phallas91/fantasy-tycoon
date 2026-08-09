@@ -37,8 +37,10 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 
 ### Phase 2 — Living construction
 
-- Replace marker-only progression with authored district states.
+- Replace marker-only progression with authored district states. *(started)*
 - Add construction stages, workers, traffic and persistent visual upgrades.
+- Cargo warehouses, market stalls, speed beacons, route lamps and merchant
+  traffic now appear directly in the city as the corresponding systems grow.
 - Make each production bottleneck identifiable from the world view.
 
 ### Phase 3 — Satisfying economy
@@ -52,4 +54,3 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 - Introduce the shop only after the player reaches the second settlement.
 - Offer cosmetics, permanent convenience and goal-linked bundles.
 - Never block normal progression behind an advertisement or purchase.
-
