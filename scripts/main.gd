@@ -152,6 +152,7 @@ func _ready() -> void:
 	GameState.city_unlocked.connect(_on_city_unlocked)
 	GameState.country_changed.connect(_on_country_changed)
 	GameState.region_completed.connect(_on_region_completed)
+	GameState.prosperity_advanced.connect(_on_prosperity_advanced)
 	GameState.delivered.connect(_on_delivered)
 	Achievements.unlocked.connect(_on_achievement)
 	Events.started.connect(_on_event_start)
@@ -2082,6 +2083,19 @@ func _on_city_unlocked(i: int) -> void:
 	_map.focus_city(i)
 	_rebuild_city_list()
 
+func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> void:
+	var reward_text := "+" + Fmt.short(cash_reward)
+	if gem_reward > 0:
+		reward_text += "  ·  +%d " % gem_reward + tr("Gemas")
+	_toast(tr("Nível da cidade %d alcançado!") % rank + "  " + reward_text, UITheme.GOLD, "ic_city")
+	var centre := Vector2(size.x * 0.62, size.y * 0.45)
+	Fx.confetti(self, centre, 20 + rank * 5, [UITheme.GOLD, UITheme.CYAN, UITheme.GREEN])
+	Fx.ring_pulse(self, centre, UITheme.GOLD, 1.8 + float(rank) * 0.2)
+	Fx.screen_flash(self, UITheme.GOLD, 0.08 + float(rank) * 0.02)
+	Audio.play("milestone")
+	Fx.vibrate(28 + rank * 8)
+	_map.focus_city(0)
+
 func _on_country_changed(i: int) -> void:
 	_refresh_progressive_nav()
 	_rebuild_city_list()
@@ -3191,4 +3205,3 @@ func _build_missions_tab() -> ScrollContainer:
 		_mission_x2_btns.append(xbtn)
 
 	return r[0]
-

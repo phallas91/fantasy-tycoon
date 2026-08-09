@@ -26,6 +26,11 @@ signal city_unlocked(index: int)
 signal country_changed(index: int)
 signal fleet_changed()
 signal region_completed(region_index: int)
+signal prosperity_advanced(rank: int, cash_reward: float, gem_reward: int)
+
+const PROSPERITY_THRESHOLDS := [4, 10, 20, 40]
+const PROSPERITY_CASH_SECONDS := [30.0, 60.0, 120.0, 300.0]
+const PROSPERITY_GEMS := [0, 1, 2, 5]
 
 # --- persisted ---
 var credits := 0.0
@@ -47,6 +52,7 @@ var total_deliveries := 0
 var combo_window_bonus := 0.0   # +seconds on combo decay (gem shop, permanent)
 var guild_blessing_until := 0  # earned through the Vermächtnis shop
 var auto_manager := false      # gameplay feature, available to every player
+var prosperity_rank := 0
 
 # --- transient ---
 var earn_boost_mult := 2.0
@@ -460,7 +466,37 @@ func buy_upgrade_multi(key: String) -> int:
 	if credits < cost:
 		return 0
 	credits -= cost; levels[key] = int(levels[key]) + count
+	_check_prosperity()
 	return count
+
+func investment_total() -> int:
+	var total := 0
+	for level: int in levels.values():
+		total += level
+	return total
+
+func prosperity_rank_for_investment() -> int:
+	var rank := 0
+	var invested := investment_total()
+	for threshold: int in PROSPERITY_THRESHOLDS:
+		if invested < threshold:
+			break
+		rank += 1
+	return rank
+
+## Early upgrades now form four short city-growth chapters. Rewards are based
+## on current income, so they accelerate the next decision without breaking the
+## long economy or becoming worthless after a few minutes.
+func _check_prosperity() -> void:
+	var target := prosperity_rank_for_investment()
+	while prosperity_rank < target:
+		var reward_index := prosperity_rank
+		prosperity_rank += 1
+		var cash_reward := income_per_sec() * float(PROSPERITY_CASH_SECONDS[reward_index])
+		var gem_reward := int(PROSPERITY_GEMS[reward_index])
+		credits += cash_reward
+		gems += gem_reward
+		prosperity_advanced.emit(prosperity_rank, cash_reward, gem_reward)
 
 # ---------------------------------------------------------------- talents
 func talent_cost(key: String) -> int:
@@ -570,6 +606,7 @@ func to_dict() -> Dictionary:
 		"combo_window_bonus": combo_window_bonus,
 		"skins_owned": skins_owned.duplicate(), "skin_active": skin_active,
 		"guild_blessing_until": guild_blessing_until, "auto_manager": auto_manager,
+		"prosperity_rank": prosperity_rank,
 		"regions_done": regions_done.duplicate(),
 	}
 
@@ -590,6 +627,8 @@ func from_dict(d: Dictionary) -> void:
 		# cap could turn a legacy/plain save into INF or an invalid huge shift.
 		if slv.has(k): lv[k] = clampi(int(slv[k]), 0, 1000)
 	levels = lv
+	var derived_prosperity := prosperity_rank_for_investment()
+	prosperity_rank = clampi(int(d.get("prosperity_rank", derived_prosperity)), derived_prosperity, PROSPERITY_THRESHOLDS.size())
 	var tl := {"global": 0, "speed": 0, "value": 0, "hangar": 0}
 	var stl: Dictionary = d.get("talents", {})
 	for k in tl:

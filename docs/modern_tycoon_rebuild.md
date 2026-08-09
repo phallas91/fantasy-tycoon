@@ -45,7 +45,9 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 
 ### Phase 3 — Satisfying economy
 
-- Rebalance the first 30 minutes around short, legible goals.
+- Rebalance the first 30 minutes around short, legible goals. *(started)*
+- Four early prosperity chapters now reward total investment at levels 4, 10,
+  20 and 40 with current-income cash bursts and restrained gem rewards.
 - Add milestone choices rather than four near-identical upgrade rows.
 - Give each upgrade a distinct visual and audio consequence.
 

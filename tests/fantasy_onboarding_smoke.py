@@ -29,6 +29,7 @@ required_main = (
 	"func _build_guided_action() -> void:",
 	"var dashboard_ready := stage > 0",
 	"_focus_card.visible = not dashboard_ready",
+	"func _on_prosperity_advanced(",
 )
 required_map = (
 	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
@@ -53,6 +54,12 @@ missing += [token for token in (
 	"window/size/viewport_height=720",
 	"window/handheld/orientation=0",
 ) if token not in project]
+game_state = (ROOT / "scripts" / "game_state.gd").read_text(encoding="utf-8")
+missing += [token for token in (
+	"const PROSPERITY_THRESHOLDS := [4, 10, 20, 40]",
+	"func _check_prosperity() -> void:",
+	'"prosperity_rank": prosperity_rank',
+) if token not in game_state]
 if missing:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: missing guards: " + ", ".join(missing))
 

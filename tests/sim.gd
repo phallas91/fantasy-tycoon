@@ -23,6 +23,10 @@ func _ready() -> void:
 		push_error("SIM_SMOKE: economy produced no deliveries or earnings")
 		get_tree().quit(1)
 		return
+	if GameState.prosperity_rank <= 0:
+		push_error("SIM_SMOKE: early city prosperity loop never advanced")
+		get_tree().quit(1)
+		return
 	print("=== FINAL country=%d/%d cities=%d drones=%d credits=%s ===" % [
 		GameState.current_country + 1, Economy.num_countries(), GameState.cities_unlocked,
 		GameState.drones, Fmt.short(GameState.credits)])
@@ -35,6 +39,8 @@ func _state_is_valid() -> bool:
 	if not is_finite(GameState.total_earned) or GameState.total_earned < 0.0:
 		return false
 	if GameState.drones < 1 or GameState.total_deliveries < 0:
+		return false
+	if GameState.prosperity_rank < 0 or GameState.prosperity_rank > GameState.PROSPERITY_THRESHOLDS.size():
 		return false
 	if GameState.current_country < 0 or GameState.current_country >= Economy.num_countries():
 		return false
