@@ -26,6 +26,10 @@ var _nav_icons: Array
 var _nav_labels: Array
 var _nav_dots: Array
 var _nav_ind: Panel
+var _focus_card: PanelContainer
+var _focus_title: Label
+var _focus_detail: Label
+var _focus_btn: Button
 var _active_tab := 0
 var _nav_stage := -1
 var _toasts: VBoxContainer
@@ -141,7 +145,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	theme = UITheme.build()
 	_bg(); _build_map(); _build_bonus_drone(); _build_hud()
-	_build_bottom_bg(); _build_map_floor_anchor(); _build_pages(); _build_nav(); _build_toasts()
+	_build_bottom_bg(); _build_map_floor_anchor(); _build_pages(); _build_guided_action(); _build_nav(); _build_toasts()
 	_apply_safe_area()
 	call_deferred("_apply_safe_area")
 
@@ -589,6 +593,40 @@ func _build_bottom_bg() -> void:
 	_bottom_bg.add_theme_stylebox_override("panel", UITheme.bottom_panel())
 	_bottom_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(_bottom_bg)
 
+## First-session focus: modern tycoon games begin in the world with one obvious
+## action. The full management dashboard is earned after the first meaningful
+## purchase instead of competing with the city from the opening frame.
+func _build_guided_action() -> void:
+	_focus_card = PanelContainer.new()
+	_focus_card.anchor_left = 0.5; _focus_card.anchor_right = 0.5
+	_focus_card.anchor_top = 1.0; _focus_card.anchor_bottom = 1.0
+	_focus_card.offset_left = -300.0; _focus_card.offset_right = 300.0
+	_focus_card.offset_top = -196.0; _focus_card.offset_bottom = -86.0
+	_focus_card.add_theme_stylebox_override("panel", UITheme.glass())
+	add_child(_focus_card)
+	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 16)
+	_focus_card.add_child(row)
+	row.add_child(_icon_badge("ic_drone", UITheme.GOLD, 66, 38))
+	var copy := VBoxContainer.new(); copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	copy.size_flags_vertical = Control.SIZE_SHRINK_CENTER; copy.add_theme_constant_override("separation", 2)
+	_focus_title = _lbl(tr("Começa a tua primeira rota comercial"), 22, UITheme.INK)
+	_focus_title.add_theme_font_override("font", UITheme.font("Bold")); copy.add_child(_focus_title)
+	_focus_detail = _lbl(tr("Contrata um correio grifo e vê a cidade ganhar vida."), 15, UITheme.MUTED)
+	_focus_detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; copy.add_child(_focus_detail)
+	row.add_child(copy)
+	_focus_btn = _buy_btn(UITheme.GREEN); _focus_btn.custom_minimum_size = Vector2(176, 64)
+	_focus_btn.add_theme_font_size_override("font_size", 19)
+	_focus_btn.pressed.connect(func():
+		if not _can_tap(): return
+		if GameState.buy_drones() > 0:
+			Fx.press(_focus_btn); Audio.play("whoosh")
+			_reward_fx(_focus_btn, UITheme.GOLD, "spark", 12)
+			_refresh_progressive_nav()
+		else:
+			Fx.error_shake(_focus_btn)
+	)
+	row.add_child(_focus_btn)
+
 # ── Pages ──────────────────────────────────────────────────────────────────────
 
 func _build_pages() -> void:
@@ -843,8 +881,9 @@ func _switch_tab(i: int) -> void:
 	if _nav_sb_on == null:
 		_nav_sb_on = UITheme.nav_item(true)
 		_nav_sb_off = UITheme.nav_item(false)
+	var dashboard_ready := _progression_stage() > 0
 	for j in _pages.size():
-		_pages[j].visible = (j == i)
+		_pages[j].visible = dashboard_ready and (j == i)
 	if i >= 0 and i < _pages.size():
 		var active_page := _pages[i] as ScrollContainer
 		_show_management_page(active_page, int(_page_indices.get(active_page, 0)))
@@ -920,8 +959,18 @@ func _refresh_progressive_nav() -> void:
 	if stage == _nav_stage:
 		return
 	_nav_stage = stage
+	var dashboard_ready := stage > 0
+	_bottom_bg.visible = dashboard_ready
+	_nav_bar.visible = dashboard_ready
+	_nav_sep.visible = dashboard_ready
+	_nav_ind.visible = dashboard_ready
+	_focus_card.visible = not dashboard_ready
+	_gems_chip.visible = dashboard_ready
+	_infl_chip.visible = dashboard_ready
+	_country_lbl.visible = dashboard_ready
+	_streak_chip.visible = dashboard_ready
 	for i in _nav_btns.size():
-		_nav_btns[i].visible = _nav_unlocked(i)
+		_nav_btns[i].visible = dashboard_ready and _nav_unlocked(i)
 	if not _nav_unlocked(_active_tab):
 		_active_tab = 0
 	_switch_tab(_active_tab)
@@ -1686,6 +1735,10 @@ func _process(delta: float) -> void:
 	_drone_btn.disabled = GameState.credits < dcost
 	_afford(_drone_btn, not _drone_btn.disabled)
 	_drone_detail.text  = (tr("Tens %d drones") % GameState.drones) + _eta_suffix(dcost, ips)
+	if is_instance_valid(_focus_btn):
+		_focus_btn.text = tr("Contratar") + "  ·  " + Fmt.short(dcost)
+		_focus_btn.disabled = GameState.credits < dcost
+		_afford(_focus_btn, not _focus_btn.disabled)
 
 	_auto_mgr_toggle.visible = true
 

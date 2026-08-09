@@ -1,0 +1,55 @@
+# Modern Tycoon Rebuild Baseline
+
+## Market benchmark
+
+The current quality target is the clarity and feedback density of leading
+mobile idle tycoons, not a desktop dashboard compressed onto a phone.
+
+- Idle Miner Tycoon: the production world is always the main screen; workers,
+  transport and earnings make the economy readable without opening a menu.
+- Idle Bank Tycoon: each purchase visibly changes a room or service and the
+  player is led to the next bottleneck.
+- Hotel Empire Tycoon: progression changes the property itself, from a modest
+  operation into a visibly premium destination.
+- Eatventure: the first session presents one station and one upgrade loop;
+  staff, systems and monetisation arrive only after the loop is understood.
+
+## Product rules
+
+1. World first: at least 70% of the playfield belongs to the living city.
+2. One next action: a new player sees one primary call to action, never a shop.
+3. Visible consequence: every core purchase changes motion, population,
+   construction, route activity or earnings feedback in the city.
+4. Earn complexity: navigation and systems unlock only after their purpose has
+   been demonstrated through play.
+5. Monetise momentum: offers amplify a goal the player already wants; they do
+   not interrupt the first-session learning loop.
+6. Calm HUD: show current cash, income and the next goal; secondary currencies
+   appear only when they become usable.
+
+## Delivery sequence
+
+### Phase 1 — Focused first session
+
+- Hide the management dashboard and navigation on a fresh save.
+- Show the city, current cash/income and one griffin-courier action.
+- Reveal the fleet dashboard after the first meaningful purchase.
+
+### Phase 2 — Living construction
+
+- Replace marker-only progression with authored district states.
+- Add construction stages, workers, traffic and persistent visual upgrades.
+- Make each production bottleneck identifiable from the world view.
+
+### Phase 3 — Satisfying economy
+
+- Rebalance the first 30 minutes around short, legible goals.
+- Add milestone choices rather than four near-identical upgrade rows.
+- Give each upgrade a distinct visual and audio consequence.
+
+### Phase 4 — Ethical premium layer
+
+- Introduce the shop only after the player reaches the second settlement.
+- Offer cosmetics, permanent convenience and goal-linked bundles.
+- Never block normal progression behind an advertisement or purchase.
+

@@ -20,12 +20,15 @@ required_economy = (
 required_main = (
     "func _progression_stage() -> int:",
     "func _nav_unlocked(tab_index: int) -> bool:",
-    "_nav_btns[i].visible = _nav_unlocked(i)",
+    "_nav_btns[i].visible = dashboard_ready and _nav_unlocked(i)",
     "if not _nav_unlocked(i):",
     "lbl.text = tr(label_text)",
     'tr("%s desbloqueada!") % tr(str(def.get("name", id)))',
 	"DisplayServer.SCREEN_LANDSCAPE",
 	"const SIDE_PANEL_W := 410.0",
+	"func _build_guided_action() -> void:",
+	"var dashboard_ready := stage > 0",
+	"_focus_card.visible = not dashboard_ready",
 )
 required_map = (
 	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
@@ -57,3 +60,4 @@ if slides.count('["ic_') != 1:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: first launch must teach one action")
 
 print("FANTASY_ONBOARDING: PASS (fantasy geometry + staged navigation)")
+
