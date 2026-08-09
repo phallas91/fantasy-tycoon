@@ -1063,7 +1063,7 @@ func _draw_district_investments(p: Vector2, city_index: int, is_capital: bool,
 
 	if cargo_level > 0:
 		for side in [-1.0, 1.0]:
-			var wx := p.x + side * width * 0.48
+			var wx: float = p.x + float(side) * width * 0.48
 			var wh := (8.0 + minf(8.0, float(cargo_level) * 0.45)) * district_scale * reveal
 			var ww := (13.0 + minf(7.0, float(cargo_level) * 0.35)) * district_scale
 			draw_rect(Rect2(wx - ww * 0.5, base_y - wh, ww, wh), Color(0.18, 0.09, 0.16, 0.94 * reveal))
@@ -1076,8 +1076,8 @@ func _draw_district_investments(p: Vector2, city_index: int, is_capital: bool,
 	if value_level > 0:
 		var stalls := 1 + mini(2, value_level / 8)
 		for stall in range(stalls):
-			var sx := p.x + (float(stall) - float(stalls - 1) * 0.5) * 13.0 * district_scale
-			var sy := base_y + 7.0 + float(city_index % 2) * 2.0
+			var sx: float = p.x + (float(stall) - float(stalls - 1) * 0.5) * 13.0 * district_scale
+			var sy: float = base_y + 7.0 + float(city_index % 2) * 2.0
 			draw_rect(Rect2(sx - 5.0 * district_scale, sy - 5.0 * district_scale, 10.0 * district_scale, 5.0 * district_scale), Color(0.20, 0.10, 0.23, 0.92 * reveal))
 			draw_colored_polygon(PackedVector2Array([
 				Vector2(sx - 6.0 * district_scale, sy - 5.0 * district_scale), Vector2(sx - 3.0 * district_scale, sy - 10.0 * district_scale),
@@ -1098,8 +1098,8 @@ func _draw_district_investments(p: Vector2, city_index: int, is_capital: bool,
 		var lamps := 2 + mini(2, route_level / 10)
 		for lamp in range(lamps):
 			var side := -1.0 if lamp % 2 == 0 else 1.0
-			var lx := p.x + side * (width * 0.30 + float(lamp / 2) * 7.0)
-			var ly := base_y + 4.0 + float(lamp / 2) * 5.0
+			var lx: float = p.x + side * (width * 0.30 + float(lamp / 2) * 7.0)
+			var ly: float = base_y + 4.0 + float(lamp / 2) * 5.0
 			draw_line(Vector2(lx, ly), Vector2(lx, ly - 9.0 * district_scale), Color(0.24, 0.14, 0.25, 0.92 * reveal), 1.6)
 			draw_circle(Vector2(lx, ly - 10.0 * district_scale), 2.2 * district_scale, Color(GOLD.r, GOLD.g, GOLD.b, 0.88 * reveal))
 
