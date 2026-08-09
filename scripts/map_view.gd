@@ -136,7 +136,7 @@ func _ready() -> void:
 	_lock = load("res://assets/art/ic_lock.png")
 	_sun = load("res://assets/art/sun_glow.png")
 	_aurora = load("res://assets/art/aurora_band.png")
-	_realm_bg = load("res://assets/fantasy/arcane_map.webp")
+	_realm_bg = load("res://assets/fantasy/arcane_city_world_v1.webp")
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED   # lets the holo grid tile
 	GameState.delivered.connect(_on_delivered)
 	GameState.country_changed.connect(_on_country_changed_visual)
@@ -470,14 +470,18 @@ func _draw() -> void:
 	var h := band_bottom - band_top
 	_draw_sea(w, h)
 	_draw_horizon_light(w, h)
-	_draw_grid(w, h)
-	_draw_caustics(w, h)
 
 	var ci := GameState.current_country
-	_draw_landmass(_outline_cache)
 
 	var cities := Economy.country_cities(ci)
-	_draw_realm_details(_outline_cache, cities, ci)
+	# The authored city panorama is now the world itself. The former polygon,
+	# survey grid and procedural terrain remain as a fallback for missing assets,
+	# but must never cover the premium illustration in a normal build.
+	if _realm_bg == null:
+		_draw_grid(w, h)
+		_draw_caustics(w, h)
+		_draw_landmass(_outline_cache)
+		_draw_realm_details(_outline_cache, cities, ci)
 	if cities.is_empty():
 		# clouds/stars drift ABOVE land/routes (below only the vignette), so
 		# the parallax depth cue reads instead of vanishing under the landmass
@@ -501,10 +505,11 @@ func _draw() -> void:
 func _draw_sea(w: float, h: float) -> void:
 	# Painterly realm texture gives the route simulation a real fantasy world.
 	if _realm_bg != null:
-		draw_texture_rect(_realm_bg, Rect2(0, band_top, w, h), false, Color(0.78, 0.72, 0.88, 0.92))
+		draw_texture_rect(_realm_bg, Rect2(0, band_top, w, h), false, Color.WHITE)
 	# translucent arcane tint keeps labels and glowing routes readable.
 	var cyc := 0.5 + 0.5 * sin(_t * 0.05)
-	var tint := Color(0.22, 0.10, 0.30, 0.26).lerp(Color(0.08, 0.24, 0.28, 0.20), cyc)
+	var tint_alpha := 0.07 if _realm_bg != null else 0.26
+	var tint := Color(0.22, 0.10, 0.30, tint_alpha).lerp(Color(0.08, 0.24, 0.28, tint_alpha * 0.8), cyc)
 	draw_texture_rect(_sea_tex, Rect2(0, band_top, w, h), false, tint)
 
 ## Warm sun glow at top-right + slowly drifting aurora ribbon on the horizon —

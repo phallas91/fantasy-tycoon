@@ -25,7 +25,8 @@ required_main = (
     'tr("%s desbloqueada!") % tr(str(def.get("name", id)))',
 )
 required_map = (
-    "func _draw_realm_details(",
+	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
+	"func _draw_realm_details(",
     "# A luminous river crosses the realm",
     "# Mountain chain:",
     "# Forest groves",
@@ -37,6 +38,9 @@ missing += [token for token in required_main if token not in main]
 missing += [token for token in required_map if token not in map_view]
 if missing:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: missing guards: " + ", ".join(missing))
+
+if not (ROOT / "assets" / "fantasy" / "arcane_city_world_v1.webp").is_file():
+    raise SystemExit("FANTASY_ONBOARDING: FAIL: illustrated city world is missing")
 
 # The first-launch tutorial must introduce one action, not advertise every
 # system before the player has earned access to it.
