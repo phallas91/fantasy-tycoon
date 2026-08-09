@@ -83,6 +83,15 @@ func _run() -> void:
 		if not _failure.is_empty():
 			break
 
+		# Expansion now resets the local tycoon chapter, so its confirmation is a
+		# release-critical mobile surface rather than an optional settings popup.
+		main.call("_show_expansion_confirm")
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var overlays := main.find_children("", "CanvasLayer", false, false)
+		if not _check(not overlays.is_empty(), "realm expansion confirmation missing"):
+			break
+
 		for button_node in main.find_children("", "Button", true, false):
 			var button := button_node as Button
 			if not button.is_visible_in_tree() or button.disabled:
@@ -102,4 +111,3 @@ func _run() -> void:
 		get_tree().quit(0)
 	else:
 		get_tree().quit(1)
-

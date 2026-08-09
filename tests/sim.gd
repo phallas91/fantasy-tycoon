@@ -2,6 +2,9 @@ extends Node
 ## Headless sim: drives GameState ~30 min, buying/unlocking/expanding, to validate
 ## the delivery-based country progression. Credits come only from deliveries.
 
+var _prestige_ready_at := -1.0
+var _expansion_reset_valid := true
+
 func _ready() -> void:
 	var dt := 0.1
 	var t := 0.0
@@ -16,6 +19,8 @@ func _ready() -> void:
 		if iter % 10 == 0:
 			_auto_buy()
 		t += dt; iter += 1
+		if _prestige_ready_at < 0.0 and GameState.current_country >= Prestige.MIN_COUNTRY:
+			_prestige_ready_at = t
 		if iter % 1500 == 0:
 			_report(t)
 	_report(t)
@@ -25,6 +30,17 @@ func _ready() -> void:
 		return
 	if GameState.prosperity_rank <= 0:
 		push_error("SIM_SMOKE: early city prosperity loop never advanced")
+		get_tree().quit(1)
+		return
+	if not _expansion_reset_valid:
+		push_error("SIM_SMOKE: realm expansion did not reset the local city safely")
+		get_tree().quit(1)
+		return
+	# An always-active perfect buyer is much faster than a person. Even so, the
+	# first prestige must take at least ten minutes and the run must not pass the
+	# ninth realm in 30 minutes; otherwise the 40-realm world collapses in one day.
+	if _prestige_ready_at < 600.0 or _prestige_ready_at > 1800.0 or GameState.current_country > 8:
+		push_error("SIM_SMOKE: first-session pacing outside target (prestige=%.1fs realm=%d)" % [_prestige_ready_at, GameState.current_country + 1])
 		get_tree().quit(1)
 		return
 	print("=== FINAL country=%d/%d cities=%d drones=%d credits=%s ===" % [
@@ -59,7 +75,16 @@ func _state_is_valid() -> bool:
 
 func _auto_buy() -> void:
 	if GameState.can_expand():
-		GameState.expand_country(); return
+		var reward := GameState.expansion_influence_reward()
+		var influence_before := GameState.influence
+		if not GameState.expand_country():
+			_expansion_reset_valid = false
+		elif GameState.credits != 0.0 or GameState.cities_unlocked != 1 \
+				or GameState.drones != Prestige.starting_drones() \
+				or GameState.levels != Prestige.starting_levels() \
+				or GameState.influence != influence_before + reward:
+			_expansion_reset_valid = false
+		return
 	if GameState.can_unlock_city():
 		GameState.unlock_city(); return
 	var best := ""; var best_cost := INF

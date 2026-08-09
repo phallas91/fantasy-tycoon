@@ -1126,7 +1126,7 @@ func _build_cities_tab() -> ScrollContainer:
 	_expand_btn = _cbuy(UITheme.GOLD.darkened(0.08), 150.0)
 	_expand_btn.pressed.connect(func():
 		if not _can_tap(): return
-		if GameState.expand_country(): Fx.press(_expand_btn); Audio.play("buy")
+		if GameState.can_expand(): Fx.press(_expand_btn); _show_expansion_confirm()
 		else: Fx.error_shake(_expand_btn)
 	)
 	er["right"].add_child(_expand_btn); v.add_child(er["card"])
@@ -1875,7 +1875,7 @@ func _process(delta: float) -> void:
 		_expand_detail.text = tr("Abre todas as cidades de %s primeiro.") % Economy.country_name(GameState.current_country)
 	else:
 		_expand_btn.text = Fmt.short(ec); _expand_btn.disabled = GameState.credits < ec
-		_expand_detail.text = (tr("Seguinte: %s (+Influência)") % Economy.country_name(GameState.current_country + 1)) + _eta_suffix(ec, ips)
+		_expand_detail.text = (tr("Seguinte: %s · nova cidade · +%d Influência") % [Economy.country_name(GameState.current_country + 1), GameState.expansion_influence_reward()]) + _eta_suffix(ec, ips)
 	_afford(_expand_btn, not _expand_btn.disabled and ec >= 0.0 and GameState.all_cities_unlocked())
 
 	# prestige button — pgems_on_next_prestige() depends on current_country
@@ -2426,6 +2426,32 @@ func _show_prestige_confirm() -> void:
 	)
 	box.add_child(confirm)
 	var cancel := Button.new(); cancel.text = "Cancelar"; cancel.add_theme_font_size_override("font_size", 22)
+	cancel.custom_minimum_size = Vector2(0, 62); cancel.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	cancel.pressed.connect(func(): layer.queue_free()); box.add_child(cancel)
+
+func _show_expansion_confirm() -> void:
+	var layer := _overlay(); var box := _popup_box(layer, UITheme.GOLD)
+	var next_realm := Economy.country_name(GameState.current_country + 1)
+	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
+	hd.add_child(_icon("ic_city", 28)); hd.add_child(_lbl(tr("Novo reino: %s") % next_realm, 28, UITheme.GOLD)); box.add_child(hd)
+	var info := _lbl(tr("Recomeças a cidade local com a frota base.\nManténs Influência, Talentos, Gemas e Vermächtnis.\n\nRecompensa: +%d Influência") % GameState.expansion_influence_reward(), 18, UITheme.MUTED)
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(info)
+	var confirm := Button.new(); confirm.text = tr("SIM, ABRIR REINO")
+	confirm.add_theme_font_size_override("font_size", 22); confirm.custom_minimum_size = Vector2(0, 68)
+	confirm.add_theme_stylebox_override("normal", UITheme.solid(UITheme.GOLD.darkened(0.10), 14))
+	confirm.add_theme_stylebox_override("hover", UITheme.solid(UITheme.GOLD, 14))
+	confirm.add_theme_stylebox_override("pressed", UITheme.solid(UITheme.GOLD.darkened(0.22), 14))
+	confirm.add_theme_color_override("font_color", UITheme.BG0)
+	confirm.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	confirm.pressed.connect(func():
+		layer.queue_free()
+		if GameState.expand_country():
+			Audio.play("milestone")
+			Fx.vibrate(52)
+	)
+	box.add_child(confirm)
+	var cancel := Button.new(); cancel.text = tr("Cancelar"); cancel.add_theme_font_size_override("font_size", 22)
 	cancel.custom_minimum_size = Vector2(0, 62); cancel.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	cancel.pressed.connect(func(): layer.queue_free()); box.add_child(cancel)
 

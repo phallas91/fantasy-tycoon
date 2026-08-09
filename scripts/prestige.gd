@@ -69,6 +69,14 @@ func starting_drones() -> int:
 func starting_country() -> int:
     return 1 if "start_c2" in shop_owned else 0
 
+func starting_levels() -> Dictionary:
+    return {
+        "speed": 5 if "speed_5" in shop_owned else 0,
+        "cargo": 5 if "cargo_5" in shop_owned else 0,
+        "value": 5 if "value_5" in shop_owned else 0,
+        "routes": 0,
+    }
+
 func do_prestige() -> bool:
     if not can_prestige(): return false
     var pg := pgems_on_next_prestige()
@@ -92,14 +100,11 @@ func _soft_reset() -> void:
     gs.current_country = starting_country()
     gs.cities_unlocked = 1
     gs.drones = starting_drones()
-    gs.levels = {"speed": 0, "cargo": 0, "value": 0, "routes": 0}
+    gs.levels = starting_levels()
     gs.talents = {"global": 0, "speed": 0, "value": 0, "hangar": 0}
     gs.gem_boost = 0
     gs.earn_boost_timer = 0.0
-    # Apply shop starting bonuses
-    if "speed_5" in shop_owned: gs.levels["speed"] = 5
-    if "cargo_5" in shop_owned: gs.levels["cargo"] = 5
-    if "value_5" in shop_owned: gs.levels["value"] = 5
+    # Apply time-limited shop starting bonuses
     if "guild_24h" in shop_owned:
         gs.guild_blessing_until = int(Time.get_unix_time_from_system()) + 86400
     gs._rebuild_drones()

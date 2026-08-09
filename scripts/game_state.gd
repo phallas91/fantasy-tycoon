@@ -422,16 +422,29 @@ func can_expand() -> bool:
 	var c := expand_cost()
 	return c >= 0.0 and all_cities_unlocked() and credits >= c
 
+func expansion_influence_reward() -> int:
+	return 4 + int((current_country + 1) / 3)
+
 func expand_country() -> bool:
 	if not can_expand():
 		return false
-	credits -= expand_cost()
+	var influence_reward := expansion_influence_reward()
+	# A realm is a complete local tycoon chapter. Starting the next one rebuilds
+	# its city and fleet from the ground up while meta progress remains: influence,
+	# talents, collection, prestige and permanent shop upgrades. Carrying the full
+	# local economy forward let automated play skip half the world in 30 minutes
+	# and made every newly revealed city look finished on arrival.
+	credits = 0.0
 	current_country += 1
 	cities_unlocked = 1
+	drones = Prestige.starting_drones()
+	levels = Prestige.starting_levels()
+	combo = 0
+	_combo_decay_t = 0.0
 	# Bumped alongside the softer talent cost curve so a talent is actually
 	# fundable within a normal run (talents reset on prestige).
-	influence += 4 + int(current_country / 3)
-	influence_total = influence_total + 4 + int(current_country / 3)
+	influence += influence_reward
+	influence_total += influence_reward
 	_rebuild_drones()
 	country_changed.emit(current_country)
 	_check_regions()   # expanding past a region's last country completes it

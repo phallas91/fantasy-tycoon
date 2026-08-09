@@ -45,7 +45,8 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 
 ### Phase 3 — Satisfying economy
 
-- Rebalance the first 30 minutes around short, legible goals. *(started)*
+- Rebalance the first 30 minutes around short, legible goals. *(completed;
+  perfect-buyer prestige window guarded at 10–30 minutes)*
 - Four early prosperity chapters now reward total investment at levels 4, 10,
   20 and 40 with current-income cash bursts and restrained gem rewards.
 - The calm HUD previews the active construction chapter, its reward and exact
@@ -55,6 +56,9 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
   view visibly upgrades warehouses, markets, beacons and caravan gates.
 - Fresh realms start with one deliberate purchase at a time; ×10, ×100 and
   maximum buying unlock across the first three prosperity chapters.
+- Realm expansion now starts a fresh local city and base fleet while preserving
+  influence, talents, collection and legacy progress; a confirmation explains
+  the exchange before anything is reset.
 - Give each upgrade a distinct audio consequence.
 
 ### Phase 4 — Ethical premium layer

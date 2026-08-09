@@ -32,6 +32,7 @@ required_main = (
 	"var dashboard_ready := stage > 0",
 	"_focus_card.visible = not dashboard_ready",
 	"func _on_prosperity_advanced(",
+	"func _show_expansion_confirm() -> void:",
 	'"progress_override": true',
 	"(_mode_btns[mode] as Button).visible = GameState.prosperity_rank >= required_rank",
 )
@@ -70,6 +71,8 @@ missing += [token for token in (
 	"func next_prosperity_threshold() -> int:",
 	"func prosperity_chapter_progress() -> float:",
 	"var buy_mode := 1",
+	"drones = Prestige.starting_drones()",
+	"levels = Prestige.starting_levels()",
 ) if token not in game_state]
 if missing:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: missing guards: " + ", ".join(missing))
