@@ -35,6 +35,9 @@ for block in option_blocks:
     required = {
         'gradle_build/target_sdk="36"': "target API 36",
         "architectures/arm64-v8a=true": "64-bit ARM",
+        "architectures/armeabi-v7a=false": "disabled 32-bit ARM",
+        "architectures/x86=false": "disabled 32-bit x86",
+        "architectures/x86_64=false": "disabled 64-bit x86",
         'package/unique_name="com.arcanetrade.empire"': "stable package id",
         "package/show_as_launcher_app=true": "launcher visibility",
         "permissions/internet=true": "network permission",
