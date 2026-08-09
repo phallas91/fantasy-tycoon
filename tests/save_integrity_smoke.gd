@@ -48,5 +48,41 @@ func _run() -> void:
 		_fail("malformed JSON was accepted")
 		return
 
+	# A killed process may leave a complete newer temporary checkpoint beside an
+	# older valid primary. Recovery must compare valid progress, not filenames.
+	var primary_path := "user://save-smoke-primary.json"
+	var temp_path := "user://save-smoke-temp.json"
+	var old_game := (decoded["game"] as Dictionary).duplicate(true)
+	old_game["total_earned"] = 10.0
+	var old_data := decoded.duplicate(true)
+	old_data["game"] = old_game
+	old_data["ts"] = 200
+	var new_game := (decoded["game"] as Dictionary).duplicate(true)
+	new_game["total_earned"] = 20.0
+	var new_data := decoded.duplicate(true)
+	new_data["game"] = new_game
+	new_data["ts"] = 100 # Older clock reading must not defeat richer progress.
+	_write_test_envelope(primary_path, old_data)
+	_write_test_envelope(temp_path, new_data)
+	var selected := SaveSystem._select_best_candidate([primary_path, temp_path])
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(primary_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(temp_path))
+	if selected.is_empty() or str(selected.get("path", "")) != temp_path:
+		_fail("newer interrupted checkpoint was not selected")
+		return
+
 	print("SAVE_SMOKE: PASS")
 	quit(0)
+
+func _write_test_envelope(path: String, data: Dictionary) -> void:
+	var payload := JSON.stringify(data)
+	var envelope := JSON.stringify({
+		"cs": AntiCheat.checksum(payload),
+		"d": AntiCheat.encode(payload),
+	})
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		_fail("could not create recovery fixture")
+		return
+	file.store_string(envelope)
+	file.close()

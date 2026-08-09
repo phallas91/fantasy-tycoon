@@ -107,19 +107,49 @@ func load_game() -> bool:
 		BACKUP_PATH + TEMP_SUFFIX,
 		BACKUP_PATH + PREVIOUS_SUFFIX,
 	]
+	var best := _select_best_candidate(candidates)
+	if best.is_empty():
+		return false
+	var path := str(best["path"])
+	var raw := str(best["raw"])
+	if path != SAVE_PATH:
+		push_warning("SaveSystem: recovered best progress from %s." % path)
+		_write(SAVE_PATH, raw)
+		save_recovered.emit()
+	return _apply(best["data"] as Dictionary)
+
+## Select the richest authenticated checkpoint instead of trusting filename
+## order. A crash can leave a fully flushed newer .tmp beside an older valid
+## primary; preferring the primary in that case silently discards progress.
+## total_earned is monotonic and is already the cloud-merge score. Timestamp and
+## candidate order only break ties, keeping behavior deterministic if the device
+## clock changes or several rotations contain the same economic checkpoint.
+func _select_best_candidate(candidates: Array[String]) -> Dictionary:
+	var best: Dictionary = {}
+	var best_progress := -1.0
+	var best_timestamp := -1
 	for path: String in candidates:
 		var raw := _try_load(path)
 		if raw.is_empty():
 			continue
 		var data := decode_envelope(raw)
-		if not data.is_empty():
-			if path != SAVE_PATH:
-				push_warning("SaveSystem: recovered progress from %s." % path)
-				_write(SAVE_PATH, raw)
-				save_recovered.emit()
-			return _apply(data)
-		push_warning("SaveSystem: invalid save at %s; trying fallback." % path)
-	return false
+		if data.is_empty():
+			push_warning("SaveSystem: invalid save at %s; trying fallback." % path)
+			continue
+		var game: Variant = data.get("game", null)
+		if typeof(game) != TYPE_DICTIONARY:
+			push_warning("SaveSystem: save at %s has no game state; trying fallback." % path)
+			continue
+		var progress := float((game as Dictionary).get("total_earned", -1.0))
+		if not is_finite(progress) or progress < 0.0:
+			push_warning("SaveSystem: save at %s has invalid progress; trying fallback." % path)
+			continue
+		var timestamp := int(data.get("ts", 0))
+		if progress > best_progress or (is_equal_approx(progress, best_progress) and timestamp > best_timestamp):
+			best = {"path": path, "raw": raw, "data": data}
+			best_progress = progress
+			best_timestamp = timestamp
+	return best
 
 ## Decode and authenticate one local/cloud save blob without mutating the game.
 ## Legacy v1 plain dictionaries remain readable so updates never strand an old
