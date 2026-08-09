@@ -395,4 +395,4 @@ xcodebuild -resolvePackageDependencies \
 					% [a_script_path, (chmod_output if chmod_output.size() > 0 else "Unknown error")])
 			__result = Error.ERR_FILE_NO_PERMISSION
 
-		return __resul
+		return __result
