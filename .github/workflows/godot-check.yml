@@ -105,12 +105,12 @@ jobs:
             2>&1 | tee godot-android-apk.log
           python3 tests/android_package_smoke.py export/ArcaneTradeEmpire-ci.apk
 
-      - name: Build Android debug AAB with native plugins
+      - name: Build Android release AAB with native plugins
         shell: bash
         run: |
           set -o pipefail
           godot --headless --path . \
-            --export-debug "Android AAB (Play Store)" export/ArcaneTradeEmpire-ci.aab \
+            --export-release "Android AAB (Play Store)" export/ArcaneTradeEmpire-ci.aab \
             2>&1 | tee godot-android-aab.log
           python3 tests/android_package_smoke.py export/ArcaneTradeEmpire-ci.aab
 

@@ -10,6 +10,7 @@ ADS = (ROOT / "scripts" / "ads.gd").read_text(encoding="utf-8")
 BILLING = (ROOT / "scripts" / "billing.gd").read_text(encoding="utf-8")
 ADMOB = (ROOT / "addons" / "AdmobPlugin" / "android_export.cfg").read_text(encoding="utf-8")
 PLUGIN_INVENTORY = (ROOT / "addons" / "PLUGIN_VERSIONS.md").read_text(encoding="utf-8")
+WORKFLOW = (ROOT / ".github" / "workflows" / "godot-check.yml").read_text(encoding="utf-8")
 
 autoloads = {
     'Billing="*res://scripts/billing.gd"',
@@ -60,5 +61,10 @@ for key in ("response_code", "purchase_state", "purchase_token", "product_ids", 
 
 assert "res://addons/GodotPlayGameServices/plugin.cfg" not in PROJECT, \
     "Play Games plugin must stay disabled until a real game ID is configured"
+
+assert '--export-release "Android AAB (Play Store)"' in WORKFLOW, \
+    "Play Store AAB must exercise the release export and release plugin AARs"
+assert '--export-debug "Android AAB (Play Store)"' not in WORKFLOW, \
+    "Play Store AAB must not regress to a debug package"
 
 print("ANDROID_WIRING_SMOKE: PASS (native services wired; account/device verification remains)")
