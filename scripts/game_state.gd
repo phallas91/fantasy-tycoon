@@ -87,7 +87,7 @@ func global_mult() -> float:
 	return (1.0 + 0.05 * float(influence)) * (1.0 + 0.06 * float(talents["global"])) \
 		* (1.0 + 0.25 * float(gem_boost)) * guild_blessing_mult() \
 		* Events.current_mult * Prestige.effective_mult() * skin_collection_mult() \
-		* region_bonus_mult()
+		* region_bonus_mult() * Billing.premium_income_mult()
 
 ## Permanent multiplier from completed world regions (see Economy.REGIONS). Earned
 ## once each and kept forever (survives prestige), so it's a long-horizon meta
@@ -159,7 +159,9 @@ func offline_cap() -> float:
 	# +30 min of offline cap per prestige (up to +4h at count 8) — a structural
 	# reward for prestiging that veterans feel, beyond the flat multiplier.
 	var count_extra: float = float(mini(Prestige.count, 8)) * 1800.0
-	return OFFLINE_CAP_BASE + prestige_extra + count_extra + (79200.0 if is_guild_blessing_active() else 0.0)
+	var earned_cap := OFFLINE_CAP_BASE + prestige_extra + count_extra \
+		+ (79200.0 if is_guild_blessing_active() else 0.0)
+	return maxf(earned_cap, Billing.premium_offline_cap())
 
 ## `cities` optional: pass the already-fetched array to avoid re-reading
 ## Economy.country_cities() (a fresh Dictionary lookup) for every route/drone
@@ -536,8 +538,8 @@ func set_skin(id: String) -> bool:
 	return true
 
 # ---------------------------------------------------------------- boosts/offline
-func boost_earn_2x() -> void:
-	earn_boost_timer = EARN_BOOST_DURATION
+func boost_earn_2x(duration := EARN_BOOST_DURATION) -> void:
+	earn_boost_timer = maxf(earn_boost_timer, maxf(0.0, duration))
 
 func grant_gems(n: int) -> void:
 	gems += n

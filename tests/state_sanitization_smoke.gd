@@ -14,6 +14,7 @@ func _run() -> void:
 	var prestige := root.get_node("Prestige")
 	var economy := root.get_node("Economy")
 	var save_system := root.get_node("SaveSystem")
+	var billing := root.get_node("Billing")
 	game_state.from_dict({
 		"credits": INF,
 		"gems": 9_999_999_999,
@@ -38,6 +39,10 @@ func _run() -> void:
 		"ascendant": 9_999_999,
 		"run_start": INF,
 	})
+	billing.from_dict({
+		"perm_mult": INF,
+		"processed_tokens": ["", " valid-token ", "valid-token"] + range(250),
+	})
 
 	if not is_finite(game_state.income_per_sec()) or game_state.income_per_sec() < 0.0:
 		_fail("hostile state produced invalid income")
@@ -57,6 +62,12 @@ func _run() -> void:
 		if not prestige.SHOP.has(item_id):
 			_fail("unknown prestige shop item survived migration")
 			return
+	if not is_finite(billing.premium_income_mult()) or billing.premium_income_mult() < 1.0:
+		_fail("hostile billing state produced invalid multiplier")
+		return
+	if billing._processed_tokens.size() > 200 or "" in billing._processed_tokens:
+		_fail("billing token history was not sanitized")
+		return
 
 	game_state.reset()
 	prestige.reset()

@@ -151,7 +151,7 @@ func _grant(product_id: String, persist := true) -> void:
 		"starter":
 			starter_owned = true
 			GameState.gems += 300; GameState.drones += 5; GameState._rebuild_drones()
-			GameState.boost_earn_2x()
+			GameState.boost_earn_2x(3600.0)
 	purchased.emit(product_id)
 	if persist and has_node("/root/SaveSystem"):
 		SaveSystem.save_game()
@@ -164,6 +164,21 @@ func restore() -> bool:
 	_client.query_purchases(BillingClient.ProductType.INAPP)
 	return true
 
+func owns(product_id: String) -> bool:
+	match product_id:
+		"starter": return starter_owned
+		"vip": return vip
+		"perm_x2": return perm_mult >= 2.0
+	return false
+
+## One bounded API keeps Store-product interpretation out of economy code.
+## VIP and permanent x2 stack because both promise independent doubling.
+func premium_income_mult() -> float:
+	return clampf(perm_mult, 1.0, 2.0) * (2.0 if vip else 1.0)
+
+func premium_offline_cap() -> float:
+	return 86400.0 if vip else 0.0
+
 ## Never simulate purchases on an exported mobile build. Until StoreKit is
 ## integrated, iOS fails closed instead of granting paid products for free.
 func _purchase_simulator_allowed() -> bool:
@@ -175,7 +190,12 @@ func to_dict() -> Dictionary:
 
 func from_dict(d: Dictionary) -> void:
 	ads_removed = bool(d.get("ads_removed", false))
-	perm_mult = float(d.get("perm_mult", 1.0))
+	perm_mult = clampf(float(d.get("perm_mult", 1.0)), 1.0, 2.0)
+	if not is_finite(perm_mult): perm_mult = 1.0
 	vip = bool(d.get("vip", false))
 	starter_owned = bool(d.get("starter_owned", false))
-	_processed_tokens = Array(d.get("processed_tokens", []))
+	_processed_tokens.clear()
+	for value in Array(d.get("processed_tokens", [])).slice(-200):
+		var token := str(value).strip_edges()
+		if not token.is_empty() and token.length() <= 512 and token not in _processed_tokens:
+			_processed_tokens.append(token)

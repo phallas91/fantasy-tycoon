@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PROJECT = (ROOT / "project.godot").read_text(encoding="utf-8")
 ADS = (ROOT / "scripts" / "ads.gd").read_text(encoding="utf-8")
 BILLING = (ROOT / "scripts" / "billing.gd").read_text(encoding="utf-8")
+GAME_STATE = (ROOT / "scripts" / "game_state.gd").read_text(encoding="utf-8")
+MAIN = (ROOT / "scripts" / "main.gd").read_text(encoding="utf-8")
 ADMOB = (ROOT / "addons" / "AdmobPlugin" / "android_export.cfg").read_text(encoding="utf-8")
 PLUGIN_INVENTORY = (ROOT / "addons" / "PLUGIN_VERSIONS.md").read_text(encoding="utf-8")
 WORKFLOW = (ROOT / ".github" / "workflows" / "godot-check.yml").read_text(encoding="utf-8")
@@ -58,6 +60,11 @@ assert "query_product_details(PackedStringArray(PRODUCT_ORDER)" in BILLING, \
 assert "_products_ready" in BILLING, "Purchases are not gated on product readiness"
 for key in ("response_code", "purchase_state", "purchase_token", "product_ids", "is_acknowledged"):
     assert key in BILLING, f"Billing v3 response field unsupported: {key}"
+assert "Billing.premium_income_mult()" in GAME_STATE, "Paid income multiplier is not applied"
+assert "Billing.premium_offline_cap()" in GAME_STATE, "VIP offline cap is not applied"
+assert "GameState.boost_earn_2x(3600.0)" in BILLING, "Starter boost must last the promised hour"
+assert "Billing.buy(product_id)" in MAIN and "Billing.restore()" in MAIN, \
+    "Real-money shop purchase/restore controls are missing"
 
 assert "res://addons/GodotPlayGameServices/plugin.cfg" not in PROJECT, \
     "Play Games plugin must stay disabled until a real game ID is configured"

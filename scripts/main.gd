@@ -69,6 +69,7 @@ var _rows := {}
 var _talent_rows := {}
 var _gem_rows := {}
 var _skin_rows := {}
+var _iap_rows := {}
 var _section_lbls: Array = []   # section header labels, re-translated on locale change
 var _mode_btns := {}
 var _drone_btn: Button
@@ -155,8 +156,12 @@ func _ready() -> void:
 	Contracts.completed.connect(_on_contract_completed)
 	SaveSystem.session_offline_ready.connect(_on_session_offline_ready)
 	SaveSystem.save_recovered.connect(_on_save_recovered)
+	Billing.purchased.connect(_on_iap_purchased)
+	Billing.purchase_failed.connect(_on_iap_failed)
 
 	var loaded := SaveSystem.load_game()
+	for product_id: String in Billing.PRODUCT_ORDER:
+		_update_iap_row(product_id)
 	_disp_credits = GameState.credits
 	_prev_gems = GameState.gems; _prev_infl = GameState.influence
 	_rebuild_city_list()
@@ -1252,6 +1257,18 @@ func _make_achievement_row(id: String) -> PanelContainer:
 
 func _build_shop_tab() -> ScrollContainer:
 	var r := _scroll("Loja"); var v: VBoxContainer = r[1]
+	v.add_child(_section("Compras com dinheiro real", UITheme.VIOLET, "ic_cash"))
+	for product_id: String in Billing.PRODUCT_ORDER:
+		v.add_child(_make_iap_row(product_id))
+	var restore_btn := _wide_btn(UITheme.VIOLET.darkened(0.18))
+	restore_btn.text = tr("Restaurar compras")
+	restore_btn.custom_minimum_size = Vector2(0, 54)
+	restore_btn.pressed.connect(func():
+		Fx.press(restore_btn)
+		if not Billing.restore(): Fx.error_shake(restore_btn)
+	)
+	v.add_child(restore_btn)
+
 	v.add_child(_section("Coleção Arcana", UITheme.GOLD, "ic_gems"))
 	for id: String in Economy.GEM_SHOP_ORDER:
 		v.add_child(_make_gem_row(id))
@@ -1281,6 +1298,40 @@ func _build_shop_tab() -> ScrollContainer:
 	daily_v.add_child(daily_btn)
 
 	return r[0]
+
+func _make_iap_row(product_id: String) -> PanelContainer:
+	var product: Dictionary = Billing.PRODUCTS[product_id]
+	var icon_name := "ic_gems" if product_id.begins_with("gems_") else "ic_cash"
+	var r := _row(UITheme.VIOLET, icon_name)
+	r["title"].text = tr(str(product["name"]))
+	r["detail"].text = tr(str(product["desc"]))
+	r["detail"].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var btn := _cbuy(UITheme.VIOLET.darkened(0.10), 112.0)
+	btn.text = str(product["price"])
+	btn.pressed.connect(func():
+		if not _can_tap(): return
+		Fx.press(btn); Billing.buy(product_id)
+	)
+	r["right"].add_child(btn)
+	_iap_rows[product_id] = {"btn": btn, "price": str(product["price"])}
+	_update_iap_row(product_id)
+	return r["card"]
+
+func _update_iap_row(product_id: String) -> void:
+	if not _iap_rows.has(product_id): return
+	var row: Dictionary = _iap_rows[product_id]
+	var btn: Button = row["btn"]
+	var owned := Billing.owns(product_id)
+	btn.disabled = owned
+	btn.text = "✓" if owned else str(row["price"])
+
+func _on_iap_purchased(product_id: String) -> void:
+	_update_iap_row(product_id)
+	if Billing.PRODUCTS.has(product_id):
+		_toast(tr(str(Billing.PRODUCTS[product_id]["name"])), UITheme.GOLD, "ic_gems")
+
+func _on_iap_failed(product_id: String, _reason: String) -> void:
+	if _iap_rows.has(product_id): Fx.error_shake(_iap_rows[product_id]["btn"])
 
 func _make_skin_row(id: String) -> PanelContainer:
 	var p: Dictionary = Economy.SKINS[id]
