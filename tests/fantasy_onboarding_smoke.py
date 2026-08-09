@@ -15,7 +15,9 @@ required_economy = (
     'cities[city_idx]["x"] =',
     'cities[city_idx]["y"] =',
     '"Die Goldenen Marken"',
-    '"Der Aetherthron"',
+	'"Der Aetherthron"',
+	"const DISTRICT_STAGES := {",
+	"func next_district_stage(key: String, level: int) -> Dictionary:",
 )
 required_main = (
     "func _progression_stage() -> int:",
@@ -31,6 +33,7 @@ required_main = (
 	"_focus_card.visible = not dashboard_ready",
 	"func _on_prosperity_advanced(",
 	'"progress_override": true',
+	"(_mode_btns[mode] as Button).visible = GameState.prosperity_rank >= required_rank",
 )
 required_map = (
 	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
@@ -41,6 +44,10 @@ required_map = (
 	'GameState.levels.get("value", 0)',
 	'GameState.levels.get("speed", 0)',
 	'GameState.levels.get("routes", 0)',
+	"if cargo_level >= 25:",
+	"if value_level >= 25:",
+	"if speed_level >= 25:",
+	"if route_level >= 25:",
     "# A luminous river crosses the realm",
     "# Mountain chain:",
     "# Forest groves",
@@ -62,6 +69,7 @@ missing += [token for token in (
 	'"prosperity_rank": prosperity_rank',
 	"func next_prosperity_threshold() -> int:",
 	"func prosperity_chapter_progress() -> float:",
+	"var buy_mode := 1",
 ) if token not in game_state]
 if missing:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: missing guards: " + ", ".join(missing))

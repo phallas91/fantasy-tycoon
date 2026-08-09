@@ -1531,10 +1531,23 @@ func _make_upgrade_row(key: String) -> PanelContainer:
 	var btn := _cbuy(UITheme.GREEN)
 	btn.pressed.connect(func():
 		if not _can_tap(): return
-		var before_tier := int(GameState.levels[key]) / Economy.MILESTONE_STEP
+		var before_level := int(GameState.levels[key])
+		var before_tier := before_level / Economy.MILESTONE_STEP
+		var before_stage: Dictionary = Economy.current_district_stage(key, before_level)
 		if GameState.buy_upgrade_multi(key) > 0:
 			Fx.press(btn); Audio.play("buy"); _reward_fx(btn, accent, "spark", 6)
-			if int(GameState.levels[key]) / Economy.MILESTONE_STEP > before_tier:
+			var after_level := int(GameState.levels[key])
+			var after_stage: Dictionary = Economy.current_district_stage(key, after_level)
+			if not after_stage.is_empty() and str(after_stage.get("name", "")) != str(before_stage.get("name", "")):
+				_toast(tr("Construído: %s!") % tr(str(after_stage["name"])), UITheme.GOLD, str(Economy.UPGRADES[key].get("icon", "ic_city")))
+				var landmark_centre := Vector2(size.x * 0.62, size.y * 0.46)
+				Fx.confetti(self, landmark_centre, 34, [UITheme.GOLD, accent, UITheme.CYAN])
+				Fx.screen_flash(self, accent, 0.13)
+				Fx.ring_pulse(self, landmark_centre, accent, 2.8)
+				Audio.play("milestone")
+				Fx.vibrate(42)
+				_map.focus_city(0)
+			elif after_level / Economy.MILESTONE_STEP > before_tier:
 				_toast(tr("MARCO! %s ×2!") % tr(str(Economy.UPGRADES[key]["name"])), UITheme.GOLD, "ic_achieve")
 				var c := Vector2(size.x * 0.5, size.y * 0.45)
 				Fx.confetti(self, c, 30, [UITheme.GOLD, accent, UITheme.CYAN])
@@ -1730,6 +1743,16 @@ func _process(delta: float) -> void:
 			seg_btn.add_theme_stylebox_override("normal", sb)
 			seg_btn.add_theme_stylebox_override("hover",  sb)
 		_prev_buy_mode = GameState.buy_mode
+	# Bulk purchasing is earned gradually instead of confronting a new player
+	# with four equivalent controls. Existing saves derive prosperity from their
+	# levels and therefore retain every mode they have already reached.
+	for mode in _mode_btns:
+		var required_rank := 0
+		match int(mode):
+			10: required_rank = 1
+			100: required_rank = 2
+			-1: required_rank = 3
+		(_mode_btns[mode] as Button).visible = GameState.prosperity_rank >= required_rank
 
 	var dc := GameState.drone_planned(); var dcost := GameState.drone_cost_multi(maxi(1, dc))
 	_drone_btn.text     = (("×%d   " % dc) if GameState.buy_mode != 1 else "") + Fmt.short(dcost)
@@ -1757,10 +1780,16 @@ func _process(delta: float) -> void:
 		var sig := [ulvl, count, cost]
 		if row.get("_sig") != sig:
 			row["_sig"] = sig
-			var mm := int(Economy.milestone_mult(ulvl))
-			var nxt := (ulvl / Economy.MILESTONE_STEP + 1) * Economy.MILESTONE_STEP
-			var mi: String = (tr("Marco ×%d · próx. Nv %d") % [mm, nxt]) if mm > 1 else (tr("Marco ×2 ao Nv %d") % nxt)
-			row["detail"].text = (tr("Nv %d · %s · %s") % [ulvl, _effect_total(key, ulvl), mi]) if ulvl > 0 else (tr("Nv 0 · %s · %s") % [_effect(key), mi])
+			var current_stage: Dictionary = Economy.current_district_stage(key, ulvl)
+			var next_stage: Dictionary = Economy.next_district_stage(key, ulvl)
+			var building_text := ""
+			if current_stage.is_empty():
+				building_text = tr("Primeira obra: %s no Nv %d") % [tr(str(next_stage["name"])), int(next_stage["level"])]
+			elif next_stage.is_empty():
+				building_text = tr("Obra atual: %s") % tr(str(current_stage["name"]))
+			else:
+				building_text = tr("%s · próxima obra: %s no Nv %d") % [tr(str(current_stage["name"])), tr(str(next_stage["name"])), int(next_stage["level"])]
+			row["detail"].text = (tr("Nv %d · %s · %s") % [ulvl, _effect_total(key, ulvl), building_text]) if ulvl > 0 else (tr("Nv 0 · %s · %s") % [_effect(key), building_text])
 
 	for key: String in _talent_rows:
 		var tp: Dictionary = Economy.TALENTS[key]; var lvl := int(GameState.talents[key])

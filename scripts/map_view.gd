@@ -1072,6 +1072,13 @@ func _draw_district_investments(p: Vector2, city_index: int, is_capital: bool,
 				Vector2(wx + ww * 0.62, base_y - wh)
 			]), Color(0.43, 0.20, 0.15, 0.96 * reveal))
 			draw_rect(Rect2(wx - 2.0, base_y - 5.0, 4.0, 5.0), Color(GOLD.r, GOLD.g, GOLD.b, 0.56 * reveal))
+		if cargo_level >= 10:
+			var crane_x := p.x - width * 0.62
+			draw_line(Vector2(crane_x, base_y), Vector2(crane_x, base_y - 28.0 * district_scale), Color(0.58, 0.34, 0.20, 0.88 * reveal), 2.2)
+			draw_line(Vector2(crane_x, base_y - 27.0 * district_scale), Vector2(crane_x + 18.0 * district_scale, base_y - 27.0 * district_scale), Color(GOLD.r, GOLD.g, GOLD.b, 0.74 * reveal), 2.0)
+		if cargo_level >= 25:
+			draw_rect(Rect2(p.x - 10.0 * district_scale, base_y - 30.0 * district_scale, 20.0 * district_scale, 18.0 * district_scale), Color(0.30, 0.13, 0.18, 0.96 * reveal))
+			draw_colored_polygon(PackedVector2Array([Vector2(p.x - 12.0 * district_scale, base_y - 30.0 * district_scale), Vector2(p.x, base_y - 40.0 * district_scale), Vector2(p.x + 12.0 * district_scale, base_y - 30.0 * district_scale)]), Color(GOLD.r, GOLD.g, GOLD.b, 0.82 * reveal))
 
 	if value_level > 0:
 		var stalls := 1 + mini(2, value_level / 8)
@@ -1084,6 +1091,10 @@ func _draw_district_investments(p: Vector2, city_index: int, is_capital: bool,
 				Vector2(sx + 3.0 * district_scale, sy - 10.0 * district_scale), Vector2(sx + 6.0 * district_scale, sy - 5.0 * district_scale)
 			]), Color(SKY.r, SKY.g, SKY.b, 0.90 * reveal))
 			draw_circle(Vector2(sx, sy - 8.0 * district_scale), 1.3 * district_scale, Color(GOLD.r, GOLD.g, GOLD.b, 0.92 * reveal))
+		if value_level >= 25:
+			var pavilion := Vector2(p.x, base_y + 11.0 * district_scale)
+			draw_arc(pavilion, 12.0 * district_scale, PI, TAU, 20, Color(SKY.r, SKY.g, SKY.b, 0.94 * reveal), 4.0)
+			draw_circle(pavilion + Vector2(0, -10.0 * district_scale), 3.0 * district_scale, Color(GOLD.r, GOLD.g, GOLD.b, 0.95 * reveal))
 
 	if speed_level > 0:
 		var beacon_height := (34.0 + minf(22.0, float(speed_level) * 0.8)) * district_scale * reveal
@@ -1093,6 +1104,12 @@ func _draw_district_investments(p: Vector2, city_index: int, is_capital: bool,
 		var beacon := Vector2(beacon_x, base_y - beacon_height)
 		draw_circle(beacon, (3.0 + pulse * 2.0) * district_scale, Color(CYAN.r, CYAN.g, CYAN.b, (0.45 + pulse * 0.35) * reveal))
 		draw_line(beacon, beacon + Vector2(0, -18.0 * district_scale), Color(CYAN.r, CYAN.g, CYAN.b, 0.18 * reveal), 2.0)
+		var portal_phase := 0.0 if Fx.reduce_motion else _t
+		if speed_level >= 10:
+			draw_arc(beacon, 9.0 * district_scale, portal_phase, portal_phase + TAU * 1.65, 24, Color(CYAN.r, CYAN.g, CYAN.b, 0.72 * reveal), 1.8)
+		if speed_level >= 25:
+			draw_arc(beacon, 15.0 * district_scale, -portal_phase * 0.7, -portal_phase * 0.7 + TAU * 1.75, 30, Color(SKY.r, SKY.g, SKY.b, 0.88 * reveal), 3.0)
+			draw_circle(beacon, 7.0 * district_scale, Color(0.32, 0.12, 0.55, 0.72 * reveal))
 
 	if route_level > 0:
 		var lamps := 2 + mini(2, route_level / 10)
@@ -1102,6 +1119,11 @@ func _draw_district_investments(p: Vector2, city_index: int, is_capital: bool,
 			var ly: float = base_y + 4.0 + float(lamp / 2) * 5.0
 			draw_line(Vector2(lx, ly), Vector2(lx, ly - 9.0 * district_scale), Color(0.24, 0.14, 0.25, 0.92 * reveal), 1.6)
 			draw_circle(Vector2(lx, ly - 10.0 * district_scale), 2.2 * district_scale, Color(GOLD.r, GOLD.g, GOLD.b, 0.88 * reveal))
+		if route_level >= 25:
+			var gate_y := base_y + 5.0 * district_scale
+			draw_line(Vector2(p.x - 13.0 * district_scale, gate_y), Vector2(p.x - 13.0 * district_scale, gate_y - 21.0 * district_scale), Color(0.36, 0.20, 0.34, 0.94 * reveal), 3.2)
+			draw_line(Vector2(p.x + 13.0 * district_scale, gate_y), Vector2(p.x + 13.0 * district_scale, gate_y - 21.0 * district_scale), Color(0.36, 0.20, 0.34, 0.94 * reveal), 3.2)
+			draw_arc(Vector2(p.x, gate_y - 20.0 * district_scale), 13.0 * district_scale, PI, TAU, 22, Color(GOLD.r, GOLD.g, GOLD.b, 0.86 * reveal), 3.0)
 
 	if _investment_reveal > 0.0 and is_capital and not Fx.reduce_motion:
 		var alpha := clampf(_investment_reveal / 0.9, 0.0, 1.0)

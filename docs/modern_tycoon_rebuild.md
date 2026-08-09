@@ -50,8 +50,12 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
   20 and 40 with current-income cash bursts and restrained gem rewards.
 - The calm HUD previews the active construction chapter, its reward and exact
   progress, then jumps directly to the cheapest useful city improvement.
-- Add milestone choices rather than four near-identical upgrade rows.
-- Give each upgrade a distinct visual and audio consequence.
+- Replace four near-identical rows with named construction paths. *(started)*
+- Each path now previews authored landmarks at levels 1, 10 and 25; the world
+  view visibly upgrades warehouses, markets, beacons and caravan gates.
+- Fresh realms start with one deliberate purchase at a time; ×10, ×100 and
+  maximum buying unlock across the first three prosperity chapters.
+- Give each upgrade a distinct audio consequence.
 
 ### Phase 4 — Ethical premium layer
 

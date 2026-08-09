@@ -39,6 +39,46 @@ const UPGRADES := {
 }
 const UPGRADE_ORDER := ["speed", "cargo", "value", "routes"]
 
+## Authored district landmarks turn stat upgrades into visible city building.
+## Levels 1, 10 and 25 are deliberately shared thresholds so players can read
+## all four paths at a glance without learning four unrelated rule sets.
+const DISTRICT_STAGES := {
+	"speed": [
+		{"level": 1, "name": "Farol Arcano"},
+		{"level": 10, "name": "Observatório Celeste"},
+		{"level": 25, "name": "Portal da Tempestade"},
+	],
+	"cargo": [
+		{"level": 1, "name": "Armazéns da Guilda"},
+		{"level": 10, "name": "Depósito Comercial"},
+		{"level": 25, "name": "Cofre Real"},
+	],
+	"value": [
+		{"level": 1, "name": "Praça do Mercado"},
+		{"level": 10, "name": "Grande Bazar"},
+		{"level": 25, "name": "Bolsa Real"},
+	],
+	"routes": [
+		{"level": 1, "name": "Estrada das Lanternas"},
+		{"level": 10, "name": "Portão das Caravanas"},
+		{"level": 25, "name": "Ponte Estelar"},
+	],
+}
+
+func current_district_stage(key: String, level: int) -> Dictionary:
+	var current: Dictionary = {}
+	for stage: Dictionary in DISTRICT_STAGES.get(key, []):
+		if level < int(stage["level"]):
+			break
+		current = stage
+	return current
+
+func next_district_stage(key: String, level: int) -> Dictionary:
+	for stage: Dictionary in DISTRICT_STAGES.get(key, []):
+		if level < int(stage["level"]):
+			return stage
+	return {}
+
 const TALENTS := {
 	# Maxes + cost curve tuned so a fully-committed single prestige cycle can
 	# realistically max at least one talent (talents reset on prestige, unlike

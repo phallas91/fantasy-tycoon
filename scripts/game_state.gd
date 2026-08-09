@@ -56,7 +56,7 @@ var prosperity_rank := 0
 
 # --- transient ---
 var earn_boost_mult := 2.0
-var buy_mode := -1   # default to "Máx" (max affordable) per player preference
+var buy_mode := 1   # calm first session; bulk modes unlock through city growth
 var pending_offline := 0.0
 var pending_offline_seconds := 0.0
 var vdrones: Array = []
