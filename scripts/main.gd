@@ -2330,9 +2330,12 @@ func _settings_toggle(text: String, pressed: bool, cb: Callable) -> Control:
 	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(h)
 
-	var lbl := _lbl(text, 26, UITheme.INK)
+	var lbl := _lbl(text, 20, UITheme.INK)
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.max_lines_visible = 2
+	lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.add_child(lbl)
 

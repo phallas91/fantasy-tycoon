@@ -3,10 +3,17 @@ extends Node
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const LAYOUTS := [
+	Vector2i(1152, 648),  # exact reference screenshot (90% window scale)
 	Vector2i(1280, 720),  # compact 16:9 phone
 	Vector2i(1560, 720),  # wide modern phone
 	Vector2i(1280, 900),  # landscape tablet / foldable
 ]
+
+const REF_GUTTER := 12.0
+const REF_HUD_TOP := 20.0
+const REF_PANEL_RIGHT := 410.0
+const REF_PANEL_TOP := 150.0
+const REF_NAV_HEIGHT := 70.0
 
 var _failure := ""
 
@@ -37,8 +44,26 @@ func _run() -> void:
 			break
 
 		var nav := main.get("_nav_bar") as Control
+		var hud := main.get("_hud") as Control
+		var panel := main.get("_bottom_bg") as Control
 		var pages: Array = main.get("_pages")
 		if not _check(is_instance_valid(nav), "bottom navigation missing"):
+			break
+		if not _check(is_instance_valid(hud) and is_instance_valid(panel),
+				"reference HUD or side panel missing"):
+			break
+		if not _check(absf(hud.position.x - REF_GUTTER) <= 1.0
+				and absf(hud.position.y - REF_HUD_TOP) <= 1.0
+				and absf(hud.position.x + hud.size.x - (canvas.x - REF_GUTTER)) <= 1.0,
+				"HUD no longer matches reference frame at %s" % requested_size):
+			break
+		if not _check(absf(panel.position.x - REF_GUTTER) <= 1.0
+				and absf(panel.position.y - REF_PANEL_TOP) <= 1.0
+				and absf(panel.position.x + panel.size.x - REF_PANEL_RIGHT) <= 1.0,
+				"side dashboard no longer matches reference frame at %s" % requested_size):
+			break
+		if not _check(absf(nav.size.y - REF_NAV_HEIGHT) <= 1.0,
+				"navigation height no longer matches reference at %s" % requested_size):
 			break
 		if not _check(absf(nav.position.y + nav.size.y - canvas.y) <= 2.0,
 				"navigation leaves the viewport at %s" % requested_size):
@@ -73,7 +98,8 @@ func _run() -> void:
 		await get_tree().process_frame
 
 	if _failure.is_empty():
-		print("UI_LAYOUT_SMOKE: PASS (3 landscape classes, side dashboard, 44px touch targets)")
+		print("UI_LAYOUT_SMOKE: PASS (reference frame + 4 landscape classes + 44px touch targets)")
 		get_tree().quit(0)
 	else:
 		get_tree().quit(1)
+
