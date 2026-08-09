@@ -1,6 +1,7 @@
 extends Node
-## Economy data & formulas (autoload: Economy). World = 40 countries loaded from
-## data/world.json (real outlines + geographically-placed cities). Delivery-based.
+## Economy data & formulas (autoload: Economy). The source file supplies only
+## progression counts and tiers; names, silhouettes and settlements are rebuilt
+## as an original fantasy world at runtime.
 
 var WORLD: Array = []
 
@@ -89,13 +90,14 @@ func _ready() -> void:
 			WORLD = d["countries"]
 		f.close()
 	if WORLD.is_empty():
-		WORLD = [{"name": "Portugal", "tier": 0, "outline": [[0.3,0.1],[0.4,0.9],[0.5,0.5]], "cities": [{"name":"Lisboa","x":0.4,"y":0.6,"capital":true},{"name":"Porto","x":0.42,"y":0.25,"capital":false}]}]
+		WORLD = [{"name": "Goldhain", "tier": 0, "outline": [], "cities": [{"name":"Königsbasar","x":0.5,"y":0.5,"capital":true},{"name":"Runenhafen","x":0.65,"y":0.4,"capital":false}]}]
 	_apply_fantasy_world_names()
 
 func _apply_fantasy_world_names() -> void:
 	for i in range(mini(WORLD.size(), FANTASY_REALMS.size())):
 		var realm_name: String = FANTASY_REALMS[i]
 		WORLD[i]["name"] = realm_name
+		WORLD[i]["outline"] = _fantasy_outline(i)
 		var cities: Array = WORLD[i]["cities"]
 		for city_idx in range(cities.size()):
 			if i == 0 and city_idx < GOLDHAIN_CITIES.size():
@@ -107,26 +109,52 @@ func _apply_fantasy_world_names() -> void:
 				# "Realm-Hafen / Realm-Hain" debug-style labels.
 				var root_idx := (i * 7 + city_idx * 11) % FANTASY_CITY_ROOTS.size()
 				cities[city_idx]["name"] = FANTASY_CITY_ROOTS[root_idx] + suffix
+			# Settlements follow a deterministic spiral within the invented realm,
+			# rather than retaining coordinates copied from real-world capitals.
+			var angle := float(city_idx) * 2.399963 + float(i) * 0.71
+			var ring := 0.0 if city_idx == 0 else 0.12 + 0.035 * float((city_idx - 1) % 4)
+			cities[city_idx]["x"] = clampf(0.5 + cos(angle) * ring, 0.22, 0.78)
+			cities[city_idx]["y"] = clampf(0.5 + sin(angle) * ring * 0.88, 0.22, 0.78)
+
+## Generates a distinct heraldic/island silhouette for each realm. The warped
+## radial construction is intentionally non-geographic: no real country border
+## survives loading, while the stable formula keeps saves and screenshots exact.
+func _fantasy_outline(realm_index: int) -> Array:
+	var outline: Array = []
+	var points := 14
+	var phase := float(realm_index) * 1.618033
+	var x_scale := 0.30 + 0.025 * sin(phase * 1.7)
+	var y_scale := 0.32 + 0.025 * cos(phase * 1.3)
+	for point_index in range(points):
+		var angle := TAU * float(point_index) / float(points)
+		var rune_wave := sin(angle * 3.0 + phase) * 0.055
+		var ridge_wave := cos(angle * 5.0 - phase * 0.7) * 0.035
+		var radius := 1.0 + rune_wave + ridge_wave
+		outline.append([
+			clampf(0.5 + cos(angle) * x_scale * radius, 0.08, 0.92),
+			clampf(0.5 + sin(angle) * y_scale * radius, 0.08, 0.92),
+		])
+	return outline
 
 func num_countries() -> int:
 	return WORLD.size()
 
-## World regions (the 40 countries grouped geographically). Completing every
-## country in a region grants a ONE-TIME permanent global bonus (see
+## The 40 realms form seven fantasy chapters. Completing every realm in a
+## chapter grants a ONE-TIME permanent global bonus (see
 ## GameState.region_bonus_mult) — turns the 40-realm climb into 7 meaningful
-## milestones and the final country (USA) into a real "World Domination" payoff
+## milestones and the final realm into a real campaign-finale payoff
 ## instead of a dead-end "Parabéns!" wall. `to` is the last country index of the
 ## region; `from` is the previous region's `to`+1. Bonuses are additive and
 ## back-loaded (deep regions require many prestiges to reach), so the tuned
 ## early-run economy is barely touched — validated with tests/sim.gd.
 const REGIONS := [
-	{"name_key": "Europa Ocidental",        "to": 9,  "bonus": 0.04},
-	{"name_key": "Europa Nórdica e de Leste","to": 19, "bonus": 0.06},
-	{"name_key": "Eurásia",                  "to": 22, "bonus": 0.08},
-	{"name_key": "África",                   "to": 26, "bonus": 0.12},
-	{"name_key": "Médio Oriente e Sul da Ásia","to": 28,"bonus": 0.16},
-	{"name_key": "Ásia Oriental e Oceânia",  "to": 33, "bonus": 0.24},
-	{"name_key": "Américas",                 "to": 39, "bonus": 0.40},
+	{"name_key": "Die Goldenen Marken", "to": 9,  "bonus": 0.04},
+	{"name_key": "Die Nebelkronen",      "to": 19, "bonus": 0.06},
+	{"name_key": "Die Runenpfade",       "to": 22, "bonus": 0.08},
+	{"name_key": "Die Glutlande",        "to": 26, "bonus": 0.12},
+	{"name_key": "Die Sternentore",      "to": 28, "bonus": 0.16},
+	{"name_key": "Das Wolkenmeer",       "to": 33, "bonus": 0.24},
+	{"name_key": "Der Aetherthron",      "to": 39, "bonus": 0.40},
 ]
 
 ## Region index that country `ci` belongs to (0..REGIONS.size()-1).
@@ -162,10 +190,10 @@ func pay_tier(i: int) -> float:
 
 ## Per-country COST scale — grows MUCH faster than payouts (pay_tier 2.2^i) so
 ## every country needs a substantially bigger fleet than the last (escalating,
-## long progression; you cannot rush to the USA — it takes many hours).
-## v1.17.0: steepened 4.6→6.5 because expanding out of Portugal carried a huge
+## long progression; you cannot rush to the Aetherthron — it takes many hours).
+## v1.17.0: steepened 4.6→6.5 because leaving Goldhain carried a huge
 ## fleet + higher pay_tier that made the next country's cities trivially cheap.
-## Portugal (i=0 → 6.5^0 = 1) is UNAFFECTED; only post-Portugal costs rise,
+## Goldhain (i=0 → 6.5^0 = 1) is UNAFFECTED; only later-realm costs rise,
 ## widening the gap versus income so active upgrades remain meaningful.
 func cost_tier(i: int) -> float:
 	return pow(6.5, float(i))

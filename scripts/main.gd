@@ -27,6 +27,8 @@ var _nav_icons: Array
 var _nav_labels: Array
 var _nav_dots: Array
 var _nav_ind: Panel
+var _active_tab := 0
+var _nav_stage := -1
 var _toasts: VBoxContainer
 var _page_groups: Dictionary = {}
 var _page_indices: Dictionary = {}
@@ -165,6 +167,7 @@ func _ready() -> void:
 	_disp_credits = GameState.credits
 	_prev_gems = GameState.gems; _prev_infl = GameState.influence
 	_rebuild_city_list()
+	_refresh_progressive_nav()
 	_switch_tab(0)
 	if Fx.reduce_motion:
 		_post_boot(loaded)
@@ -236,11 +239,10 @@ func _show_welcome_popup() -> void:
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(sub)
 
+	# First contact teaches exactly one action. Later systems explain themselves
+	# only when progression reveals them, keeping the opening calm and focused.
 	var slides: Array = [
 		["ic_drone", UITheme.ACCENT, "Compra drones e melhorias", "Cada entrega gera créditos automaticamente."],
-		["ic_city", UITheme.GOLD, "Expande pelo mundo", "Abre cidades e países para multiplicar os lucros."],
-		["ic_gems", UITheme.CYAN, "Gemas só de anúncios e ofertas", "Vê anúncios ou compra-as — nunca se ganham a jogar."],
-		["ic_prestige", UITheme.PRESTIGE, "Faz Prestige para bónus permanentes", "Reinicia com multiplicadores que ficam para sempre."],
 	]
 
 	var stage := PanelContainer.new()
@@ -818,7 +820,8 @@ func _make_nav_btn(icon_name: String, label_text: String, idx: int) -> Button:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE; btn.add_child(box)
 	var ic := _icon(icon_name, 30); ic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE; box.add_child(ic)
-	var lbl := Label.new(); lbl.text = label_text; lbl.add_theme_font_size_override("font_size", 13)
+	var lbl := Label.new(); lbl.text = tr(label_text); lbl.set_meta("i18n", label_text)
+	lbl.add_theme_font_size_override("font_size", 13)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(lbl)
 
@@ -834,6 +837,9 @@ func _make_nav_btn(icon_name: String, label_text: String, idx: int) -> Button:
 	return btn
 
 func _switch_tab(i: int) -> void:
+	if not _nav_unlocked(i):
+		return
+	_active_tab = i
 	if _nav_sb_on == null:
 		_nav_sb_on = UITheme.nav_item(true)
 		_nav_sb_off = UITheme.nav_item(false)
@@ -865,17 +871,60 @@ func _switch_tab(i: int) -> void:
 			var tw := ic.create_tween()
 			tw.tween_property(ic, "scale", Vector2(target, target), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	if _nav_ind != null:
-		var bw := get_viewport_rect().size.x / 6.0
+		var visible_tabs: Array[int] = []
+		for nav_index in _nav_btns.size():
+			if _nav_btns[nav_index].visible:
+				visible_tabs.append(nav_index)
+		var visible_pos := maxi(visible_tabs.find(i), 0)
+		var bw := get_viewport_rect().size.x / float(maxi(visible_tabs.size(), 1))
 		var pad := bw * 0.22
 		if Fx.reduce_motion:
-			_nav_ind.offset_left = bw * float(i) + pad
-			_nav_ind.offset_right = bw * float(i + 1) - pad
+			_nav_ind.offset_left = bw * float(visible_pos) + pad
+			_nav_ind.offset_right = bw * float(visible_pos + 1) - pad
 		else:
 			var tw2 := _nav_ind.create_tween()
 			tw2.set_parallel(true)
-			tw2.tween_property(_nav_ind, "offset_left", bw * float(i) + pad, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tw2.tween_property(_nav_ind, "offset_right", bw * float(i + 1) - pad, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tw2.tween_property(_nav_ind, "offset_left", bw * float(visible_pos) + pad, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tw2.tween_property(_nav_ind, "offset_right", bw * float(visible_pos + 1) - pad, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_stagger_in(i)
+
+## Reveal one system at a time, only after its purpose is understandable.
+func _progression_stage() -> int:
+	var upgrade_total := 0
+	for level: int in GameState.levels.values():
+		upgrade_total += level
+	if GameState.current_country >= 3:
+		return 4
+	if GameState.current_country >= 1:
+		return 3
+	if GameState.cities_unlocked >= 2:
+		return 2
+	if GameState.drones >= 2 or upgrade_total >= 2:
+		return 1
+	return 0
+
+func _nav_unlocked(tab_index: int) -> bool:
+	var stage := _progression_stage()
+	match tab_index:
+		0: return true
+		1: return stage >= 1
+		2, 5: return stage >= 2
+		4: return stage >= 3
+		3: return stage >= 4
+	return false
+
+func _refresh_progressive_nav() -> void:
+	if _nav_btns.is_empty():
+		return
+	var stage := _progression_stage()
+	if stage == _nav_stage:
+		return
+	_nav_stage = stage
+	for i in _nav_btns.size():
+		_nav_btns[i].visible = _nav_unlocked(i)
+	if not _nav_unlocked(_active_tab):
+		_active_tab = 0
+	_switch_tab(_active_tab)
 
 ## Fade-cascade the rows of the newly shown tab.
 func _stagger_in(i: int) -> void:
@@ -1554,6 +1603,7 @@ func _toast(text: String, accent: Color, icon_name := "") -> void:
 # ── Per-frame update ─────────────────────────────────────────────────────────────
 
 func _process(delta: float) -> void:
+	_refresh_progressive_nav()
 	_disp_credits = lerpf(_disp_credits, GameState.credits, clampf(delta * 8.0, 0.0, 1.0))
 	if abs(_disp_credits - GameState.credits) < 1.0: _disp_credits = GameState.credits
 	_credits_lbl.text = Fmt.short(_disp_credits)
@@ -1970,6 +2020,7 @@ func _talent_effect_total(key: String, lvl: int) -> String:
 # ── Signal handlers ──────────────────────────────────────────────────────────────
 
 func _on_city_unlocked(i: int) -> void:
+	_refresh_progressive_nav()
 	_toast(tr("Cidade desbloqueada!"), UITheme.CYAN, "ic_city")
 	var c := Vector2(size.x * 0.5, size.y * 0.42)
 	Fx.confetti(self, c, 22)
@@ -1979,6 +2030,7 @@ func _on_city_unlocked(i: int) -> void:
 	_rebuild_city_list()
 
 func _on_country_changed(i: int) -> void:
+	_refresh_progressive_nav()
 	_rebuild_city_list()
 	var c := Vector2(size.x * 0.5, size.y * 0.40)
 	if i >= Economy.num_countries() - 1:
@@ -2376,6 +2428,9 @@ func _apply_safe_area() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED:
+		for nav_label: Label in _nav_labels:
+			if is_instance_valid(nav_label):
+				nav_label.text = tr(str(nav_label.get_meta("i18n", "")))
 		for l: Label in _section_lbls:
 			if is_instance_valid(l):
 				l.text = tr(str(l.get_meta("i18n", ""))).to_upper()
