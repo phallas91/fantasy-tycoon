@@ -10,7 +10,11 @@ func _fail(message: String) -> void:
 
 func _run() -> void:
 	await process_frame
-	GameState.from_dict({
+	var game_state := root.get_node("GameState")
+	var prestige := root.get_node("Prestige")
+	var economy := root.get_node("Economy")
+	var save_system := root.get_node("SaveSystem")
+	game_state.from_dict({
 		"credits": INF,
 		"gems": 9_999_999_999,
 		"current_country": 9_999_999,
@@ -25,7 +29,7 @@ func _run() -> void:
 		"skins_owned": ["classic", "not-a-skin"],
 		"skin_active": "not-a-skin",
 	})
-	Prestige.from_dict({
+	prestige.from_dict({
 		"count": 9_999_999,
 		"pgems": -50,
 		"total": -100,
@@ -35,27 +39,27 @@ func _run() -> void:
 		"run_start": INF,
 	})
 
-	if not is_finite(GameState.income_per_sec()) or GameState.income_per_sec() < 0.0:
+	if not is_finite(game_state.income_per_sec()) or game_state.income_per_sec() < 0.0:
 		_fail("hostile state produced invalid income")
 		return
-	for key: String in Economy.UPGRADE_ORDER:
-		var cost := GameState.upgrade_cost_multi(key, 1)
+	for key: String in economy.UPGRADE_ORDER:
+		var cost: float = game_state.upgrade_cost_multi(key, 1)
 		if not is_finite(cost) or cost <= 0.0:
 			_fail("invalid %s upgrade cost after sanitization" % key)
 			return
-	if GameState.skin_active != "classic" or GameState.regions_done != [0]:
+	if game_state.skin_active != "classic" or game_state.regions_done != [0]:
 		_fail("cosmetic or region allowlist bypassed")
 		return
-	if not is_finite(Prestige.effective_mult()) or Prestige.pgems < 0:
+	if not is_finite(prestige.effective_mult()) or prestige.pgems < 0:
 		_fail("hostile prestige state produced invalid multiplier or currency")
 		return
-	for item_id in Prestige.shop_owned:
-		if not Prestige.SHOP.has(item_id):
+	for item_id in prestige.shop_owned:
+		if not prestige.SHOP.has(item_id):
 			_fail("unknown prestige shop item survived migration")
 			return
 
-	GameState.reset()
-	Prestige.reset()
-	SaveSystem.wipe()
+	game_state.reset()
+	prestige.reset()
+	save_system.wipe()
 	print("STATE_SANITIZATION: PASS (legacy extremes clamped; derived economy finite)")
 	quit(0)
