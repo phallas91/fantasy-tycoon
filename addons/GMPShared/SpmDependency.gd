@@ -45,4 +45,4 @@ func format_to_string() -> String:
 	for __product in get_products():
 		__result += "%s@%s (%s) " % [__product, get_version(), get_url()]
 
-	return __resul
+	return __result
