@@ -7,6 +7,7 @@ import json
 import math
 import re
 import struct
+import zlib
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -68,13 +69,46 @@ for line, row in enumerate(rows[1:], 2):
         fail(f"duplicate translation key at row {line}: {row[0]}")
     keys.add(row[0])
 
+def validate_png(image: Path) -> tuple[int, int]:
+    """Validate every PNG chunk, including CRC and the mandatory IEND."""
+    data = image.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        fail(f"invalid PNG signature: {image.relative_to(ROOT)}")
+    offset = 8
+    dimensions: tuple[int, int] | None = None
+    found_iend = False
+    while offset < len(data):
+        if offset + 12 > len(data):
+            fail(f"truncated PNG chunk: {image.relative_to(ROOT)}")
+        length = struct.unpack(">I", data[offset:offset + 4])[0]
+        chunk_type = data[offset + 4:offset + 8]
+        chunk_end = offset + 12 + length
+        if chunk_end > len(data):
+            fail(f"truncated PNG payload: {image.relative_to(ROOT)}")
+        payload = data[offset + 8:offset + 8 + length]
+        expected_crc = struct.unpack(">I", data[offset + 8 + length:chunk_end])[0]
+        actual_crc = zlib.crc32(payload, zlib.crc32(chunk_type)) & 0xFFFFFFFF
+        if actual_crc != expected_crc:
+            fail(f"PNG CRC mismatch: {image.relative_to(ROOT)}")
+        if chunk_type == b"IHDR":
+            if length != 13:
+                fail(f"invalid PNG IHDR: {image.relative_to(ROOT)}")
+            dimensions = struct.unpack(">II", payload[:8])
+        if chunk_type == b"IEND":
+            if length != 0 or chunk_end != len(data):
+                fail(f"invalid PNG ending: {image.relative_to(ROOT)}")
+            found_iend = True
+            break
+        offset = chunk_end
+    if dimensions is None or not found_iend:
+        fail(f"incomplete PNG: {image.relative_to(ROOT)}")
+    return dimensions
+
+
 for image in ROOT.rglob("*.png"):
     if "arcane-trade-empire-v0.6-premium-clean" in image.parts or ".godot" in image.parts:
         continue
-    header = image.read_bytes()[:24]
-    if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n":
-        fail(f"invalid PNG: {image.relative_to(ROOT)}")
-    width, height = struct.unpack(">II", header[16:24])
+    width, height = validate_png(image)
     if width < 1 or height < 1 or width > 8192 or height > 8192:
         fail(f"invalid PNG dimensions: {image.relative_to(ROOT)} = {width}x{height}")
 
