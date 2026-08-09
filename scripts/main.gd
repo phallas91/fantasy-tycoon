@@ -1,11 +1,9 @@
 extends Control
 ## Main scene — Arcane Trade Empire. Built on Drone Tycoon: Sky Fleet (MIT).
 
-const NAV_H  := 92.0
-# The discrete management pages require 493 px at the compact 720x1280
-# reference size. Keep a small margin so their minimum size never grows behind
-# the bottom navigation when vertical dashboard scrolling is disabled.
-const TABS_H := 500.0
+const NAV_H := 70.0
+const SIDE_PANEL_W := 410.0
+const LANDSCAPE_PANEL_TOP := 150.0
 const ART    := "res://assets/art/"
 const GUTTER := 12.0
 const GRIFFIN_FLIGHT := preload("res://scripts/griffin_flight.gd")
@@ -138,7 +136,7 @@ var _boot_complete := false
 
 func _ready() -> void:
 	if OS.has_feature("mobile"):
-		DisplayServer.screen_set_orientation(DisplayServer.SCREEN_PORTRAIT)
+		DisplayServer.screen_set_orientation(DisplayServer.SCREEN_LANDSCAPE)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	theme = UITheme.build()
 	_bg(); _build_map(); _build_bonus_drone(); _build_hud()
@@ -327,7 +325,7 @@ func _boot_intro(loaded: bool) -> void:
 	grade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	grade.mouse_filter = Control.MOUSE_FILTER_IGNORE; cover.add_child(grade)
 
-	# Let the just-built UI settle its portrait layout for a couple of frames
+	# Let the just-built UI settle its landscape layout for a couple of frames
 	# before we start tweening the HUD/adbar in (the title/hero are anchored
 	# full-rect / centred so they no longer need any viewport-size math).
 	await get_tree().process_frame
@@ -574,8 +572,8 @@ func _build_map_floor_anchor() -> void:
 	_map_floor_anchor = Control.new()
 	_map_floor_anchor.anchor_left = 0; _map_floor_anchor.anchor_right = 1
 	_map_floor_anchor.anchor_top = 1; _map_floor_anchor.anchor_bottom = 1
-	_map_floor_anchor.offset_top = -(NAV_H + TABS_H)
-	_map_floor_anchor.offset_bottom = -(NAV_H + TABS_H)
+	_map_floor_anchor.offset_top = -NAV_H
+	_map_floor_anchor.offset_bottom = -NAV_H
 	_map_floor_anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_map_floor_anchor)
 
@@ -583,9 +581,10 @@ func _build_map_floor_anchor() -> void:
 
 func _build_bottom_bg() -> void:
 	_bottom_bg = Panel.new()
-	_bottom_bg.anchor_left = 0; _bottom_bg.anchor_right = 1
-	_bottom_bg.anchor_top = 1; _bottom_bg.anchor_bottom = 1
-	_bottom_bg.offset_top = -(NAV_H + TABS_H); _bottom_bg.offset_bottom = 0
+	_bottom_bg.anchor_left = 0; _bottom_bg.anchor_right = 0
+	_bottom_bg.anchor_top = 0; _bottom_bg.anchor_bottom = 1
+	_bottom_bg.offset_left = GUTTER; _bottom_bg.offset_right = SIDE_PANEL_W
+	_bottom_bg.offset_top = LANDSCAPE_PANEL_TOP; _bottom_bg.offset_bottom = -NAV_H
 	_bottom_bg.add_theme_stylebox_override("panel", UITheme.bottom_panel())
 	_bottom_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE; add_child(_bottom_bg)
 
@@ -947,10 +946,10 @@ func _stagger_in(i: int) -> void:
 
 func _scroll(title: String) -> Array:
 	var sc := ScrollContainer.new(); sc.name = title
-	sc.anchor_left = 0; sc.anchor_right = 1
-	sc.anchor_top = 1; sc.anchor_bottom = 1
-	sc.offset_top = -(NAV_H + TABS_H); sc.offset_bottom = -NAV_H
-	sc.offset_left = GUTTER - 6.0; sc.offset_right = -(GUTTER - 6.0)
+	sc.anchor_left = 0; sc.anchor_right = 0
+	sc.anchor_top = 0; sc.anchor_bottom = 1
+	sc.offset_top = LANDSCAPE_PANEL_TOP; sc.offset_bottom = -NAV_H
+	sc.offset_left = GUTTER + 6.0; sc.offset_right = SIDE_PANEL_W - 6.0
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	var v := VBoxContainer.new()
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -2405,16 +2404,24 @@ func _apply_safe_area() -> void:
 	if is_instance_valid(_hud):
 		_hud.offset_top = 20.0 + _safe_top
 	var nav_bottom := NAV_H + _safe_bottom
-	var panel_top := NAV_H + TABS_H + _safe_bottom
+	var panel_top := LANDSCAPE_PANEL_TOP + _safe_top
 	if is_instance_valid(_bottom_bg):
-		_bottom_bg.offset_top = -panel_top
-		_bottom_bg.offset_bottom = 0.0
+		_bottom_bg.anchor_left = 0.0; _bottom_bg.anchor_right = 0.0
+		_bottom_bg.anchor_top = 0.0; _bottom_bg.anchor_bottom = 1.0
+		_bottom_bg.offset_left = GUTTER
+		_bottom_bg.offset_right = SIDE_PANEL_W
+		_bottom_bg.offset_top = panel_top
+		_bottom_bg.offset_bottom = -nav_bottom
 	if is_instance_valid(_map_floor_anchor):
-		_map_floor_anchor.offset_top = -panel_top
-		_map_floor_anchor.offset_bottom = -panel_top
+		_map_floor_anchor.offset_top = -nav_bottom
+		_map_floor_anchor.offset_bottom = -nav_bottom
 	for page in _pages:
 		if is_instance_valid(page):
-			page.offset_top = -panel_top
+			page.anchor_left = 0.0; page.anchor_right = 0.0
+			page.anchor_top = 0.0; page.anchor_bottom = 1.0
+			page.offset_left = GUTTER + 6.0
+			page.offset_right = SIDE_PANEL_W - 6.0
+			page.offset_top = panel_top
 			page.offset_bottom = -nav_bottom
 	if is_instance_valid(_nav_sep):
 		_nav_sep.offset_top = -nav_bottom - 1.0

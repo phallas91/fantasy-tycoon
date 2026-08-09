@@ -505,7 +505,10 @@ func _draw() -> void:
 func _draw_sea(w: float, h: float) -> void:
 	# Painterly realm texture gives the route simulation a real fantasy world.
 	if _realm_bg != null:
-		draw_texture_rect(_realm_bg, Rect2(0, band_top, w, h), false, Color.WHITE)
+		# The landscape panorama spans behind HUD, side panel and navigation just
+		# like a premium strategy-game world scene; interactive map content still
+		# uses the safe band between HUD and navigation.
+		draw_texture_rect(_realm_bg, Rect2(0, 0, w, size.y), false, Color.WHITE)
 	# translucent arcane tint keeps labels and glowing routes readable.
 	var cyc := 0.5 + 0.5 * sin(_t * 0.05)
 	var tint_alpha := 0.07 if _realm_bg != null else 0.26

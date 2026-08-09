@@ -1,11 +1,11 @@
 extends Node
-## Exercises the premium no-scroll dashboard at representative portrait sizes.
+## Exercises the premium no-scroll dashboard at representative landscape sizes.
 
 const MAIN_SCENE := preload("res://scenes/main.tscn")
 const LAYOUTS := [
-	Vector2i(720, 1280),  # compact 16:9 phone
-	Vector2i(720, 1560),  # modern tall phone
-	Vector2i(900, 1280),  # portrait tablet / foldable
+	Vector2i(1280, 720),  # compact 16:9 phone
+	Vector2i(1560, 720),  # wide modern phone
+	Vector2i(1280, 900),  # landscape tablet / foldable
 ]
 
 var _failure := ""
@@ -32,7 +32,7 @@ func _run() -> void:
 			await get_tree().process_frame
 
 		var canvas: Vector2 = main.size
-		if not _check(canvas.x >= 700.0 and canvas.y >= 1200.0,
+		if not _check(canvas.x >= 1200.0 and canvas.y >= 700.0,
 				"invalid logical canvas %s for %s" % [canvas, requested_size]):
 			break
 
@@ -73,7 +73,7 @@ func _run() -> void:
 		await get_tree().process_frame
 
 	if _failure.is_empty():
-		print("UI_LAYOUT_SMOKE: PASS (3 portrait classes, no vertical dashboard scroll, 44px touch targets)")
+		print("UI_LAYOUT_SMOKE: PASS (3 landscape classes, side dashboard, 44px touch targets)")
 		get_tree().quit(0)
 	else:
 		get_tree().quit(1)
