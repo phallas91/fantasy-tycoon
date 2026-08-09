@@ -74,6 +74,12 @@ jobs:
           set -o pipefail
           godot --headless --path . --script res://tests/save_integrity_smoke.gd 2>&1 | tee godot-save-smoke.log
 
+      - name: Validate complete player persistence lifecycle
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . --script res://tests/player_lifecycle_smoke.gd 2>&1 | tee godot-player-lifecycle.log
+
       - name: Fuzz hostile legacy save values
         shell: bash
         run: |
@@ -127,11 +133,11 @@ jobs:
         shell: bash
         run: |
           if grep -Eiq "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
-              godot-import.log godot-start.log godot-save-smoke.log godot-sim.log \
+              godot-import.log godot-start.log godot-save-smoke.log godot-player-lifecycle.log godot-sim.log \
               godot-state-sanitization.log godot-ui-layout.log godot-android-apk.log godot-android-aab.log; then
             echo "Godot reported a parser or script error."
             grep -Ein "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
-              godot-import.log godot-start.log godot-save-smoke.log godot-sim.log \
+              godot-import.log godot-start.log godot-save-smoke.log godot-player-lifecycle.log godot-sim.log \
               godot-state-sanitization.log godot-ui-layout.log godot-android-apk.log godot-android-aab.log
             exit 1
           fi
@@ -146,6 +152,7 @@ jobs:
             godot-import.log
             godot-start.log
             godot-save-smoke.log
+            godot-player-lifecycle.log
             godot-state-sanitization.log
             godot-sim.log
             godot-ui-layout.log
