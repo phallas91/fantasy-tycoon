@@ -2094,7 +2094,7 @@ func _banana_rain() -> void:
 
 func _on_achievement(id: String) -> void:
 	var def: Dictionary = Achievements.DEFS.get(id, {})
-	_toast(str(def.get("name", id)) + " desbloqueada!", UITheme.GOLD, "ic_achieve")
+	_toast(tr("%s desbloqueada!") % tr(str(def.get("name", id))), UITheme.GOLD, "ic_achieve")
 	Fx.screen_flash(self, UITheme.GOLD, 0.08)
 	# An achievement is a designed reward but landed weaker than a routine city
 	# unlock (which gets a ring). Add a gold ring + sting — deliberately no

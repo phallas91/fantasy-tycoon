@@ -1,7 +1,7 @@
 extends Control
 class_name ArcaneMapView
 ## Premium arcane trade map. Draws each realm with routes, couriers and hubs.
-## outline polygon, geographically-placed cities (capital / active / locked),
+## original realm silhouettes, authored city layouts (capital / active / locked),
 ## flowing route lanes and delivery drones with trails. Reads GameState/Economy.
 ## mouse_filter IGNORE, draws via _draw()/queue_redraw(). Performant for mobile.
 
@@ -477,6 +477,7 @@ func _draw() -> void:
 	_draw_landmass(_outline_cache)
 
 	var cities := Economy.country_cities(ci)
+	_draw_realm_details(_outline_cache, cities, ci)
 	if cities.is_empty():
 		# clouds/stars drift ABOVE land/routes (below only the vignette), so
 		# the parallax depth cue reads instead of vanishing under the landmass
@@ -687,6 +688,67 @@ func _centroid(pts: PackedVector2Array) -> Vector2:
 	for q in pts:
 		acc += q
 	return acc / float(max(1, pts.size()))
+
+## Layered cartography turns the land from a flat purple polygon into a realm:
+## rivers, mountain chains, forests and province boundaries are deterministic,
+## cheap to draw, and remain beneath routes/cities so gameplay stays readable.
+func _draw_realm_details(outline: PackedVector2Array, cities: Array, realm_index: int) -> void:
+	if outline.size() < 8:
+		return
+	var centre := _proj(Vector2(0.5, 0.5))
+	var projected := PackedVector2Array()
+	for point in outline:
+		projected.append(_proj(point))
+
+	# Three faint province borders radiate from the capital district.
+	for border_index in range(3):
+		var edge_index := (realm_index * 3 + border_index * 6 + 2) % projected.size()
+		var edge: Vector2 = projected[edge_index]
+		var side := -1.0 if border_index % 2 == 0 else 1.0
+		var ctrl := centre.lerp(edge, 0.52) + (edge - centre).orthogonal().normalized() * 18.0 * side
+		var border := PackedVector2Array()
+		for step in range(13):
+			border.append(_route_point(centre, ctrl, edge, float(step) / 12.0))
+		draw_polyline(border, Color(GOLD.r, GOLD.g, GOLD.b, 0.13), 1.2, true)
+
+	# A luminous river crosses the realm and branches toward a second coast.
+	var river_a: Vector2 = projected[(realm_index + 1) % projected.size()]
+	var river_b: Vector2 = projected[(realm_index + 10) % projected.size()]
+	var river_ctrl := centre + Vector2(26.0 * sin(float(realm_index)), -18.0)
+	var river := PackedVector2Array()
+	for step in range(21):
+		river.append(_route_point(river_a, river_ctrl, river_b, float(step) / 20.0))
+	draw_polyline(river, Color(0.18, 0.66, 0.78, 0.18), 5.0, true)
+	draw_polyline(river, Color(0.36, 0.88, 0.92, 0.48), 1.4, true)
+
+	# Mountain chain: small double-peaked glyphs, positioned safely inside land.
+	var mountain_edge: Vector2 = projected[(realm_index * 5 + 4) % projected.size()]
+	for mountain_index in range(5):
+		var p := centre.lerp(mountain_edge, 0.30 + 0.11 * float(mountain_index))
+		p += Vector2(float(mountain_index % 2) * 8.0, sin(float(mountain_index) * 2.1) * 9.0)
+		var height := 13.0 + float(mountain_index % 3) * 3.0
+		var peak := PackedVector2Array([p + Vector2(-11, 7), p + Vector2(0, -height), p + Vector2(11, 7)])
+		draw_polyline(peak, Color(0.78, 0.62, 0.88, 0.48), 2.0, true)
+		draw_line(p + Vector2(-4, -height * 0.35), p + Vector2(0, -height), Color(INK.r, INK.g, INK.b, 0.32), 1.2)
+
+	# Forest groves form recognizable territories around the outer settlements.
+	for grove_index in range(3):
+		var forest_edge: Vector2 = projected[(realm_index * 2 + grove_index * 5 + 7) % projected.size()]
+		var grove := centre.lerp(forest_edge, 0.55)
+		for tree_index in range(5):
+			var ox := float((tree_index % 3) - 1) * 9.0
+			var oy := float(tree_index / 3) * 10.0 + float(tree_index % 2) * 3.0
+			var tree := grove + Vector2(ox, oy)
+			var crown := PackedVector2Array([tree + Vector2(-5, 4), tree + Vector2(0, -7), tree + Vector2(5, 4)])
+			draw_colored_polygon(crown, Color(0.16, 0.46, 0.34, 0.52))
+			draw_line(tree + Vector2(0, 3), tree + Vector2(0, 8), Color(GOLD.r, GOLD.g, GOLD.b, 0.24), 1.0)
+
+	# Roads connect every settlement even before courier routes are unlocked,
+	# making the realm read as inhabited rather than an empty level selector.
+	for city_index in range(1, cities.size()):
+		var city: Dictionary = cities[city_index]
+		var destination := _proj(Vector2(city["x"], city["y"]))
+		draw_dashed_line(centre, destination, Color(GOLD.r, GOLD.g, GOLD.b, 0.20), 1.4, 7.0, false)
 
 # ---------------------------------------------------------------- routes
 

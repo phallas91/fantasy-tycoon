@@ -24,6 +24,11 @@ const FANTASY_CITY_ROOTS := [
 	"Greifen", "Hohen", "Ilyr", "Kron", "Lyra", "Myr", "Nyx", "Orin",
 ]
 const FANTASY_CITY_SUFFIXES := ["krone", "hafen", "wacht", "furt", "hain", "tor", "markt"]
+const FANTASY_CITY_SLOTS := [
+	Vector2(0.50, 0.50), Vector2(0.30, 0.29), Vector2(0.70, 0.31),
+	Vector2(0.24, 0.56), Vector2(0.76, 0.57), Vector2(0.36, 0.76),
+	Vector2(0.65, 0.75),
+]
 
 const UPGRADES := {
 	# Deliberately WEAK gains (player asked: upgrades less powerful), steep cost.
@@ -109,26 +114,27 @@ func _apply_fantasy_world_names() -> void:
 				# "Realm-Hafen / Realm-Hain" debug-style labels.
 				var root_idx := (i * 7 + city_idx * 11) % FANTASY_CITY_ROOTS.size()
 				cities[city_idx]["name"] = FANTASY_CITY_ROOTS[root_idx] + suffix
-			# Settlements follow a deterministic spiral within the invented realm,
-			# rather than retaining coordinates copied from real-world capitals.
-			var angle := float(city_idx) * 2.399963 + float(i) * 0.71
-			var ring := 0.0 if city_idx == 0 else 0.12 + 0.035 * float((city_idx - 1) % 4)
-			cities[city_idx]["x"] = clampf(0.5 + cos(angle) * ring, 0.22, 0.78)
-			cities[city_idx]["y"] = clampf(0.5 + sin(angle) * ring * 0.88, 0.22, 0.78)
+			# Wide, authored slots keep hubs readable on a phone instead of piling
+			# every name and building on top of the capital.
+			var slot: Vector2 = FANTASY_CITY_SLOTS[city_idx % FANTASY_CITY_SLOTS.size()]
+			if i % 2 == 1:
+				slot.x = 1.0 - slot.x
+			cities[city_idx]["x"] = slot.x
+			cities[city_idx]["y"] = slot.y
 
 ## Generates a distinct heraldic/island silhouette for each realm. The warped
 ## radial construction is intentionally non-geographic: no real country border
 ## survives loading, while the stable formula keeps saves and screenshots exact.
 func _fantasy_outline(realm_index: int) -> Array:
 	var outline: Array = []
-	var points := 14
+	var points := 18
 	var phase := float(realm_index) * 1.618033
-	var x_scale := 0.30 + 0.025 * sin(phase * 1.7)
-	var y_scale := 0.32 + 0.025 * cos(phase * 1.3)
+	var x_scale := 0.39 + 0.025 * sin(phase * 1.7)
+	var y_scale := 0.37 + 0.025 * cos(phase * 1.3)
 	for point_index in range(points):
 		var angle := TAU * float(point_index) / float(points)
-		var rune_wave := sin(angle * 3.0 + phase) * 0.055
-		var ridge_wave := cos(angle * 5.0 - phase * 0.7) * 0.035
+		var rune_wave := sin(angle * 3.0 + phase) * 0.14
+		var ridge_wave := cos(angle * 5.0 - phase * 0.7) * 0.08
 		var radius := 1.0 + rune_wave + ridge_wave
 		outline.append([
 			clampf(0.5 + cos(angle) * x_scale * radius, 0.08, 0.92),

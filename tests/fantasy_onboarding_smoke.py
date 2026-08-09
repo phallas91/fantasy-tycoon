@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 economy = (ROOT / "scripts" / "economy.gd").read_text(encoding="utf-8")
 main = (ROOT / "scripts" / "main.gd").read_text(encoding="utf-8")
+map_view = (ROOT / "scripts" / "map_view.gd").read_text(encoding="utf-8")
 
 required_economy = (
     'WORLD[i]["outline"] = _fantasy_outline(i)',
@@ -21,10 +22,19 @@ required_main = (
     "_nav_btns[i].visible = _nav_unlocked(i)",
     "if not _nav_unlocked(i):",
     "lbl.text = tr(label_text)",
+    'tr("%s desbloqueada!") % tr(str(def.get("name", id)))',
+)
+required_map = (
+    "func _draw_realm_details(",
+    "# A luminous river crosses the realm",
+    "# Mountain chain:",
+    "# Forest groves",
+    "# Roads connect every settlement",
 )
 
 missing = [token for token in required_economy if token not in economy]
 missing += [token for token in required_main if token not in main]
+missing += [token for token in required_map if token not in map_view]
 if missing:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: missing guards: " + ", ".join(missing))
 
