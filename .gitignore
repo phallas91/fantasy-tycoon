@@ -1,4 +1,7 @@
 .godot/
+# Stale local backup from the original import. The active Godot project lives
+# at the repository root; importing this nested copy creates misleading changes.
+arcane-trade-empire-v0.6-premium-clean/
 export/
 *.apk
 *.aab
