@@ -38,6 +38,9 @@ jobs:
       - name: Validate Play Store export configuration
         run: python3 tests/export_config_smoke.py
 
+      - name: Validate Android hardware release gate
+        run: python3 tests/android_device_gate_smoke.py
+
       - name: Validate privacy and Data Safety inventory
         run: python3 tests/privacy_docs_smoke.py
 
