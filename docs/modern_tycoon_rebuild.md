@@ -48,6 +48,8 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 - Rebalance the first 30 minutes around short, legible goals. *(started)*
 - Four early prosperity chapters now reward total investment at levels 4, 10,
   20 and 40 with current-income cash bursts and restrained gem rewards.
+- The calm HUD previews the active construction chapter, its reward and exact
+  progress, then jumps directly to the cheapest useful city improvement.
 - Add milestone choices rather than four near-identical upgrade rows.
 - Give each upgrade a distinct visual and audio consequence.
 

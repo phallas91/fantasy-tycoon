@@ -1941,6 +1941,29 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Compra drones e melhorias"), "tab": 0, "focus": _drone_btn,
 			"cost": GameState.drone_cost_multi(1), "progress": 0.0,
 			"accent": UITheme.ACCENT, "icon": "ic_drone"}
+	# The opening city is organised into short, visible construction chapters.
+	# Point to the cheapest upgrade so the player always has one concrete action,
+	# while the ribbon communicates why that purchase matters.
+	var prosperity_target: int = GameState.next_prosperity_threshold()
+	if prosperity_target > 0:
+		var cheapest_key: String = ""
+		var cheapest_cost: float = INF
+		for key: String in ["speed", "cargo", "value", "routes"]:
+			var candidate_cost: float = GameState.upgrade_cost_multi(key, 1)
+			if candidate_cost < cheapest_cost:
+				cheapest_key = key
+				cheapest_cost = candidate_cost
+		var reward: Dictionary = GameState.next_prosperity_reward()
+		var reward_text := "+" + Fmt.short(float(reward.get("cash", 0.0)))
+		var reward_gems := int(reward.get("gems", 0))
+		if reward_gems > 0:
+			reward_text += " +%d◆" % reward_gems
+		var prosperity_focus: Control = _rows[cheapest_key]["btn"] if _rows.has(cheapest_key) else null
+		return {"text": tr("Cidade em construção %d/%d · Prémio: %s") % [GameState.investment_total(), prosperity_target, reward_text],
+			"tab": 0, "focus": prosperity_focus, "cost": cheapest_cost,
+			"progress": GameState.prosperity_chapter_progress(),
+			"progress_override": true, "accent": UITheme.GOLD,
+			"icon": str(Economy.UPGRADES[cheapest_key].get("icon", "ic_city"))}
 	for key: String in Economy.TALENT_ORDER:
 		if GameState.can_buy_talent(key):
 			var talent_focus: Control = _talent_rows[key]["btn"] if _talent_rows.has(key) else null
@@ -1986,6 +2009,8 @@ func _refresh_smart_objective() -> void:
 
 func _objective_progress() -> float:
 	if _objective_cache.is_empty(): return 0.0
+	if bool(_objective_cache.get("progress_override", false)):
+		return clampf(float(_objective_cache.get("progress", 0.0)), 0.0, 1.0)
 	var cost := float(_objective_cache.get("cost", -1.0))
 	if cost > 0.0:
 		return clampf(GameState.credits / cost, 0.0, 1.0)

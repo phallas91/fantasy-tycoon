@@ -42,6 +42,12 @@ func _state_is_valid() -> bool:
 		return false
 	if GameState.prosperity_rank < 0 or GameState.prosperity_rank > GameState.PROSPERITY_THRESHOLDS.size():
 		return false
+	var prosperity_target := GameState.next_prosperity_threshold()
+	if prosperity_target != -1 and prosperity_target <= GameState.investment_total():
+		return false
+	var chapter_progress := GameState.prosperity_chapter_progress()
+	if chapter_progress < 0.0 or chapter_progress > 1.0:
+		return false
 	if GameState.current_country < 0 or GameState.current_country >= Economy.num_countries():
 		return false
 	if GameState.cities_unlocked < 1 or GameState.cities_unlocked > GameState.max_cities():

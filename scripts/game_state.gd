@@ -484,6 +484,26 @@ func prosperity_rank_for_investment() -> int:
 		rank += 1
 	return rank
 
+func next_prosperity_threshold() -> int:
+	if prosperity_rank >= PROSPERITY_THRESHOLDS.size():
+		return -1
+	return int(PROSPERITY_THRESHOLDS[prosperity_rank])
+
+func prosperity_chapter_progress() -> float:
+	var target := next_prosperity_threshold()
+	if target < 0:
+		return 1.0
+	var chapter_start := 0 if prosperity_rank == 0 else int(PROSPERITY_THRESHOLDS[prosperity_rank - 1])
+	return clampf(float(investment_total() - chapter_start) / float(target - chapter_start), 0.0, 1.0)
+
+func next_prosperity_reward() -> Dictionary:
+	if prosperity_rank >= PROSPERITY_THRESHOLDS.size():
+		return {}
+	return {
+		"cash": income_per_sec() * float(PROSPERITY_CASH_SECONDS[prosperity_rank]),
+		"gems": int(PROSPERITY_GEMS[prosperity_rank]),
+	}
+
 ## Early upgrades now form four short city-growth chapters. Rewards are based
 ## on current income, so they accelerate the next decision without breaking the
 ## long economy or becoming worthless after a few minutes.
