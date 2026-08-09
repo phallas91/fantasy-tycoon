@@ -56,6 +56,9 @@ jobs:
       - name: Validate localization coverage of UI literals
         run: python3 tests/localization_usage_smoke.py
 
+      - name: Enforce source asset performance budgets
+        run: python3 tests/performance_budget_smoke.py
+
       - name: Import project resources
         shell: bash
         run: |
@@ -110,6 +113,12 @@ jobs:
             --export-debug "Android AAB (Play Store)" export/ArcaneTradeEmpire-ci.aab \
             2>&1 | tee godot-android-aab.log
           python3 tests/android_package_smoke.py export/ArcaneTradeEmpire-ci.aab
+
+      - name: Enforce Android package size budgets
+        run: |
+          python3 tests/performance_budget_smoke.py \
+            export/ArcaneTradeEmpire-ci.apk \
+            export/ArcaneTradeEmpire-ci.aab
 
       - name: Fail on parser or script errors
         shell: bash

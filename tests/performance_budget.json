@@ -1,0 +1,7 @@
+{
+  "source_assets_max_mb": 20.0,
+  "music_assets_max_mb": 14.5,
+  "single_asset_max_mb": 5.0,
+  "apk_max_mb": 65.0,
+  "aab_max_mb": 60.0
+}
