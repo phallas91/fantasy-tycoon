@@ -32,6 +32,9 @@ jobs:
       - name: Show Godot version
         run: godot --version
 
+      - name: Validate canonical repository layout
+        run: python3 tests/repository_hygiene_smoke.py
+
       - name: Validate Play Store export configuration
         run: python3 tests/export_config_smoke.py
 
