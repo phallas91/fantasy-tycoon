@@ -59,7 +59,8 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 - Realm expansion now starts a fresh local city and base fleet while preserving
   influence, talents, collection and legacy progress; a confirmation explains
   the exchange before anything is reset.
-- Give each upgrade a distinct audio consequence.
+- Give each upgrade a distinct audio consequence. *(completed; four investment
+  signatures plus four landmark variants)*
 
 ### Phase 4 — Ethical premium layer
 

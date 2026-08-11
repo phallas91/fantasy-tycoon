@@ -62,6 +62,9 @@ jobs:
       - name: Validate fair monetization pacing
         run: python3 tests/monetization_pacing_smoke.py
 
+      - name: Validate distinct construction audio
+        run: python3 tests/construction_audio_smoke.py
+
       - name: Enforce source asset performance budgets
         run: python3 tests/performance_budget_smoke.py
 
@@ -82,6 +85,12 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --path . --script res://tests/state_sanitization_smoke.gd 2>&1 | tee godot-state-sanitization.log
+
+      - name: Validate synthesized construction audio
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --path . --script res://tests/construction_audio_smoke.gd 2>&1 | tee godot-construction-audio.log
 
       - name: Validate no-scroll mobile layouts and touch targets
         shell: bash
@@ -131,11 +140,11 @@ jobs:
         run: |
           if grep -Eiq "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
               godot-import.log godot-start.log godot-save-smoke.log godot-sim.log \
-              godot-state-sanitization.log godot-ui-layout.log godot-android-apk.log godot-android-aab.log; then
+              godot-state-sanitization.log godot-construction-audio.log godot-ui-layout.log godot-android-apk.log godot-android-aab.log; then
             echo "Godot reported a parser or script error."
             grep -Ein "Parse Error|SCRIPT ERROR|Used tab character|Cannot infer the type" \
               godot-import.log godot-start.log godot-save-smoke.log godot-sim.log \
-              godot-state-sanitization.log godot-ui-layout.log godot-android-apk.log godot-android-aab.log
+              godot-state-sanitization.log godot-construction-audio.log godot-ui-layout.log godot-android-apk.log godot-android-aab.log
             exit 1
           fi
           echo "Godot project check passed."
@@ -150,6 +159,7 @@ jobs:
             godot-start.log
             godot-save-smoke.log
             godot-state-sanitization.log
+            godot-construction-audio.log
             godot-sim.log
             godot-ui-layout.log
             godot-android-apk.log

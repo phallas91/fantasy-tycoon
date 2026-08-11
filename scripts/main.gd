@@ -1594,25 +1594,26 @@ func _make_upgrade_row(key: String) -> PanelContainer:
 		var before_tier := before_level / Economy.MILESTONE_STEP
 		var before_stage: Dictionary = Economy.current_district_stage(key, before_level)
 		if GameState.buy_upgrade_multi(key) > 0:
-			Fx.press(btn); Audio.play("buy"); _reward_fx(btn, accent, "spark", 6)
+			Fx.press(btn); _reward_fx(btn, accent, "spark", 6)
 			var after_level := int(GameState.levels[key])
 			var after_stage: Dictionary = Economy.current_district_stage(key, after_level)
-			if not after_stage.is_empty() and str(after_stage.get("name", "")) != str(before_stage.get("name", "")):
+			var landmark_built := not after_stage.is_empty() and str(after_stage.get("name", "")) != str(before_stage.get("name", ""))
+			var milestone_crossed := after_level / Economy.MILESTONE_STEP > before_tier
+			Audio.play_upgrade(key, landmark_built or milestone_crossed)
+			if landmark_built:
 				_toast(tr("Construído: %s!") % tr(str(after_stage["name"])), UITheme.GOLD, str(Economy.UPGRADES[key].get("icon", "ic_city")))
 				var landmark_centre := Vector2(size.x * 0.62, size.y * 0.46)
 				Fx.confetti(self, landmark_centre, 34, [UITheme.GOLD, accent, UITheme.CYAN])
 				Fx.screen_flash(self, accent, 0.13)
 				Fx.ring_pulse(self, landmark_centre, accent, 2.8)
-				Audio.play("milestone")
 				Fx.vibrate(42)
 				_map.focus_city(0)
-			elif after_level / Economy.MILESTONE_STEP > before_tier:
+			elif milestone_crossed:
 				_toast(tr("MARCO! %s ×2!") % tr(str(Economy.UPGRADES[key]["name"])), UITheme.GOLD, "ic_achieve")
 				var c := Vector2(size.x * 0.5, size.y * 0.45)
 				Fx.confetti(self, c, 30, [UITheme.GOLD, accent, UITheme.CYAN])
 				Fx.screen_flash(self, UITheme.GOLD, 0.12)
 				Fx.ring_pulse(self, c, UITheme.GOLD, 2.6)
-				Audio.play("milestone")
 		else:
 			Fx.error_shake(btn)
 	)

@@ -66,6 +66,17 @@ func _build_streams() -> void:
 	_streams["tap"]         = _click(0.020, 0.18)
 	_streams["page"]        = _whoosh(0.16, 0.10)
 	_streams["buy"]         = _sweep(440.0, 880.0, 0.15, 0.22)
+	# Each construction branch owns a short investment sound and a fuller
+	# landmark sound. The city can now be read with the ears as well as the map:
+	# wind (speed), timber/stone impact (cargo), coins (value), arcane chord (routes).
+	_streams["upgrade_speed"] = _sweep(640.0, 1280.0, 0.12, 0.16)
+	_streams["upgrade_cargo"] = _impact(105.0, 0.14, 0.24)
+	_streams["upgrade_value"] = _arp([880.0, 1320.0], 0.050, 0.15)
+	_streams["upgrade_routes"] = _chord([220.0, 330.0, 440.0], 0.17, 0.15)
+	_streams["landmark_speed"] = _sweep(260.0, 1560.0, 0.30, 0.23)
+	_streams["landmark_cargo"] = _impact(72.0, 0.28, 0.32)
+	_streams["landmark_value"] = _arp([523.25, 659.25, 783.99, 1046.50], 0.070, 0.22)
+	_streams["landmark_routes"] = _chord([196.0, 293.66, 392.0, 587.33], 0.35, 0.22)
 	_streams["whoosh"]      = _whoosh(0.30, 0.20)
 	_streams["unlock"]      = _arp([392.0, 493.88, 587.33, 783.99], 0.072, 0.24)
 	_streams["milestone"]   = _arp([261.63, 329.63, 392.00, 493.88, 523.25], 0.095, 0.26)
@@ -206,6 +217,16 @@ func play(name: String, pitch := 1.0, vol_db := 0.0) -> void:
 	p.stream = _streams[name]; p.pitch_scale = clampf(pitch, 0.5, 2.0)
 	p.volume_db = vol_db + sfx_vol; p.play()
 
+## One public construction API keeps gameplay code independent from synthesis
+## names and guarantees that landmark reveals get musical space in the mix.
+func play_upgrade(kind: String, landmark := false) -> void:
+	if kind not in ["speed", "cargo", "value", "routes"]:
+		play("buy")
+		return
+	if landmark:
+		duck(-5.5, 480)
+	play(("landmark_" if landmark else "upgrade_") + kind)
+
 ## Side-chain duck: briefly lower the music bed so a one-shot stinger (prestige,
 ## milestone) punches through, then ramp back. Feeds muted_music_db() so the
 ## per-frame volume write in _process applies it — no separate tween needed.
@@ -277,6 +298,37 @@ func _sweep(f1: float, f2: float, dur: float, vol: float) -> AudioStreamWAV:
 		var env := _dec(i, n, atk, 2.0)
 		var s := (_sine(freq, t) * 0.65 + _tri(freq, t) * 0.35) * env * vol
 		data.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _wav(data)
+
+## Low wood-and-stone impact for warehouse/cargo construction. A pitched body
+## plus filtered noise avoids the harsh digital buzz of an ordinary error tone.
+func _impact(freq: float, dur: float, vol: float) -> AudioStreamWAV:
+	var n := int(dur * RATE)
+	var data := PackedByteArray(); data.resize(n * 2)
+	var prev_noise := 0.0
+	for i in range(n):
+		var t := float(i) / RATE
+		var frac := float(i) / float(n)
+		var env := pow(1.0 - frac, 3.2)
+		prev_noise = lerpf(prev_noise, randf() * 2.0 - 1.0, 0.08)
+		var body := _sine(freq * (1.0 - frac * 0.18), t) * 0.76
+		var knock := prev_noise * 0.24 * pow(1.0 - frac, 5.0)
+		data.encode_s16(i * 2, int(clampf((body + knock) * env * vol, -1.0, 1.0) * 32767.0))
+	return _wav(data)
+
+## Simultaneous soft harmonics for route/rune construction. This is deliberately
+## unlike the sequential gold arpeggio used by value upgrades.
+func _chord(freqs: Array, dur: float, vol: float) -> AudioStreamWAV:
+	var n := int(dur * RATE)
+	var data := PackedByteArray(); data.resize(n * 2)
+	var atk := int(0.012 * RATE)
+	for i in range(n):
+		var t := float(i) / RATE
+		var env := _dec(i, n, atk, 1.5)
+		var sample := 0.0
+		for frequency in freqs:
+			sample += (_sine(float(frequency), t) * 0.82 + _tri(float(frequency), t) * 0.18) / float(freqs.size())
+		data.encode_s16(i * 2, int(clampf(sample * env * vol, -1.0, 1.0) * 32767.0))
 	return _wav(data)
 
 ## Rising noise + tone whoosh — griffin courier hire
