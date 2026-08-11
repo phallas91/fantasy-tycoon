@@ -70,6 +70,11 @@ func _run() -> void:
 		if not _check("/s" in str((main.get("_city_detail") as Label).text),
 				"next settlement does not preview its network income gain"):
 			break
+		var city_income_labels: Dictionary = main.get("_city_income_labels")
+		if not _check(not city_income_labels.is_empty()
+				and "/s" in str((city_income_labels.values()[0] as Label).text),
+				"active settlement list does not show live route production"):
+			break
 		GameState.prosperity_rank = 1
 		main.call("_process", 0.0)
 		if not _check(not bool((opening_rows["speed"]["card"] as Control).get_meta("progression_hidden"))

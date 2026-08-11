@@ -86,6 +86,8 @@ var _chip_sb: StyleBoxFlat
 
 # --- misc caches ---
 var _next_cost_str := ""
+var _frontier_income_str := ""
+var _income_refresh_t := 0.0
 var _text_width_cache: Dictionary = {}
 
 # --- transient state ---
@@ -298,6 +300,11 @@ func _process(delta: float) -> void:
 		# pan aren't persisted (already default on load) and resetting them here
 		# would stomp the boot intro's zoom-in tween on the first frame.
 		_recalc_bbox(); _refresh_next_cost()
+	_income_refresh_t -= delta
+	if _income_refresh_t <= 0.0:
+		_income_refresh_t = 0.25
+		var frontier_route := maxi(0, GameState.cities_unlocked - 1)
+		_frontier_income_str = "+" + Fmt.short(GameState.route_income_per_sec(frontier_route)) + "/s"
 	var investment_signature := "%d:%d:%d:%d" % [
 		int(GameState.levels.get("speed", 0)), int(GameState.levels.get("cargo", 0)),
 		int(GameState.levels.get("value", 0)), int(GameState.levels.get("routes", 0))]
@@ -1042,6 +1049,8 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 			# keeps dense late-game realms legible on a 540px portrait viewport.
 			if i == GameState.cities_unlocked or zoom >= 1.65:
 				_label(cp, nm, Color(0.80, 1.0, 1.0))
+			if i == GameState.cities_unlocked:
+				_income_chip(cp, _frontier_income_str)
 		else:
 			var is_next := (i == GameState.cities_unlocked + 1)
 			_locked_marker(cp, is_next)
@@ -1348,6 +1357,18 @@ func _cost_chip(p: Vector2, cost: String) -> void:
 		draw_texture_rect(_lock, Rect2(pill.position.x + 8.0, pill.position.y + 6.0, 14, 14), false, Color(GOLD.r, GOLD.g, GOLD.b, 0.95))
 	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.5, chip_y + 18.5), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, Color(SHADOW.r, SHADOW.g, SHADOW.b, 0.7))
 	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.0, chip_y + 17.0), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, Color(GOLD.r, GOLD.g, GOLD.b, 0.95))
+
+func _income_chip(p: Vector2, income: String) -> void:
+	if _font == null or income.is_empty(): return
+	var chip_y := p.y - 43.0
+	if _hub_city != null:
+		chip_y = p.y - (71.0 if zoom < 1.65 else 85.0)
+	var pill := Rect2(p.x - 49.0, chip_y, 98.0, 23.0)
+	_chip_sb.bg_color = Color(MIDNIGHT.r, MIDNIGHT.g, MIDNIGHT.b, 0.76)
+	_chip_sb.border_color = Color(MINT.r, MINT.g, MINT.b, 0.38)
+	draw_style_box(_chip_sb, pill)
+	draw_string(_font, Vector2(p.x - 49.0, chip_y + 16.0), income,
+		HORIZONTAL_ALIGNMENT_CENTER, 98.0, 15, MINT)
 
 # ---------------------------------------------------------------- pops / fx
 

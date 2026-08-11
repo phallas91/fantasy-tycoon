@@ -76,6 +76,8 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 - Every settlement now adds permanent local network capacity instead of merely
   redistributing the same fleet. Its card previews the exact income increase,
   and all 40 realms are tested to keep every city unlock economically positive.
+- The frontier settlement now carries a restrained live-income chip on the
+  world map, while every active city row shows its exact route contribution.
 - Give each upgrade a distinct audio consequence. *(completed; four investment
   signatures plus four landmark variants)*
 - Every manual courier or construction purchase now reports its exact income

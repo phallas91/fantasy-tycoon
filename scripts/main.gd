@@ -94,6 +94,7 @@ var _combo_lbl: Label
 var _city_prog_fill: Panel
 var _progress_lbl: Label
 var _city_list_box: VBoxContainer
+var _city_income_labels := {}
 var _prestige_shop_box: VBoxContainer
 var _achieve_box: VBoxContainer
 var _prestige_shop_rows := {}
@@ -1189,6 +1190,7 @@ func _build_cities_tab() -> ScrollContainer:
 ## One compact status row per city of the current country (fills the Cidades tab).
 func _rebuild_city_list() -> void:
 	if _city_list_box == null: return
+	_city_income_labels.clear()
 	for c in _city_list_box.get_children():
 		c.queue_free()
 	var ci := GameState.current_country
@@ -1207,6 +1209,9 @@ func _rebuild_city_list() -> void:
 		elif i <= GameState.cities_unlocked:
 			row.add_theme_stylebox_override("panel", UITheme.solid(UITheme.PANEL2.lerp(UITheme.CYAN, 0.08), 14))
 			h.add_child(_icon("ic_range", 22)); h.add_child(nm)
+			var income := _lbl("", 15, UITheme.GREEN)
+			income.add_theme_font_override("font", UITheme.font("Bold")); h.add_child(income)
+			_city_income_labels[i - 1] = income
 			h.add_child(_icon("ic_check", 20))
 		elif i == GameState.cities_unlocked + 1:
 			row.add_theme_stylebox_override("panel", UITheme.solid(UITheme.PANEL2.lerp(UITheme.ACCENT, 0.10), 14))
@@ -1220,6 +1225,13 @@ func _rebuild_city_list() -> void:
 		_make_scrollable(row)
 		_city_list_box.add_child(row)
 	call_deferred("_refresh_page_container", _city_list_box)
+	_refresh_city_income_labels(GameState.income_per_sec())
+
+func _refresh_city_income_labels(_realm_income: float) -> void:
+	for route: int in _city_income_labels:
+		var income_label := _city_income_labels[route] as Label
+		if is_instance_valid(income_label):
+			income_label.text = "+" + Fmt.short(GameState.route_income_per_sec(route)) + "/s"
 
 # ── Talents tab ─────────────────────────────────────────────────────────────────
 
@@ -2027,6 +2039,7 @@ func _process(delta: float) -> void:
 	_update_nav_dots()
 
 	if Engine.get_frames_drawn() % 15 == 0:
+		_refresh_city_income_labels(ips)
 		_update_contracts()
 	if Engine.get_frames_drawn() % 30 == 0 and _settings_stats_lbl != null:
 		if is_instance_valid(_settings_stats_lbl):
