@@ -36,6 +36,8 @@ required_main = (
 	'"progress_override": true',
 	'"upgrade_key": recommended_key',
 	"(_mode_btns[mode] as Button).visible = GameState.prosperity_rank >= required_rank",
+	"var auto_manager_unlocked := GameState.prosperity_rank >= 2",
+	"_auto_mgr_section.visible = auto_manager_unlocked",
 )
 required_map = (
 	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
@@ -74,6 +76,7 @@ missing += [token for token in (
 	"func next_prosperity_threshold() -> int:",
 	"func prosperity_chapter_progress() -> float:",
 	"func recommended_upgrade_key() -> String:",
+	"func recommended_affordable_purchase() -> Dictionary:",
 	"var buy_mode := 1",
 	"drones = Prestige.starting_drones()",
 	"levels = Prestige.starting_levels()",

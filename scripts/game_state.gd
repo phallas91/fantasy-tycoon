@@ -150,15 +150,39 @@ func recommended_upgrade_key() -> String:
 	var best_key := "speed"
 	var best_value := -INF
 	for key: String in ["speed", "cargo", "value", "routes"]:
-		var level := int(levels.get(key, 0))
-		var current_factor := _upgrade_income_factor(key, level)
-		var next_factor := _upgrade_income_factor(key, level + 1)
-		var relative_gain := maxf(0.0, next_factor / maxf(current_factor, 0.0001) - 1.0)
-		var value := relative_gain / maxf(upgrade_cost_multi(key, 1), 0.0001)
+		var value := upgrade_value_per_credit(key)
 		if value > best_value:
 			best_value = value
 			best_key = key
 	return best_key
+
+func upgrade_value_per_credit(key: String) -> float:
+	var level := int(levels.get(key, 0))
+	var current_factor := _upgrade_income_factor(key, level)
+	var next_factor := _upgrade_income_factor(key, level + 1)
+	var relative_gain := maxf(0.0, next_factor / maxf(current_factor, 0.0001) - 1.0)
+	return relative_gain / maxf(upgrade_cost_multi(key, 1), 0.0001)
+
+## Best affordable automatic purchase, including another courier. Kept public
+## for transparent UI/tests: automation follows the same value-per-credit rule
+## as the player-facing advisor and never gets a hidden economic advantage.
+func recommended_affordable_purchase() -> Dictionary:
+	var best_kind := ""
+	var best_cost := INF
+	var best_value := -INF
+	var courier_cost := drone_cost()
+	if credits >= courier_cost:
+		best_kind = "drone"
+		best_cost = courier_cost
+		best_value = (1.0 / float(maxi(drones, 1))) / maxf(courier_cost, 0.0001)
+	for key: String in ["speed", "cargo", "value", "routes"]:
+		var cost := upgrade_cost_multi(key, 1)
+		var value := upgrade_value_per_credit(key)
+		if credits >= cost and value > best_value:
+			best_kind = key
+			best_cost = cost
+			best_value = value
+	return {"kind": best_kind, "cost": best_cost, "value": best_value}
 
 func _upgrade_income_factor(key: String, level: int) -> float:
 	match key:
@@ -360,24 +384,17 @@ func _process(delta: float) -> void:
 			_auto_manager_t = 0.0
 			_try_auto_buy()
 
-## Every AUTO_MANAGER_INTERVAL, buy ONE unit (never bulk — stays
-## incremental rather than instant-maxing) of whichever single upgrade
-## (1 drone, or 1 level of any of the 4 upgrades) is currently cheapest and
-## affordable. Silently does nothing while the manager is switched off.
+## Every AUTO_MANAGER_INTERVAL, buy ONE unit (never bulk — stays incremental)
+## of the affordable courier/upgrade with the best immediate income gain per
+## credit. Silently does nothing while the manager is switched off.
 func _try_auto_buy() -> void:
-	var best_kind := ""
-	var best_cost := INF
-	var dc := drone_cost()
-	if credits >= dc and dc < best_cost:
-		best_kind = "drone"; best_cost = dc
-	for key: String in Economy.UPGRADE_ORDER:
-		var uc := upgrade_cost_multi(key, 1)
-		if credits >= uc and uc < best_cost:
-			best_kind = key; best_cost = uc
+	var purchase := recommended_affordable_purchase()
+	var best_kind := str(purchase.get("kind", ""))
+	var best_cost := float(purchase.get("cost", INF))
 	if best_kind == "":
 		return
 	if best_kind == "drone":
-		credits -= dc; drones += 1
+		credits -= best_cost; drones += 1
 		_rebuild_drones()
 		Achievements.note_drone_buy(1, drones)
 	else:

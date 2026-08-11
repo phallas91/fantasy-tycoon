@@ -38,6 +38,22 @@ func _run() -> void:
 		for _frame in range(5):
 			await get_tree().process_frame
 
+		# The automatic manager used to dominate the fresh fleet panel before the
+		# player understood manual construction. Guard both sides of its rank gate.
+		GameState.prosperity_rank = 0
+		main.call("_process", 0.0)
+		if not _check(not (main.get("_auto_mgr_section") as Control).visible
+				and not (main.get("_auto_mgr_toggle") as Control).visible,
+				"automatic manager visible in the opening chapter"):
+			break
+		GameState.prosperity_rank = 2
+		main.call("_process", 0.0)
+		if not _check((main.get("_auto_mgr_section") as Control).visible
+				and (main.get("_auto_mgr_toggle") as Control).visible,
+				"automatic manager did not unlock at city rank 2"):
+			break
+		GameState.prosperity_rank = 0
+
 		# Monetization must follow player understanding instead of presenting an
 		# eight-product wall on first launch. Exercise the pure catalogue gates at
 		# every progression beat before restoring the normal fresh-save state.

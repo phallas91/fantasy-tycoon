@@ -70,7 +70,20 @@ func _run() -> void:
 		return
 
 	game_state.reset()
+	game_state.credits = 1.0e12
+	game_state.drones = 4
+	var advised_kind := str(game_state.recommended_affordable_purchase().get("kind", ""))
+	var drones_before: int = int(game_state.drones)
+	var levels_before: Dictionary = game_state.levels.duplicate(true)
+	game_state._try_auto_buy()
+	if advised_kind == "drone":
+		if game_state.drones != drones_before + 1:
+			_fail("automatic manager ignored its courier recommendation")
+			return
+	elif advised_kind.is_empty() or int(game_state.levels.get(advised_kind, 0)) != int(levels_before.get(advised_kind, 0)) + 1:
+		_fail("automatic manager ignored its best-value construction recommendation")
+		return
 	prestige.reset()
 	save_system.wipe()
-	print("STATE_SANITIZATION: PASS (legacy extremes clamped; derived economy finite)")
+	print("STATE_SANITIZATION: PASS (legacy extremes clamped; value-led automation consistent)")
 	quit(0)

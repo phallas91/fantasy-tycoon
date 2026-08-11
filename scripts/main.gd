@@ -106,6 +106,7 @@ var _settings_stats_lbl: Label = null
 var _prestige_ready_prev := false
 var _tap_block_until := 0   # ms; swipe guard so paging never triggers a purchase
 var _auto_mgr_toggle: Control
+var _auto_mgr_section: Control
 var _ascendant_lbl: Label
 var _ascendant_btn: Button
 
@@ -1072,9 +1073,11 @@ func _build_fleet_tab() -> ScrollContainer:
 	for key: String in ["speed", "cargo", "value", "routes"]:
 		v.add_child(_make_upgrade_row(key))
 
-	v.add_child(_section("Gestor Automático", UITheme.VIOLET, "ic_blessing"))
+	_auto_mgr_section = _section("Gestor Automático", UITheme.VIOLET, "ic_blessing")
+	v.add_child(_auto_mgr_section)
 	_auto_mgr_toggle = _settings_toggle("Gestor de Frota Automático", GameState.auto_manager, func(on: bool):
 		GameState.auto_manager = on; SaveSystem.save_game())
+	_auto_mgr_toggle.tooltip_text = tr("Compra automaticamente a opção com maior ganho por moeda. Disponível para todos.")
 	v.add_child(_auto_mgr_toggle)
 
 	v.add_child(_section("Prestige", UITheme.PRESTIGE, "ic_prestige"))
@@ -1824,7 +1827,12 @@ func _process(delta: float) -> void:
 		_focus_btn.disabled = GameState.credits < dcost
 		_afford(_focus_btn, not _focus_btn.disabled)
 
-	_auto_mgr_toggle.visible = true
+	# Automation is earned only after the player has learned the four manual
+	# construction paths. Hiding both heading and toggle keeps the opening screen
+	# focused, while existing saves retain access through derived prosperity.
+	var auto_manager_unlocked := GameState.prosperity_rank >= 2
+	_auto_mgr_section.visible = auto_manager_unlocked
+	_auto_mgr_toggle.visible = auto_manager_unlocked
 
 	for key: String in _rows:
 		var count := GameState.planned_count(key); var cost := GameState.upgrade_cost_multi(key, maxi(1, count))
@@ -2203,6 +2211,8 @@ func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> 
 	Fx.confetti(self, centre, 20 + rank * 5, [UITheme.GOLD, UITheme.CYAN, UITheme.GREEN])
 	Fx.ring_pulse(self, centre, UITheme.GOLD, 1.8 + float(rank) * 0.2)
 	Fx.screen_flash(self, UITheme.GOLD, 0.08 + float(rank) * 0.02)
+	if rank == 2:
+		_toast(tr("%s desbloqueada!") % tr("Gestor de Frota Automático"), UITheme.VIOLET, "ic_blessing")
 	Audio.play("milestone")
 	Fx.vibrate(28 + rank * 8)
 	_map.focus_city(0)
