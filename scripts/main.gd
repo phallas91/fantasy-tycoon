@@ -54,6 +54,7 @@ var _event_icon: TextureRect
 var _event_name_lbl: Label
 var _event_time_lbl: Label
 var _next_obj_lbl: Button
+var _ribbon_bg: Panel
 var _objective_cache: Dictionary = {}
 var _achieve_count_lbl: Label
 var _claim_all_btn: Button
@@ -191,7 +192,12 @@ func _ready() -> void:
 func _post_boot(loaded: bool) -> void:
 	_boot_complete = true
 	if not loaded:
-		_show_welcome_popup()
+		# The in-world guided card already teaches the one opening action. Starting
+		# behind a second full-screen tutorial made the city feel like a menu and
+		# repeated the same instruction before the player could touch the world.
+		_switch_tab(0)
+		if is_instance_valid(_focus_btn):
+			Fx.shimmer(_focus_btn, UITheme.GREEN, true)
 	elif _should_show_offline_popup():
 		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
 	else:
@@ -546,13 +552,13 @@ func _build_hud() -> void:
 	_income_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; r2.add_child(_income_lbl)
 
 	# Row 3: progress ribbon (% to next unlock)
-	var ribbon_bg := Panel.new(); ribbon_bg.custom_minimum_size = Vector2(0, 8)
-	ribbon_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); v.add_child(ribbon_bg)
+	_ribbon_bg = Panel.new(); _ribbon_bg.custom_minimum_size = Vector2(0, 8)
+	_ribbon_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); v.add_child(_ribbon_bg)
 	_ribbon_fill = Panel.new()
 	_ribbon_fill.anchor_left = 0; _ribbon_fill.anchor_right = 0.0
 	_ribbon_fill.anchor_top = 0; _ribbon_fill.anchor_bottom = 1
 	_ribbon_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.ACCENT))
-	ribbon_bg.add_child(_ribbon_fill)
+	_ribbon_bg.add_child(_ribbon_fill)
 	# Smart objective ribbon: one tap opens the exact dashboard page containing
 	# the recommended action. This replaces a passive, city-only caption.
 	_next_obj_lbl = Button.new(); _next_obj_lbl.text = ""
@@ -1008,6 +1014,11 @@ func _refresh_progressive_nav() -> void:
 	_nav_sep.visible = dashboard_ready
 	_nav_ind.visible = dashboard_ready
 	_focus_card.visible = not dashboard_ready
+	# The opening action card is already the complete tutorial. Repeating that
+	# objective in the global ribbon wastes city space and creates two competing
+	# calls to action; the long-term advisor appears with the earned dashboard.
+	_ribbon_bg.visible = dashboard_ready
+	_next_obj_lbl.visible = dashboard_ready
 	_gems_chip.visible = dashboard_ready
 	_infl_chip.visible = dashboard_ready
 	_country_lbl.visible = dashboard_ready

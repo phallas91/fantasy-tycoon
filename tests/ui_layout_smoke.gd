@@ -59,8 +59,20 @@ func _run() -> void:
 				and opening_objective.get("focus") == main.get("_focus_btn"),
 				"opening objective competes with the guided courier action"):
 			break
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		if not _check(not (main.get("_ribbon_bg") as Control).visible
+				and not (main.get("_next_obj_lbl") as Control).visible,
+				"opening action is duplicated in the global objective ribbon"):
+			break
 		GameState.drones = 2
 		GameState.prosperity_rank = 0
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		if not _check((main.get("_ribbon_bg") as Control).visible
+				and (main.get("_next_obj_lbl") as Control).visible,
+				"global objective ribbon does not appear with the earned dashboard"):
+			break
 		var fleet_objective: Dictionary = main.call("_smart_objective")
 		if not _check("2/4" in str(fleet_objective.get("text", ""))
 				and is_equal_approx(float(fleet_objective.get("progress", 0.0)), 0.5)

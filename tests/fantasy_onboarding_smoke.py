@@ -134,4 +134,13 @@ slides = main.split("var slides: Array = [", 1)[1].split("\n\t]", 1)[0]
 if slides.count('["ic_') != 1:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: first launch must teach one action")
 
+post_boot = main.split("func _post_boot(loaded: bool) -> void:", 1)[1].split(
+    "func _has_modal_overlay()", 1
+)[0]
+fresh_launch = post_boot.split("elif _should_show_offline_popup():", 1)[0]
+if "_show_welcome_popup()" in fresh_launch:
+    raise SystemExit("FANTASY_ONBOARDING: FAIL: fresh launch is still blocked by a tutorial modal")
+if "Fx.shimmer(_focus_btn, UITheme.GREEN, true)" not in fresh_launch:
+    raise SystemExit("FANTASY_ONBOARDING: FAIL: fresh launch no longer highlights its in-world action")
+
 print("FANTASY_ONBOARDING: PASS (fantasy geometry + staged navigation + deferred bonus griffin)")
