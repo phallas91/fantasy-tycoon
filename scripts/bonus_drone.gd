@@ -16,9 +16,9 @@ const TRAIL_LEN := 8
 const GRIFFIN_FLIGHT := preload("res://scripts/griffin_flight.gd")
 
 const REWARDS := [
-	{"kind": "boost", "label": "Ertrag ×2 für 3 Minuten"},
-	{"kind": "cash",  "label": "+3 Minuten Handelsertrag"},
-	{"kind": "gems",  "label": "+8 Edelsteine"},
+	{"kind": "boost", "label": "Lucros ×2 durante 3 minutos!"},
+	{"kind": "cash",  "label": "+3 minutos de lucros!"},
+	{"kind": "gems",  "label": "+8 Gemas!"},
 ]
 
 # set by main.gd every frame (same band as the map)
@@ -40,7 +40,7 @@ var _trail_hist: Array = []
 var _is_jackpot := false
 var _glow_base_a := 0.55
 const JACKPOT_CHANCE := 0.05
-const JACKPOT_REWARD := {"kind": "jackpot", "label": "JACKPOT! +30 Edelsteine + 5 Min."}
+const JACKPOT_REWARD := {"kind": "jackpot", "label": "JACKPOT! +30 Gemas e 5 min de lucros!"}
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -157,6 +157,14 @@ func _draw() -> void:
 		draw_line(_trail_hist[i], _trail_hist[i + 1], Color(1.0, 0.82, 0.25, 0.35 * f), 1.5 + 3.0 * f)
 
 func _spawn() -> void:
+	# The opening city deliberately teaches one system at a time. An unrelated
+	# flying reward and popup would interrupt those first construction chapters,
+	# so retry quietly until the player has reached their first automation beat.
+	if GameState.current_country == 0 and GameState.cities_unlocked <= 1 \
+			and GameState.prosperity_rank < 2:
+		_wait = 30.0
+		_arm_next_spawn()
+		return
 	_flying = true
 	_t = 0.0
 	_clock = 0.0

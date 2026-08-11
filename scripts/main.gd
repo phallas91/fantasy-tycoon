@@ -2609,13 +2609,14 @@ func _show_bonus_popup(reward: Dictionary) -> void:
 	var layer := _overlay(); var box := _popup_box(layer, UITheme.GOLD)
 	var hd := HBoxContainer.new(); hd.alignment = BoxContainer.ALIGNMENT_CENTER; hd.add_theme_constant_override("separation", 8)
 	hd.add_child(_icon("ic_drone", 30)); hd.add_child(_lbl(tr("Drone Bónus!"), 30, UITheme.GOLD)); box.add_child(hd)
-	var info := _lbl(tr("Apanhaste um drone de carga dourado.\nEscolhe a tua recompensa:"), 18, UITheme.MUTED)
+	var kind: String = str(reward.get("kind", "cash"))
+	var info := _lbl(tr(str(reward.get("label", "+3 minutos de lucros!"))), 25,
+		UITheme.VIOLET if kind == "jackpot" else UITheme.GOLD)
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; box.add_child(info)
 
-	var kind: String = str(reward.get("kind", "cash"))
 	var rare_btn := _wide_btn(UITheme.GREEN)
-	rare_btn.text = tr("Abrir")
+	rare_btn.text = tr("Recolher")
 	rare_btn.icon = _opt_tex("ic_gems"); rare_btn.expand_icon = true
 	rare_btn.add_theme_constant_override("icon_max_width", 24)
 	rare_btn.custom_minimum_size = Vector2(0, 70)

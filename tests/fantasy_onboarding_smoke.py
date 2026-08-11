@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 economy = (ROOT / "scripts" / "economy.gd").read_text(encoding="utf-8")
 main = (ROOT / "scripts" / "main.gd").read_text(encoding="utf-8")
 map_view = (ROOT / "scripts" / "map_view.gd").read_text(encoding="utf-8")
+bonus = (ROOT / "scripts" / "bonus_drone.gd").read_text(encoding="utf-8")
 project = (ROOT / "project.godot").read_text(encoding="utf-8")
 
 required_economy = (
@@ -83,6 +84,15 @@ missing = [token for token in required_economy if token not in economy]
 missing += [token for token in required_main if token not in main]
 missing += [token for token in required_map if token not in map_view]
 missing += [token for token in (
+	"GameState.current_country == 0 and GameState.cities_unlocked <= 1",
+	"and GameState.prosperity_rank < 2:",
+	'"label": "Lucros ×2 durante 3 minutos!"',
+) if token not in bonus]
+missing += [token for token in (
+	'rare_btn.text = tr("Recolher")',
+	'tr(str(reward.get("label",',
+) if token not in main]
+missing += [token for token in (
 	"window/size/viewport_width=1280",
 	"window/size/viewport_height=720",
 	"window/handheld/orientation=0",
@@ -121,4 +131,4 @@ slides = main.split("var slides: Array = [", 1)[1].split("\n\t]", 1)[0]
 if slides.count('["ic_') != 1:
     raise SystemExit("FANTASY_ONBOARDING: FAIL: first launch must teach one action")
 
-print("FANTASY_ONBOARDING: PASS (fantasy geometry + staged navigation)")
+print("FANTASY_ONBOARDING: PASS (fantasy geometry + staged navigation + deferred bonus griffin)")
