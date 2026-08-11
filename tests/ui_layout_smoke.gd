@@ -38,6 +38,17 @@ func _run() -> void:
 		for _frame in range(5):
 			await get_tree().process_frame
 
+		# Data-authored economy labels must use the same locale pipeline as scene
+		# copy. These were previously German literals in every non-German locale.
+		var original_locale := TranslationServer.get_locale()
+		for economy_locale: String in ["pt", "en", "es", "fr", "it", "ru", "ja", "zh"]:
+			TranslationServer.set_locale(economy_locale)
+			if not _check(tr("Reisetempo") != "Reisetempo"
+					and tr("Große Handelsgilde") != "Große Handelsgilde",
+					"economy data remains German in locale " + economy_locale):
+				break
+		TranslationServer.set_locale(original_locale)
+
 		GameState.current_country = 0
 		GameState.cities_unlocked = 1
 		GameState.drones = 1

@@ -40,6 +40,18 @@ for script in sorted((ROOT / "scripts").glob("*.gd")):
             line = source.count("\n", 0, match.start()) + 1
             missing.append(f"{script.relative_to(ROOT)}:{line}: {value!r}")
 
+# Economy definitions are data rather than direct Label assignments, but their
+# upgrade and talent names/descriptions are rendered throughout the dashboard.
+# Keep them under the same nine-locale coverage guarantee as scripted UI copy.
+economy_source = (ROOT / "scripts" / "economy.gd").read_text(encoding="utf-8")
+for block_name, next_block in (("UPGRADES", "UPGRADE_ORDER"), ("TALENTS", "TALENT_ORDER")):
+    block = economy_source.split(f"const {block_name} := {{", 1)[1].split(
+        f"const {next_block}", 1
+    )[0]
+    for field, value in re.findall(r'"(name|desc)"\s*:\s*"([^"]+)"', block):
+        if value not in keys:
+            missing.append(f"scripts/economy.gd: {block_name}.{field}: {value!r}")
+
 if missing:
     raise SystemExit(
         "LOCALIZATION_USAGE: FAIL: user-facing literals lack translation rows:\n"

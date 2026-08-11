@@ -1638,7 +1638,7 @@ func _make_upgrade_row(key: String) -> PanelContainer:
 	var accent_map := {"speed": UITheme.ACCENT, "cargo": UITheme.AMBER, "value": UITheme.GREEN, "routes": UITheme.CYAN}
 	var accent: Color = accent_map.get(key, UITheme.ACCENT)
 	var r := _row(accent, Economy.UPGRADES[key].get("icon", "ic_speed"))
-	r["title"].text = Economy.UPGRADES[key]["name"]
+	r["title"].text = tr(str(Economy.UPGRADES[key]["name"]))
 	r["detail"].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var btn := _cbuy(UITheme.GREEN)
 	btn.pressed.connect(func():
