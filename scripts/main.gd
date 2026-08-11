@@ -1658,7 +1658,7 @@ func _make_upgrade_row(key: String) -> PanelContainer:
 			Fx.error_shake(btn)
 	)
 	r["right"].add_child(btn)
-	_rows[key] = {"btn": btn, "detail": r["detail"]}
+	_rows[key] = {"btn": btn, "title": r["title"], "detail": r["detail"]}
 	_rows[key]["card"] = r["card"]
 	return r["card"]
 
@@ -1888,12 +1888,15 @@ func _process(delta: float) -> void:
 		btn.disabled = GameState.credits < cost
 		_afford(btn, not btn.disabled)
 		var ulvl := int(GameState.levels[key])
+		var projected_gain := GameState.projected_upgrade_income_gain(key, count, ips)
+		var projected_text := Fmt.short(projected_gain)
 		# the detail string only actually changes when level/count/cost move,
 		# not every single frame — cache the last-rendered signature and skip
 		# the tr()+%-format rebuild when nothing it depends on has changed
-		var sig := [ulvl, count, cost]
+		var sig := [ulvl, count, cost, projected_text]
 		if row.get("_sig") != sig:
 			row["_sig"] = sig
+			(row["title"] as Label).text = tr(str(Economy.UPGRADES[key]["name"])) + "  ·  " + tr("Nv %d") % ulvl
 			var current_stage: Dictionary = Economy.current_district_stage(key, ulvl)
 			var next_stage: Dictionary = Economy.next_district_stage(key, ulvl)
 			var building_text := ""
@@ -1903,7 +1906,7 @@ func _process(delta: float) -> void:
 				building_text = tr("Obra atual: %s") % tr(str(current_stage["name"]))
 			else:
 				building_text = tr("%s · próxima obra: %s no Nv %d") % [tr(str(current_stage["name"])), tr(str(next_stage["name"])), int(next_stage["level"])]
-			row["detail"].text = (tr("Nv %d · %s · %s") % [ulvl, _effect_total(key, ulvl), building_text]) if ulvl > 0 else (tr("Nv 0 · %s · %s") % [_effect(key), building_text])
+			row["detail"].text = tr("Renda +%s/s") % projected_text + "  ·  " + building_text
 
 	for key: String in _talent_rows:
 		var tp: Dictionary = Economy.TALENTS[key]; var lvl := int(GameState.talents[key])

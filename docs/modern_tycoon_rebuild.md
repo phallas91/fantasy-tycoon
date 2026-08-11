@@ -77,6 +77,9 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
   signatures plus four landmark variants)*
 - Every manual courier or construction purchase now reports its exact income
   gain beside the tapped control; automated purchases use a quiet HUD pulse.
+- Before purchase, every visible construction card previews the exact permanent
+  income gain for ×1/×10/×100/Max and pairs it with the next authored landmark
+  instead of another abstract percentage line.
 
 ### Phase 4 — Ethical premium layer
 

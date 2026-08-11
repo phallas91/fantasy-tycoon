@@ -64,6 +64,9 @@ func _run() -> void:
 				and bool((opening_rows["routes"]["card"] as Control).get_meta("progression_hidden")),
 				"opening fleet panel exposes more than the cargo path"):
 			break
+		if not _check("/s" in str((opening_rows["cargo"]["detail"] as Label).text),
+				"visible construction card does not preview its income gain"):
+			break
 		GameState.prosperity_rank = 1
 		main.call("_process", 0.0)
 		if not _check(not bool((opening_rows["speed"]["card"] as Control).get_meta("progression_hidden"))

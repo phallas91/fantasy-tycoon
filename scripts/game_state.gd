@@ -166,6 +166,18 @@ func upgrade_value_per_credit(key: String) -> float:
 	var relative_gain := maxf(0.0, next_factor / maxf(current_factor, 0.0001) - 1.0)
 	return relative_gain / maxf(upgrade_cost_multi(key, 1), 0.0001)
 
+## Exact permanent realm-income increase for the selected bulk purchase. The
+## optional current income lets the HUD reuse its already calculated value
+## instead of walking every active route four more times per frame.
+func projected_upgrade_income_gain(key: String, count: int, current_income := -1.0) -> float:
+	if not levels.has(key) or count <= 0:
+		return 0.0
+	var level := int(levels[key])
+	var before_factor := _upgrade_income_factor(key, level)
+	var after_factor := _upgrade_income_factor(key, level + count)
+	var income := income_per_sec() if current_income < 0.0 else current_income
+	return income * maxf(0.0, after_factor / maxf(before_factor, 0.0001) - 1.0)
+
 func is_upgrade_unlocked(key: String) -> bool:
 	return UPGRADE_UNLOCK_RANK.has(key) \
 		and prosperity_rank >= int(UPGRADE_UNLOCK_RANK[key])

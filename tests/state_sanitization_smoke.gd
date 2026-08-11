@@ -87,6 +87,14 @@ func _run() -> void:
 			or game_state.upgrade_keys_unlocked_at(2) != ["routes"]:
 		_fail("chapter unlock reveal does not match the actual construction gates")
 		return
+	var income_before_projection: float = float(game_state.income_per_sec())
+	var projected_gain: float = float(game_state.projected_upgrade_income_gain("cargo", 10, income_before_projection))
+	game_state.levels["cargo"] = int(game_state.levels["cargo"]) + 10
+	var measured_gain: float = float(game_state.income_per_sec()) - income_before_projection
+	game_state.levels["cargo"] = int(game_state.levels["cargo"]) - 10
+	if not is_equal_approx(projected_gain, measured_gain):
+		_fail("bulk construction card does not preview its exact income gain")
+		return
 	game_state.credits = 1.0e12
 	game_state.drones = 4
 	var advised_kind := str(game_state.recommended_affordable_purchase().get("kind", ""))
