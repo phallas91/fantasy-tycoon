@@ -516,11 +516,56 @@ func _draw() -> void:
 	_draw_ground_traffic(cap, route_geom)
 	_draw_drones(cap, cities, route_geom)
 	_draw_cities(cap, cities, ci)
+	_draw_construction_activity(cap)
 	_draw_recommended_investment(cap)
 	_draw_clouds(w, h)
 	_draw_stars(w, h)
 	_draw_vignette(w, h)
 	_draw_pops()
+
+func _investment_target(cap: Vector2, key: String) -> Vector2:
+	var offsets := {
+		"cargo": Vector2(-45, 3), "value": Vector2(0, 15),
+		"speed": Vector2(24, -34), "routes": Vector2(-24, 10),
+	}
+	return cap + Vector2(offsets.get(key, Vector2.ZERO))
+
+## The current city chapter remains visibly active between taps: tiny builders
+## carry materials from a supply pile to the recommended structure while a
+## restrained scaffold fills with chapter progress. Pure draw calls keep this
+## cheap on mobile and reduced-motion mode freezes the workers in useful poses.
+func _draw_construction_activity(cap: Vector2) -> void:
+	if _recommended_investment.is_empty() or GameState.next_prosperity_threshold() < 0:
+		return
+	var target := _investment_target(cap, _recommended_investment)
+	var progress := GameState.prosperity_chapter_progress()
+	var scaffold_col := Color(GOLD.r, GOLD.g, GOLD.b, 0.36 + progress * 0.24)
+	var scaffold_left := target.x - 17.0
+	var scaffold_top := target.y - 22.0
+	# Three posts and two progressively completed decks read as a small fantasy
+	# construction site without obscuring the authored city illustration.
+	for post in range(3):
+		var px := scaffold_left + float(post) * 17.0
+		draw_line(Vector2(px, target.y + 9.0), Vector2(px, scaffold_top), scaffold_col, 1.4)
+	for deck in range(2):
+		var y := target.y - 3.0 - float(deck) * 13.0
+		draw_line(Vector2(scaffold_left, y), Vector2(scaffold_left + 34.0 * maxf(progress, 0.18), y), scaffold_col, 1.7)
+
+	var supply := target + Vector2(-34.0, 22.0)
+	draw_rect(Rect2(supply.x - 8.0, supply.y - 4.0, 16.0, 8.0), Color(0.28, 0.13, 0.07, 0.88))
+	draw_line(supply + Vector2(-9, -5), supply + Vector2(8, -5), Color(GOLD.r, GOLD.g, GOLD.b, 0.58), 1.5)
+	for worker in range(3):
+		var phase := 0.18 + float(worker) * 0.29 if Fx.reduce_motion else fmod(_t * 0.16 + float(worker) * 0.34, 1.0)
+		var trip := 1.0 - absf(phase * 2.0 - 1.0)
+		var pos := supply.lerp(target + Vector2(float(worker - 1) * 6.0, 8.0), trip)
+		var step := 0.0 if Fx.reduce_motion else sin(phase * TAU * 4.0) * 1.4
+		pos.y += step
+		draw_circle(pos + Vector2(0, 5), 3.2, Color(SHADOW.r, SHADOW.g, SHADOW.b, 0.36))
+		draw_line(pos + Vector2(0, -1), pos + Vector2(0, 5), Color(0.34, 0.17, 0.39, 0.96), 2.5)
+		draw_circle(pos + Vector2(0, -4), 2.4, Color(0.91, 0.68, 0.45, 0.98))
+		# Outbound workers visibly carry timber/crates; returning workers walk free.
+		if phase < 0.5:
+			draw_rect(Rect2(pos.x - 4.0, pos.y - 1.0, 8.0, 4.0), Color(0.58, 0.31, 0.12, 0.96))
 
 ## A single calm world-space cue connects the advisor to the actual building
 ## family it recommends. It disappears outside the opening construction
@@ -528,12 +573,8 @@ func _draw() -> void:
 func _draw_recommended_investment(cap: Vector2) -> void:
 	if _recommended_investment.is_empty() or GameState.next_prosperity_threshold() < 0:
 		return
-	var offsets := {
-		"cargo": Vector2(-45, 3), "value": Vector2(0, 15),
-		"speed": Vector2(24, -34), "routes": Vector2(-24, 10),
-	}
 	var colors := {"cargo": GOLD, "value": SKY, "speed": CYAN, "routes": MINT}
-	var target: Vector2 = cap + Vector2(offsets.get(_recommended_investment, Vector2.ZERO))
+	var target := _investment_target(cap, _recommended_investment)
 	var col: Color = colors.get(_recommended_investment, GOLD)
 	var pulse := 0.0 if Fx.reduce_motion else 2.0 * (0.5 + 0.5 * sin(_t * 3.2))
 	draw_arc(target, 13.0 + pulse, 0.0, TAU, 28, Color(col.r, col.g, col.b, 0.88), 2.4)

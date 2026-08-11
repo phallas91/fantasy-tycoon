@@ -41,6 +41,9 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 - Add construction stages, workers, traffic and persistent visual upgrades.
 - Cargo warehouses, market stalls, speed beacons, route lamps and merchant
   traffic now appear directly in the city as the corresponding systems grow.
+- The recommended site now stays alive between purchases with progressive
+  scaffolding, a material pile and three builders hauling supplies; reduced-
+  motion mode preserves the scene while freezing their travel.
 - The advisor now evaluates immediate income gain per credit and highlights the
   matching warehouse, market, beacon or route structure directly in the world.
 
