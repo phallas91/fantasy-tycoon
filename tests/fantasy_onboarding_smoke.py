@@ -22,6 +22,9 @@ required_economy = (
 required_main = (
 	"func _progression_stage() -> int:",
 	'if _progression_stage() == 0:',
+	"func _opening_city_chapter_active() -> bool:",
+	"if _opening_city_chapter_active():",
+	"return _prosperity_objective()",
 	'"focus": _focus_btn, "cost": GameState.drone_cost_multi(1)',
     "func _nav_unlocked(tab_index: int) -> bool:",
     "_nav_btns[i].visible = dashboard_ready and _nav_unlocked(i)",

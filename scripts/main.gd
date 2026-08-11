@@ -2085,6 +2085,15 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Começa a tua primeira rota comercial"), "tab": 0,
 			"focus": _focus_btn, "cost": GameState.drone_cost_multi(1), "progress": 0.0,
 			"accent": UITheme.GOLD, "icon": "ic_drone"}
+	# Finish the first two construction chapters before unrelated rewards or an
+	# already-affordable settlement can pull the player away. Rank 2 is the
+	# deliberate hand-off: routes and automation have then been introduced.
+	if _opening_city_chapter_active():
+		if GameState.drones < 4:
+			return {"text": tr("Compra drones e melhorias"), "tab": 0, "focus": _drone_btn,
+				"cost": GameState.drone_cost_multi(1), "progress": 0.0,
+				"accent": UITheme.ACCENT, "icon": "ic_drone"}
+		return _prosperity_objective()
 	for i in range(Contracts.slots.size()):
 		var contract: Dictionary = Contracts.slots[i]
 		if contract.get("ready", false) and not contract.get("claimed", false):
@@ -2117,20 +2126,7 @@ func _smart_objective() -> Dictionary:
 	# concrete, economically meaningful action instead of four equal choices.
 	var prosperity_target: int = GameState.next_prosperity_threshold()
 	if prosperity_target > 0:
-		var recommended_key: String = GameState.recommended_upgrade_key()
-		var recommended_cost: float = GameState.upgrade_cost_multi(recommended_key, 1)
-		var reward: Dictionary = GameState.next_prosperity_reward()
-		var reward_text := "+" + Fmt.short(float(reward.get("cash", 0.0)))
-		var reward_gems := int(reward.get("gems", 0))
-		if reward_gems > 0:
-			reward_text += " +%d◆" % reward_gems
-		var prosperity_focus: Control = _rows[recommended_key]["btn"] if _rows.has(recommended_key) else null
-		return {"text": tr("Cidade em construção %d/%d · Prémio: %s") % [GameState.investment_total(), prosperity_target, reward_text],
-			"tab": 0, "focus": prosperity_focus, "cost": recommended_cost,
-			"progress": GameState.prosperity_chapter_progress(),
-			"progress_override": true, "accent": UITheme.GOLD,
-			"upgrade_key": recommended_key,
-			"icon": str(Economy.UPGRADES[recommended_key].get("icon", "ic_city"))}
+		return _prosperity_objective()
 	for key: String in Economy.TALENT_ORDER:
 		if GameState.can_buy_talent(key):
 			var talent_focus: Control = _talent_rows[key]["btn"] if _talent_rows.has(key) else null
@@ -2159,6 +2155,27 @@ func _smart_objective() -> Dictionary:
 		"focus": _prestige_btn, "cost": -1.0,
 		"progress": clampf(float(GameState.current_country + 1) / float(Prestige.MIN_COUNTRY + 1), 0.0, 1.0),
 		"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
+
+func _opening_city_chapter_active() -> bool:
+	return GameState.current_country == 0 and GameState.cities_unlocked == 1 \
+		and GameState.prosperity_rank < 2
+
+func _prosperity_objective() -> Dictionary:
+	var prosperity_target: int = GameState.next_prosperity_threshold()
+	var recommended_key: String = GameState.recommended_upgrade_key()
+	var recommended_cost: float = GameState.upgrade_cost_multi(recommended_key, 1)
+	var reward: Dictionary = GameState.next_prosperity_reward()
+	var reward_text := "+" + Fmt.short(float(reward.get("cash", 0.0)))
+	var reward_gems := int(reward.get("gems", 0))
+	if reward_gems > 0:
+		reward_text += " +%d◆" % reward_gems
+	var prosperity_focus: Control = _rows[recommended_key]["btn"] if _rows.has(recommended_key) else null
+	return {"text": tr("Cidade em construção %d/%d · Prémio: %s") % [GameState.investment_total(), prosperity_target, reward_text],
+		"tab": 0, "focus": prosperity_focus, "cost": recommended_cost,
+		"progress": GameState.prosperity_chapter_progress(),
+		"progress_override": true, "accent": UITheme.GOLD,
+		"upgrade_key": recommended_key,
+		"icon": str(Economy.UPGRADES[recommended_key].get("icon", "ic_city"))}
 
 func _refresh_smart_objective() -> void:
 	_objective_cache = _smart_objective()

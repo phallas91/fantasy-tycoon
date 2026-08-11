@@ -48,6 +48,23 @@ func _run() -> void:
 				and opening_objective.get("focus") == main.get("_focus_btn"),
 				"opening objective competes with the guided courier action"):
 			break
+		# Even abundant credits must not skip the opening construction lesson.
+		GameState.drones = 4
+		GameState.credits = 1.0e12
+		GameState.prosperity_rank = 0
+		var construction_objective: Dictionary = main.call("_smart_objective")
+		if not _check(construction_objective.get("tab") == 0
+				and construction_objective.get("upgrade_key") == "cargo",
+				"affordable settlement interrupts the opening construction chapter"):
+			break
+		GameState.prosperity_rank = 2
+		var realm_objective: Dictionary = main.call("_smart_objective")
+		if not _check(not bool(main.call("_opening_city_chapter_active"))
+				and not realm_objective.has("upgrade_key"),
+				"opening construction chapter does not hand off to realm growth"):
+			break
+		GameState.drones = 1
+		GameState.credits = 0.0
 
 		# The automatic manager used to dominate the fresh fleet panel before the
 		# player understood manual construction. Guard both sides of its rank gate.
