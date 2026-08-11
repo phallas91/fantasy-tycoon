@@ -57,11 +57,25 @@ func _run() -> void:
 				and not (main.get("_auto_mgr_toggle") as Control).visible,
 				"automatic manager visible in the opening chapter"):
 			break
+		var opening_rows: Dictionary = main.get("_rows")
+		if not _check(not bool((opening_rows["cargo"]["card"] as Control).get_meta("progression_hidden"))
+				and bool((opening_rows["speed"]["card"] as Control).get_meta("progression_hidden"))
+				and bool((opening_rows["value"]["card"] as Control).get_meta("progression_hidden"))
+				and bool((opening_rows["routes"]["card"] as Control).get_meta("progression_hidden")),
+				"opening fleet panel exposes more than the cargo path"):
+			break
+		GameState.prosperity_rank = 1
+		main.call("_process", 0.0)
+		if not _check(not bool((opening_rows["speed"]["card"] as Control).get_meta("progression_hidden"))
+				and not bool((opening_rows["value"]["card"] as Control).get_meta("progression_hidden"))
+				and bool((opening_rows["routes"]["card"] as Control).get_meta("progression_hidden")),
+				"city rank 1 construction paths are not staged correctly"):
+			break
 		GameState.prosperity_rank = 2
 		main.call("_process", 0.0)
-		if not _check((main.get("_auto_mgr_section") as Control).visible
-				and (main.get("_auto_mgr_toggle") as Control).visible,
-				"automatic manager did not unlock at city rank 2"):
+		if not _check(not bool((opening_rows["routes"]["card"] as Control).get_meta("progression_hidden"))
+				and not bool((main.get("_auto_mgr_section") as Control).get_meta("progression_hidden", false)),
+				"route network and automatic manager did not unlock at city rank 2"):
 			break
 		GameState.prosperity_rank = 0
 		GameState.pending_offline = 12.0

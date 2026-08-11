@@ -91,6 +91,8 @@ func _auto_buy() -> void:
 	var dcost := GameState.drone_cost()
 	if dcost < best_cost: best = "drone"; best_cost = dcost
 	for k in Economy.UPGRADE_ORDER:
+		if not GameState.is_upgrade_unlocked(k):
+			continue
 		var c := Economy.upgrade_cost(k, int(GameState.levels[k]))
 		if c < best_cost: best = k; best_cost = c
 	if best != "" and GameState.credits >= best_cost:

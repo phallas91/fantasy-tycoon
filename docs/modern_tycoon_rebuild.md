@@ -64,6 +64,8 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
   view visibly upgrades warehouses, markets, beacons and caravan gates.
 - Fresh realms start with one deliberate purchase at a time; ×10, ×100 and
   maximum buying unlock across the first three prosperity chapters.
+- Construction paths are earned in chapters instead of appearing as four rows
+  at once: cargo first, speed/value at city rank 1, routes at city rank 2.
 - The automatic caravan master stays hidden until city rank 2, then follows the
   same income-gain-per-credit recommendation as the visible city advisor.
 - Realm expansion now starts a fresh local city and base fleet while preserving

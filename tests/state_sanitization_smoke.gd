@@ -70,6 +70,19 @@ func _run() -> void:
 		return
 
 	game_state.reset()
+	if not game_state.is_upgrade_unlocked("cargo") or game_state.is_upgrade_unlocked("speed") \
+			or game_state.is_upgrade_unlocked("value") or game_state.is_upgrade_unlocked("routes"):
+		_fail("opening construction paths are not progressively gated")
+		return
+	game_state.prosperity_rank = 1
+	if not game_state.is_upgrade_unlocked("speed") or not game_state.is_upgrade_unlocked("value") \
+			or game_state.is_upgrade_unlocked("routes"):
+		_fail("city rank 1 construction unlocks are inconsistent")
+		return
+	game_state.prosperity_rank = 2
+	if not game_state.is_upgrade_unlocked("routes"):
+		_fail("route construction does not unlock with automation")
+		return
 	game_state.credits = 1.0e12
 	game_state.drones = 4
 	var advised_kind := str(game_state.recommended_affordable_purchase().get("kind", ""))

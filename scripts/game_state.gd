@@ -31,6 +31,7 @@ signal prosperity_advanced(rank: int, cash_reward: float, gem_reward: int)
 const PROSPERITY_THRESHOLDS := [4, 10, 20, 40]
 const PROSPERITY_CASH_SECONDS := [30.0, 60.0, 120.0, 300.0]
 const PROSPERITY_GEMS := [0, 1, 2, 5]
+const UPGRADE_UNLOCK_RANK := {"cargo": 0, "speed": 1, "value": 1, "routes": 2}
 
 # --- persisted ---
 var credits := 0.0
@@ -147,9 +148,11 @@ func route_mult() -> float:
 ## cheapest row, and naturally values milestone levels when their multiplier
 ## makes a landmark purchase unusually strong.
 func recommended_upgrade_key() -> String:
-	var best_key := "speed"
+	var best_key := "cargo"
 	var best_value := -INF
 	for key: String in ["speed", "cargo", "value", "routes"]:
+		if not is_upgrade_unlocked(key):
+			continue
 		var value := upgrade_value_per_credit(key)
 		if value > best_value:
 			best_value = value
@@ -162,6 +165,10 @@ func upgrade_value_per_credit(key: String) -> float:
 	var next_factor := _upgrade_income_factor(key, level + 1)
 	var relative_gain := maxf(0.0, next_factor / maxf(current_factor, 0.0001) - 1.0)
 	return relative_gain / maxf(upgrade_cost_multi(key, 1), 0.0001)
+
+func is_upgrade_unlocked(key: String) -> bool:
+	return UPGRADE_UNLOCK_RANK.has(key) \
+		and prosperity_rank >= int(UPGRADE_UNLOCK_RANK[key])
 
 ## Best affordable automatic purchase, including another courier. Kept public
 ## for transparent UI/tests: automation follows the same value-per-credit rule
@@ -176,6 +183,8 @@ func recommended_affordable_purchase() -> Dictionary:
 		best_cost = courier_cost
 		best_value = (1.0 / float(maxi(drones, 1))) / maxf(courier_cost, 0.0001)
 	for key: String in ["speed", "cargo", "value", "routes"]:
+		if not is_upgrade_unlocked(key):
+			continue
 		var cost := upgrade_cost_multi(key, 1)
 		var value := upgrade_value_per_credit(key)
 		if credits >= cost and value > best_value:
@@ -520,6 +529,8 @@ func planned_count(key: String) -> int:
 	return max(1, max_affordable(key)) if buy_mode == -1 else buy_mode
 
 func buy_upgrade_multi(key: String) -> int:
+	if not is_upgrade_unlocked(key):
+		return 0
 	var count := planned_count(key)
 	if count < 1:
 		return 0

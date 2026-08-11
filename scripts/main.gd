@@ -108,6 +108,7 @@ var _prestige_ready_prev := false
 var _tap_block_until := 0   # ms; swipe guard so paging never triggers a purchase
 var _auto_mgr_toggle: Control
 var _auto_mgr_section: Control
+var _upgrade_unlock_rank := -1
 var _ascendant_lbl: Label
 var _ascendant_btn: Button
 
@@ -739,9 +740,20 @@ func _change_management_page(sc: ScrollContainer, delta: int) -> void:
 	if int(_page_indices.get(sc, 0)) != before:
 		Audio.play("page", 1.0, -5.0)
 
+func _available_page_items(sc: ScrollContainer) -> Array:
+	var items: Array = []
+	if not _page_groups.has(sc): return items
+	for candidate in _page_groups[sc]:
+		var candidate_item := candidate as CanvasItem
+		if bool(candidate_item.get_meta("progression_hidden", false)):
+			candidate_item.visible = false
+		else:
+			items.append(candidate_item)
+	return items
+
 func _show_management_page(sc: ScrollContainer, requested: int) -> void:
 	if not _page_groups.has(sc): return
-	var items: Array = _page_groups[sc]
+	var items := _available_page_items(sc)
 	var total := maxi(1, ceili(float(items.size()) / float(MANAGEMENT_PAGE_SIZE)))
 	var old_page := int(_page_indices.get(sc, 0))
 	var page := clampi(requested, 0, total - 1)
@@ -1647,6 +1659,7 @@ func _make_upgrade_row(key: String) -> PanelContainer:
 	)
 	r["right"].add_child(btn)
 	_rows[key] = {"btn": btn, "detail": r["detail"]}
+	_rows[key]["card"] = r["card"]
 	return r["card"]
 
 func _make_talent_row(key: String) -> PanelContainer:
@@ -1858,11 +1871,23 @@ func _process(delta: float) -> void:
 	var auto_manager_unlocked := GameState.prosperity_rank >= 2
 	_auto_mgr_section.visible = auto_manager_unlocked
 	_auto_mgr_toggle.visible = auto_manager_unlocked
+	# Construction paths enter the fleet pager only after their city chapter is
+	# earned. Marking them as progression-hidden lets pagination remove them
+	# entirely instead of leaving blank slots/pages.
+	if _upgrade_unlock_rank != GameState.prosperity_rank:
+		_upgrade_unlock_rank = GameState.prosperity_rank
+		for unlock_key: String in _rows:
+			(_rows[unlock_key]["card"] as Control).set_meta("progression_hidden",
+				not GameState.is_upgrade_unlocked(unlock_key))
+		_show_management_page(_pages[0] as ScrollContainer, int(_page_indices.get(_pages[0], 0)))
 
 	for key: String in _rows:
 		var count := GameState.planned_count(key); var cost := GameState.upgrade_cost_multi(key, maxi(1, count))
 		var row: Dictionary = _rows[key]
 		var btn: Button = row["btn"]
+		if not GameState.is_upgrade_unlocked(key):
+			btn.disabled = true
+			continue
 		btn.text    = (("×%d   " % count) if GameState.buy_mode != 1 else "") + Fmt.short(cost)
 		btn.disabled = GameState.credits < cost
 		_afford(btn, not btn.disabled)
@@ -2159,7 +2184,7 @@ func _jump_to_objective() -> void:
 ## keeps smart-goal jumps correct even when page composition changes later.
 func _show_control_page(sc: ScrollContainer, target: Control) -> void:
 	if not _page_groups.has(sc): return
-	var items: Array = _page_groups[sc]
+	var items := _available_page_items(sc)
 	for i in range(items.size()):
 		var item := items[i] as Node
 		if item == target or item.is_ancestor_of(target):
@@ -2171,7 +2196,7 @@ func _update_nav_dots() -> void:
 	# Fleet
 	var fleet := GameState.credits >= GameState.drone_cost_multi(1) or Prestige.can_prestige()
 	for key: String in _rows:
-		if not (_rows[key]["btn"] as Button).disabled: fleet = true
+		if GameState.is_upgrade_unlocked(key) and not (_rows[key]["btn"] as Button).disabled: fleet = true
 	_nav_dots[0].visible = fleet
 	# Cities
 	_nav_dots[1].visible = GameState.can_unlock_city() or GameState.can_expand()
