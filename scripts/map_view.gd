@@ -98,6 +98,7 @@ var _flash: Dictionary = {}           # city_index -> remaining flash time on de
 var _city_growth: Dictionary = {}     # city_index -> remaining build reveal time
 var _investment_signature := ""
 var _investment_reveal := 0.0
+var _recommended_investment := ""
 
 # --- Arcane Trade Empire palette ---
 const VOID      := Color(0.025, 0.016, 0.035)
@@ -349,6 +350,12 @@ func _process(delta: float) -> void:
 			_city_growth.erase(key)
 	queue_redraw()
 
+func set_recommended_investment(key: String) -> void:
+	if key == _recommended_investment:
+		return
+	_recommended_investment = key
+	queue_redraw()
+
 func _band_ctr() -> Vector2:
 	return Vector2(size.x * 0.5, band_top + (band_bottom - band_top) * 0.5)
 
@@ -509,10 +516,35 @@ func _draw() -> void:
 	_draw_ground_traffic(cap, route_geom)
 	_draw_drones(cap, cities, route_geom)
 	_draw_cities(cap, cities, ci)
+	_draw_recommended_investment(cap)
 	_draw_clouds(w, h)
 	_draw_stars(w, h)
 	_draw_vignette(w, h)
 	_draw_pops()
+
+## A single calm world-space cue connects the advisor to the actual building
+## family it recommends. It disappears outside the opening construction
+## chapters so an established city remains uncluttered.
+func _draw_recommended_investment(cap: Vector2) -> void:
+	if _recommended_investment.is_empty() or GameState.next_prosperity_threshold() < 0:
+		return
+	var offsets := {
+		"cargo": Vector2(-45, 3), "value": Vector2(0, 15),
+		"speed": Vector2(24, -34), "routes": Vector2(-24, 10),
+	}
+	var colors := {"cargo": GOLD, "value": SKY, "speed": CYAN, "routes": MINT}
+	var target: Vector2 = cap + Vector2(offsets.get(_recommended_investment, Vector2.ZERO))
+	var col: Color = colors.get(_recommended_investment, GOLD)
+	var pulse := 0.0 if Fx.reduce_motion else 2.0 * (0.5 + 0.5 * sin(_t * 3.2))
+	draw_arc(target, 13.0 + pulse, 0.0, TAU, 28, Color(col.r, col.g, col.b, 0.88), 2.4)
+	draw_line(target + Vector2(0, -14), target + Vector2(0, -27), Color(col.r, col.g, col.b, 0.72), 1.6)
+	var label := tr(str(Economy.UPGRADES[_recommended_investment]["name"]))
+	var tw := _font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
+	var chip := Rect2(target.x - tw * 0.5 - 9.0, target.y - 49.0, tw + 18.0, 23.0)
+	_chip_sb.border_color = Color(col.r, col.g, col.b, 0.82)
+	draw_style_box(_chip_sb, chip)
+	draw_string(_font, Vector2(chip.position.x + 9.0, chip.position.y + 16.0), label,
+		HORIZONTAL_ALIGNMENT_LEFT, tw, 14, INK)
 
 # ---------------------------------------------------------------- background
 

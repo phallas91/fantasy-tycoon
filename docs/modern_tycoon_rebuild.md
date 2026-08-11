@@ -37,11 +37,12 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 
 ### Phase 2 — Living construction
 
-- Replace marker-only progression with authored district states. *(started)*
+- Replace marker-only progression with authored district states. *(completed)*
 - Add construction stages, workers, traffic and persistent visual upgrades.
 - Cargo warehouses, market stalls, speed beacons, route lamps and merchant
   traffic now appear directly in the city as the corresponding systems grow.
-- Make each production bottleneck identifiable from the world view.
+- The advisor now evaluates immediate income gain per credit and highlights the
+  matching warehouse, market, beacon or route structure directly in the world.
 
 ### Phase 3 — Satisfying economy
 
@@ -51,7 +52,7 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
   20 and 40 with current-income cash bursts and restrained gem rewards.
 - The calm HUD previews the active construction chapter, its reward and exact
   progress, then jumps directly to the cheapest useful city improvement.
-- Replace four near-identical rows with named construction paths. *(started)*
+- Replace four near-identical rows with named construction paths. *(completed)*
 - Each path now previews authored landmarks at levels 1, 10 and 25; the world
   view visibly upgrades warehouses, markets, beacons and caravan gates.
 - Fresh realms start with one deliberate purchase at a time; ×10, ×100 and

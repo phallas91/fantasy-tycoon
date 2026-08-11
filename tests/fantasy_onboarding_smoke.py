@@ -34,6 +34,7 @@ required_main = (
 	"func _on_prosperity_advanced(",
 	"func _show_expansion_confirm() -> void:",
 	'"progress_override": true',
+	'"upgrade_key": recommended_key',
 	"(_mode_btns[mode] as Button).visible = GameState.prosperity_rank >= required_rank",
 )
 required_map = (
@@ -49,6 +50,8 @@ required_map = (
 	"if value_level >= 25:",
 	"if speed_level >= 25:",
 	"if route_level >= 25:",
+	"func _draw_recommended_investment(",
+	"func set_recommended_investment(",
     "# A luminous river crosses the realm",
     "# Mountain chain:",
     "# Forest groves",
@@ -70,6 +73,7 @@ missing += [token for token in (
 	'"prosperity_rank": prosperity_rank',
 	"func next_prosperity_threshold() -> int:",
 	"func prosperity_chapter_progress() -> float:",
+	"func recommended_upgrade_key() -> String:",
 	"var buy_mode := 1",
 	"drones = Prestige.starting_drones()",
 	"levels = Prestige.starting_levels()",

@@ -142,6 +142,37 @@ func route_mult() -> float:
 	var rl := int(levels.get("routes", 0))
 	return 1.0 + 0.025 * float(rl) * Economy.milestone_mult(rl)
 
+## Picks the construction path with the strongest immediate income gain per
+## credit. This keeps the advisor useful instead of merely pointing at the
+## cheapest row, and naturally values milestone levels when their multiplier
+## makes a landmark purchase unusually strong.
+func recommended_upgrade_key() -> String:
+	var best_key := "speed"
+	var best_value := -INF
+	for key: String in ["speed", "cargo", "value", "routes"]:
+		var level := int(levels.get(key, 0))
+		var current_factor := _upgrade_income_factor(key, level)
+		var next_factor := _upgrade_income_factor(key, level + 1)
+		var relative_gain := maxf(0.0, next_factor / maxf(current_factor, 0.0001) - 1.0)
+		var value := relative_gain / maxf(upgrade_cost_multi(key, 1), 0.0001)
+		if value > best_value:
+			best_value = value
+			best_key = key
+	return best_key
+
+func _upgrade_income_factor(key: String, level: int) -> float:
+	match key:
+		"speed":
+			return 1.0 + 0.03 * float(level) * Economy.milestone_mult(level) \
+				+ 0.04 * float(talents.get("speed", 0))
+		"cargo":
+			return 1.0 + 0.25 * float(level) * Economy.milestone_mult(level)
+		"value":
+			return pow(1.04, float(level)) * Economy.milestone_mult(level)
+		"routes":
+			return 1.0 + 0.025 * float(level) * Economy.milestone_mult(level)
+	return 1.0
+
 func combo_mult() -> float:
 	# High tiers (150+) are a pure ACTIVE-PLAY skill reward: combo decays in ~10s,
 	# so sustaining a 150/250/500 chain demands constant attention — it never
