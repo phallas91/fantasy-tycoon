@@ -32,6 +32,8 @@ required_main = (
 	"var dashboard_ready := stage > 0",
 	"_focus_card.visible = not dashboard_ready",
 	"func _on_prosperity_advanced(",
+	"func _show_income_gain(before_income: float, source: Control) -> void:",
+	"GameState.auto_bought.connect(_on_auto_bought)",
 	"func _show_expansion_confirm() -> void:",
 	'"progress_override": true',
 	'"upgrade_key": recommended_key',

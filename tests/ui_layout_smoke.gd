@@ -54,6 +54,22 @@ func _run() -> void:
 			break
 		GameState.prosperity_rank = 0
 
+		# A manual purchase must communicate its exact economic consequence without
+		# adding a permanent widget to the already compact landscape HUD.
+		var feedback_before: float = GameState.income_per_sec()
+		GameState.drones += 1
+		main.call("_show_income_gain", feedback_before, main.get("_focus_btn") as Control)
+		await get_tree().process_frame
+		var feedback_prefix := tr("Renda +%s/s").split("%s")[0]
+		var feedback_found := false
+		for label_node in main.find_children("", "Label", true, false):
+			if (label_node as Label).text.begins_with(feedback_prefix):
+				feedback_found = true
+				break
+		GameState.drones -= 1
+		if not _check(feedback_found, "manual purchase income feedback missing"):
+			break
+
 		# Monetization must follow player understanding instead of presenting an
 		# eight-product wall on first launch. Exercise the pure catalogue gates at
 		# every progression beat before restoring the normal fresh-save state.

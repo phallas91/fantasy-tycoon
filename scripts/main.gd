@@ -157,6 +157,7 @@ func _ready() -> void:
 	GameState.country_changed.connect(_on_country_changed)
 	GameState.region_completed.connect(_on_region_completed)
 	GameState.prosperity_advanced.connect(_on_prosperity_advanced)
+	GameState.auto_bought.connect(_on_auto_bought)
 	GameState.delivered.connect(_on_delivered)
 	Achievements.unlocked.connect(_on_achievement)
 	Events.started.connect(_on_event_start)
@@ -623,9 +624,11 @@ func _build_guided_action() -> void:
 	_focus_btn.add_theme_font_size_override("font_size", 19)
 	_focus_btn.pressed.connect(func():
 		if not _can_tap(): return
+		var income_before := GameState.income_per_sec()
 		if GameState.buy_drones() > 0:
 			Fx.press(_focus_btn); Audio.play("whoosh")
 			_reward_fx(_focus_btn, UITheme.GOLD, "spark", 12)
+			_show_income_gain(income_before, _focus_btn)
 			_refresh_progressive_nav()
 		else:
 			Fx.error_shake(_focus_btn)
@@ -1062,9 +1065,11 @@ func _build_fleet_tab() -> ScrollContainer:
 	_drone_btn = _cbuy(UITheme.GREEN, 160.0)
 	_drone_btn.pressed.connect(func():
 		if not _can_tap(): return
+		var income_before := GameState.income_per_sec()
 		if GameState.buy_drones() > 0:
 			Fx.press(_drone_btn); Audio.play("whoosh")
 			_reward_fx(_drone_btn, UITheme.ACCENT, "spark", 8)
+			_show_income_gain(income_before, _drone_btn)
 		else:
 			Fx.error_shake(_drone_btn)
 	)
@@ -1593,11 +1598,13 @@ func _make_upgrade_row(key: String) -> PanelContainer:
 	var btn := _cbuy(UITheme.GREEN)
 	btn.pressed.connect(func():
 		if not _can_tap(): return
+		var income_before := GameState.income_per_sec()
 		var before_level := int(GameState.levels[key])
 		var before_tier := before_level / Economy.MILESTONE_STEP
 		var before_stage: Dictionary = Economy.current_district_stage(key, before_level)
 		if GameState.buy_upgrade_multi(key) > 0:
 			Fx.press(btn); _reward_fx(btn, accent, "spark", 6)
+			_show_income_gain(income_before, btn)
 			var after_level := int(GameState.levels[key])
 			var after_stage: Dictionary = Economy.current_district_stage(key, after_level)
 			var landmark_built := not after_stage.is_empty() and str(after_stage.get("name", "")) != str(before_stage.get("name", ""))
@@ -2354,6 +2361,41 @@ func _reward_fx(node: Control, color: Color, kind := "spark", n := 6) -> void:
 	if not is_instance_valid(node): return
 	var c := node.get_global_rect().get_center()
 	Fx.burst(self, c, color, n, kind)
+
+## Transient purchase feedback: the player immediately sees the exact permanent
+## income gained without adding another persistent HUD widget. Reduced-motion
+## mode keeps the confirmation stationary and only fades it out.
+func _show_income_gain(before_income: float, source: Control) -> void:
+	var gain := GameState.income_per_sec() - before_income
+	if gain <= 0.0001 or not is_instance_valid(source):
+		return
+	Fx.chip_pop(_income_lbl, UITheme.GREEN)
+	var gain_label := Label.new()
+	gain_label.text = tr("Renda +%s/s") % Fmt.short(gain)
+	gain_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gain_label.add_theme_font_override("font", UITheme.font("Bold"))
+	gain_label.add_theme_font_size_override("font_size", 19)
+	gain_label.add_theme_color_override("font_color", UITheme.GREEN)
+	gain_label.add_theme_color_override("font_shadow_color", Color(0.02, 0.01, 0.03, 0.88))
+	gain_label.add_theme_constant_override("shadow_offset_x", 2)
+	gain_label.add_theme_constant_override("shadow_offset_y", 2)
+	gain_label.custom_minimum_size = Vector2(180, 30)
+	gain_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(gain_label)
+	var centre := source.get_global_rect().get_center() - get_global_rect().position
+	gain_label.position = Vector2(clampf(centre.x - 90.0, 8.0, size.x - 188.0), centre.y - 42.0)
+	var tw := gain_label.create_tween()
+	if Fx.reduce_motion:
+		tw.tween_interval(0.65)
+	else:
+		tw.tween_property(gain_label, "position:y", gain_label.position.y - 28.0, 0.7).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(gain_label, "modulate:a", 0.0, 0.25)
+	tw.tween_callback(gain_label.queue_free)
+
+func _on_auto_bought(_kind: String) -> void:
+	# Automation runs frequently, so acknowledge it with one quiet HUD pulse
+	# rather than producing a stream of labels or toasts.
+	Fx.chip_pop(_income_lbl, UITheme.GREEN)
 
 # ── Popups ───────────────────────────────────────────────────────────────────────
 

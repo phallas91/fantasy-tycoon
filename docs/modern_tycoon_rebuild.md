@@ -64,6 +64,8 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
   the exchange before anything is reset.
 - Give each upgrade a distinct audio consequence. *(completed; four investment
   signatures plus four landmark variants)*
+- Every manual courier or construction purchase now reports its exact income
+  gain beside the tapped control; automated purchases use a quiet HUD pulse.
 
 ### Phase 4 — Ethical premium layer
 
