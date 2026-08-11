@@ -86,9 +86,10 @@ automated from here.
    have one, and create the app listing.
 2. Under Monetize → Products → In-app products, create products with IDs
    **exactly matching** `Billing.PRODUCTS` keys: `starter`, `vip`, `perm_x2`,
-   `gems_xs`, `gems_s`, `gems_m`, `gems_l`, `gems_xl`. Prices should match
-   the `price` field already shown in the UI (adjust for your target markets
-   as needed — Play lets you set per-country pricing).
+   `gems_xs`, `gems_s`, `gems_m`, `gems_l`, `gems_xl`. The `price` fields in
+   `Billing.PRODUCTS` are editor/desktop previews only. On Android the shop
+   waits for Google Play product details, shows Play's localized formatted
+   prices and keeps purchase buttons disabled until that catalogue is ready.
 3. Play Billing **only works on a build installed via Google Play**
    (internal testing track at minimum) — a sideloaded APK/AAB can load
    product details but purchases will fail. Upload a signed AAB to Internal

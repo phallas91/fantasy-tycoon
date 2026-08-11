@@ -7,6 +7,7 @@ extends Node
 
 signal purchased(product_id: String)
 signal purchase_failed(product_id: String, reason: String)
+signal catalog_updated
 
 var ads_removed := false
 var perm_mult := 1.0
@@ -29,6 +30,7 @@ const PRODUCT_ORDER := ["starter", "vip", "perm_x2", "gems_xs", "gems_s", "gems_
 var _client: BillingClient = null
 var _connected := false
 var _products_ready := false
+var _store_prices: Dictionary = {}
 # Purchase tokens already granted — guards against double-granting a
 # non-consumable (starter/vip/perm_x2) when Play re-lists it on every
 # query_purchases() restore/relaunch. Persisted; bounded to the most recent
@@ -52,24 +54,81 @@ func _ready() -> void:
 func _on_connected() -> void:
 	_connected = true
 	_products_ready = false
+	_store_prices.clear()
+	catalog_updated.emit()
 	_client.query_product_details(PackedStringArray(PRODUCT_ORDER), BillingClient.ProductType.INAPP)
 	_client.query_purchases(BillingClient.ProductType.INAPP)   # restore already-owned non-consumables
 
 func _on_disconnected() -> void:
 	_connected = false
 	_products_ready = false
+	_store_prices.clear()
+	catalog_updated.emit()
 
 func _on_connect_error(_code: int, _message: String) -> void:
 	_connected = false
 	_products_ready = false
+	_store_prices.clear()
+	catalog_updated.emit()
 
 func _on_query_product_details_response(response: Dictionary) -> void:
 	var details: Array = response.get("product_details", response.get("productDetails", []))
-	_products_ready = _response_code(response) == BillingClient.BillingResponseCode.OK and not details.is_empty()
+	_store_prices.clear()
+	if _response_code(response) == BillingClient.BillingResponseCode.OK:
+		for value in details:
+			if value is not Dictionary:
+				continue
+			var detail: Dictionary = value
+			var product_id := str(detail.get("product_id", detail.get("productId", "")))
+			if not PRODUCTS.has(product_id):
+				continue
+			var formatted_price := _formatted_price_from_detail(detail, product_id)
+			if not formatted_price.is_empty():
+				_store_prices[product_id] = formatted_price
+	_products_ready = not _store_prices.is_empty()
+	catalog_updated.emit()
+
+func _formatted_price_from_detail(detail: Dictionary, product_id: String) -> String:
+	var offer = detail.get("one_time_purchase_offer_details",
+		detail.get("oneTimePurchaseOfferDetails", {}))
+	if offer is Dictionary:
+		var offer_dict: Dictionary = offer
+		var formatted := str(offer_dict.get("formatted_price", offer_dict.get("formattedPrice", "")))
+		if not formatted.is_empty():
+			return formatted
+		var product_offer = offer_dict.get(product_id, {})
+		if product_offer is Dictionary:
+			return str(product_offer.get("formatted_price", product_offer.get("formattedPrice", "")))
+	var offers: Array = detail.get("one_time_purchase_offer_details_list",
+		detail.get("oneTimePurchaseOfferDetailsList", []))
+	for value in offers:
+		if value is Dictionary:
+			var formatted := str(value.get("formatted_price", value.get("formattedPrice", "")))
+			if not formatted.is_empty():
+				return formatted
+	return ""
+
+## Live mobile builds only show prices supplied by their native storefront.
+## The configured values are previews for editor/desktop purchase-flow tests.
+func display_price(product_id: String) -> String:
+	if _store_prices.has(product_id):
+		return str(_store_prices[product_id])
+	if _purchase_simulator_allowed() and PRODUCTS.has(product_id):
+		return str(PRODUCTS[product_id].get("price", "—"))
+	return "…"
+
+func can_purchase_product(product_id: String) -> bool:
+	if not PRODUCTS.has(product_id):
+		return false
+	if _purchase_simulator_allowed():
+		return true
+	return _client != null and _connected and _products_ready and _store_prices.has(product_id)
 
 func buy(product_id: String) -> void:
 	if not PRODUCTS.has(product_id):
 		purchase_failed.emit(product_id, "produto desconhecido"); return
+	if not _purchase_simulator_allowed() and not can_purchase_product(product_id):
+		purchase_failed.emit(product_id, "billing_unavailable"); return
 	if _client == null or not _connected or not _products_ready:
 		if _purchase_simulator_allowed():
 			_grant(product_id)   # editor/desktop purchase-flow simulator

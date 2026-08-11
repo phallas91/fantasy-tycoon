@@ -172,6 +172,7 @@ func _ready() -> void:
 	SaveSystem.save_recovered.connect(_on_save_recovered)
 	Billing.purchased.connect(_on_iap_purchased)
 	Billing.purchase_failed.connect(_on_iap_failed)
+	Billing.catalog_updated.connect(_refresh_iap_prices)
 
 	var loaded := SaveSystem.load_game()
 	for product_id: String in Billing.PRODUCT_ORDER:
@@ -1515,13 +1516,13 @@ func _make_iap_row(product_id: String) -> PanelContainer:
 	r["detail"].text = tr(str(product["desc"]))
 	r["detail"].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var btn := _cbuy(UITheme.VIOLET.darkened(0.10), 112.0)
-	btn.text = str(product["price"])
+	btn.text = Billing.display_price(product_id)
 	btn.pressed.connect(func():
 		if not _can_tap(): return
 		Fx.press(btn); Billing.buy(product_id)
 	)
 	r["right"].add_child(btn)
-	_iap_rows[product_id] = {"card": r["card"], "btn": btn, "price": str(product["price"])}
+	_iap_rows[product_id] = {"card": r["card"], "btn": btn}
 	_update_iap_row(product_id)
 	return r["card"]
 
@@ -1530,8 +1531,12 @@ func _update_iap_row(product_id: String) -> void:
 	var row: Dictionary = _iap_rows[product_id]
 	var btn: Button = row["btn"]
 	var owned := Billing.owns(product_id)
-	btn.disabled = owned
-	btn.text = "✓" if owned else str(row["price"])
+	btn.disabled = owned or not Billing.can_purchase_product(product_id)
+	btn.text = "✓" if owned else Billing.display_price(product_id)
+
+func _refresh_iap_prices() -> void:
+	for product_id: String in Billing.PRODUCT_ORDER:
+		_update_iap_row(product_id)
 
 func _on_iap_purchased(product_id: String) -> void:
 	_update_iap_row(product_id)

@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 main = (ROOT / "scripts" / "main.gd").read_text(encoding="utf-8")
+billing = (ROOT / "scripts" / "billing.gd").read_text(encoding="utf-8")
 
 required = (
     "func _shop_catalog_stage() -> int:",
@@ -33,4 +34,22 @@ if buy_calls != ["Fx.press(btn); Billing.buy(product_id)"]:
 if "_show_iap" in main or "offer_countdown" in main:
     raise SystemExit("MONETIZATION_PACING: FAIL: coercive paid-offer popup/timer detected")
 
-print("MONETIZATION_PACING: PASS (optional four-stage catalogue, no automatic purchase prompt)")
+store_price_guards = (
+    "signal catalog_updated",
+    'detail.get("one_time_purchase_offer_details",',
+    'offer_dict.get("formatted_price",',
+    "func display_price(product_id: String) -> String:",
+    "func can_purchase_product(product_id: String) -> bool:",
+)
+missing_price_guards = [token for token in store_price_guards if token not in billing]
+if missing_price_guards:
+    raise SystemExit(
+        "MONETIZATION_PACING: FAIL: localized storefront price handling missing: "
+        + ", ".join(missing_price_guards)
+    )
+if 'btn.text = str(product["price"])' in main or '"price": str(product["price"])' in main:
+    raise SystemExit("MONETIZATION_PACING: FAIL: shop still renders configured preview prices")
+if "btn.disabled = owned or not Billing.can_purchase_product(product_id)" not in main:
+    raise SystemExit("MONETIZATION_PACING: FAIL: purchase buttons are active before store readiness")
+
+print("MONETIZATION_PACING: PASS (optional staged catalogue, localized store prices, readiness gate)")
