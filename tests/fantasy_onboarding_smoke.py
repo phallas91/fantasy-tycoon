@@ -34,6 +34,8 @@ required_main = (
 	"func _on_prosperity_advanced(",
 	"func _show_income_gain(before_income: float, source: Control) -> void:",
 	"GameState.auto_bought.connect(_on_auto_bought)",
+	"const OFFLINE_POPUP_MIN_SECONDS := 60.0",
+	"func _collect_short_offline_reward() -> void:",
 	"func _show_expansion_confirm() -> void:",
 	'"progress_override": true',
 	'"upgrade_key": recommended_key',

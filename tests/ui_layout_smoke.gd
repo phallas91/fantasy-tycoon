@@ -53,6 +53,17 @@ func _run() -> void:
 				"automatic manager did not unlock at city rank 2"):
 			break
 		GameState.prosperity_rank = 0
+		GameState.pending_offline = 12.0
+		GameState.pending_offline_seconds = 14.0
+		if not _check(not bool(main.call("_should_show_offline_popup")),
+				"brief absence still triggers the full-screen offline popup"):
+			break
+		GameState.pending_offline_seconds = 61.0
+		if not _check(bool(main.call("_should_show_offline_popup")),
+				"meaningful offline session no longer receives its reward popup"):
+			break
+		GameState.pending_offline = 0.0
+		GameState.pending_offline_seconds = 0.0
 
 		# A manual purchase must communicate its exact economic consequence without
 		# adding a permanent widget to the already compact landscape HUD.

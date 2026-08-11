@@ -3,6 +3,7 @@ extends Control
 
 const NAV_H := 70.0
 const SIDE_PANEL_W := 410.0
+const OFFLINE_POPUP_MIN_SECONDS := 60.0
 const LANDSCAPE_PANEL_TOP := 150.0
 const MANAGEMENT_PAGE_SIZE := 3
 const ART    := "res://assets/art/"
@@ -188,10 +189,25 @@ func _post_boot(loaded: bool) -> void:
 	_boot_complete = true
 	if not loaded:
 		_show_welcome_popup()
-	elif GameState.pending_offline > 1.0:
+	elif _should_show_offline_popup():
 		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
-	elif Daily.pending:
-		_show_daily_popup()
+	else:
+		_collect_short_offline_reward()
+		if Daily.pending:
+			_show_daily_popup()
+
+## Brief app switches should never interrupt play with a full-screen reward
+## ceremony. One minute is long enough for offline earnings to feel intentional;
+## shorter absences are credited silently and remain fully lossless.
+func _should_show_offline_popup() -> bool:
+	return GameState.pending_offline > 1.0 \
+		and GameState.pending_offline_seconds >= OFFLINE_POPUP_MIN_SECONDS
+
+func _collect_short_offline_reward() -> void:
+	if GameState.pending_offline <= 0.0 or _should_show_offline_popup():
+		return
+	GameState.collect_offline(1.0)
+	_disp_credits = GameState.credits
 
 ## Recovery can happen during load, underneath the cinematic cover. Hold the
 ## confirmation until boot and any welcome/reward modal have finished so the
@@ -217,8 +233,10 @@ func _on_session_offline_ready(_amount: float, _seconds: float) -> void:
 	while _has_modal_overlay():
 		await get_tree().create_timer(0.35).timeout
 	_resume_reward_queued = false
-	if GameState.pending_offline > 1.0:
+	if _should_show_offline_popup():
 		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
+	else:
+		_collect_short_offline_reward()
 
 func _has_modal_overlay() -> bool:
 	for child in get_children():
