@@ -2093,9 +2093,7 @@ func _smart_objective() -> Dictionary:
 	# deliberate hand-off: routes and automation have then been introduced.
 	if _opening_city_chapter_active():
 		if GameState.drones < 4:
-			return {"text": tr("Compra drones e melhorias"), "tab": 0, "focus": _drone_btn,
-				"cost": GameState.drone_cost_multi(1), "progress": 0.0,
-				"accent": UITheme.ACCENT, "icon": "ic_drone"}
+			return _courier_objective()
 		return _prosperity_objective()
 	for i in range(Contracts.slots.size()):
 		var contract: Dictionary = Contracts.slots[i]
@@ -2121,9 +2119,7 @@ func _smart_objective() -> Dictionary:
 	# Keep the first few minutes simple: establish the courier loop before
 	# suggesting one of four similarly-priced stat upgrades.
 	if GameState.drones < 4:
-		return {"text": tr("Compra drones e melhorias"), "tab": 0, "focus": _drone_btn,
-			"cost": GameState.drone_cost_multi(1), "progress": 0.0,
-			"accent": UITheme.ACCENT, "icon": "ic_drone"}
+		return _courier_objective()
 	# The opening city is organised into short, visible construction chapters.
 	# Point to the best immediate income gain per credit so the player has one
 	# concrete, economically meaningful action instead of four equal choices.
@@ -2162,6 +2158,13 @@ func _smart_objective() -> Dictionary:
 func _opening_city_chapter_active() -> bool:
 	return GameState.current_country == 0 and GameState.cities_unlocked == 1 \
 		and GameState.prosperity_rank < 2
+
+func _courier_objective() -> Dictionary:
+	const OPENING_FLEET_TARGET := 4
+	return {"text": tr("Comprar Drones") + "  ·  %d/%d" % [GameState.drones, OPENING_FLEET_TARGET],
+		"tab": 0, "focus": _drone_btn, "cost": GameState.drone_cost_multi(1),
+		"progress": clampf(float(GameState.drones) / float(OPENING_FLEET_TARGET), 0.0, 1.0),
+		"progress_override": true, "accent": UITheme.ACCENT, "icon": "ic_drone"}
 
 func _prosperity_objective() -> Dictionary:
 	var prosperity_target: int = GameState.next_prosperity_threshold()

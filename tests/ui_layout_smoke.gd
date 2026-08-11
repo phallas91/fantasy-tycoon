@@ -59,6 +59,15 @@ func _run() -> void:
 				and opening_objective.get("focus") == main.get("_focus_btn"),
 				"opening objective competes with the guided courier action"):
 			break
+		GameState.drones = 2
+		GameState.prosperity_rank = 0
+		var fleet_objective: Dictionary = main.call("_smart_objective")
+		if not _check("2/4" in str(fleet_objective.get("text", ""))
+				and is_equal_approx(float(fleet_objective.get("progress", 0.0)), 0.5)
+				and bool(fleet_objective.get("progress_override", false))
+				and fleet_objective.get("focus") == main.get("_drone_btn"),
+				"courier lesson is not a concrete four-griffin mini-goal"):
+			break
 		# Even abundant credits must not skip the opening construction lesson.
 		GameState.drones = 4
 		GameState.credits = 1.0e12
