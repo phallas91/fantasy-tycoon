@@ -70,6 +70,21 @@ func _run() -> void:
 		return
 
 	game_state.reset()
+	# Every settlement must be a real tycoon expansion, not a cosmetic route
+	# that silently dilutes the same fleet across more destinations.
+	for country_index in range(economy.num_countries()):
+		game_state.current_country = country_index
+		game_state.drones = 10
+		game_state.cities_unlocked = 1
+		while game_state.cities_unlocked < game_state.max_cities():
+			var city_income_before: float = float(game_state.income_per_sec())
+			var city_gain: float = float(game_state.projected_city_income_gain(city_income_before))
+			game_state.cities_unlocked += 1
+			var city_gain_measured: float = float(game_state.income_per_sec()) - city_income_before
+			if city_gain <= 0.0 or not is_equal_approx(city_gain, city_gain_measured):
+				_fail("city expansion is not guaranteed positive in realm %d" % country_index)
+				return
+	game_state.reset()
 	if not game_state.is_upgrade_unlocked("cargo") or game_state.is_upgrade_unlocked("speed") \
 			or game_state.is_upgrade_unlocked("value") or game_state.is_upgrade_unlocked("routes"):
 		_fail("opening construction paths are not progressively gated")

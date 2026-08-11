@@ -94,6 +94,8 @@ missing += [token for token in (
 	"func is_upgrade_unlocked(key: String) -> bool:",
 	"func upgrade_keys_unlocked_at(rank: int) -> Array[String]:",
 	"func projected_upgrade_income_gain(key: String, count: int, current_income := -1.0) -> float:",
+	"func city_network_mult(route_count := -1) -> float:",
+	"func projected_city_income_gain(current_income := -1.0) -> float:",
 	"var buy_mode := 1",
 	"drones = Prestige.starting_drones()",
 	"levels = Prestige.starting_levels()",

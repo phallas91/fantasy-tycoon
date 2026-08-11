@@ -267,11 +267,16 @@ func _route_dist(r: int, cities: Array = []) -> float:
 ## so callers looping over many routes/drones (income_per_sec(), _process()
 ## below) can compute this ONCE per frame instead of recomputing 2 pow()
 ## calls + 4 multiplier lookups for every single one.
-func _delivery_const_mult() -> float:
+func city_network_mult(route_count := -1) -> float:
+	var active_routes: int = cities_unlocked if route_count < 0 else int(route_count)
+	return 1.0 + 0.12 * float(maxi(active_routes, 1) - 1)
+
+func _delivery_const_mult(route_count := -1) -> float:
 	var vf := (1.0 + 0.25 * float(levels["cargo"]) * Economy.milestone_mult(int(levels["cargo"]))) \
 		* pow(1.04, float(levels["value"])) * Economy.milestone_mult(int(levels["value"])) \
 		* (1.0 + 0.04 * float(talents["value"]))
-	return BASE_DELIV * vf * Economy.pay_tier(current_country) * global_mult() * route_mult()
+	return BASE_DELIV * vf * Economy.pay_tier(current_country) * global_mult() * route_mult() \
+		* city_network_mult(route_count)
 
 ## Credits for one delivery to a route (weak upgrade gains; scales with country tier).
 func per_delivery(dist: float) -> float:
@@ -282,20 +287,28 @@ func fleet_scale() -> float:
 
 ## Estimated credits/sec (for display & offline) — derived from delivery throughput.
 func income_per_sec() -> float:
-	var n := cities_unlocked
+	return _income_for_route_count(cities_unlocked)
+
+func _income_for_route_count(n: int) -> float:
 	if n < 1:
 		return 0.0
 	# hoisted out of the loop: identical for every route, was previously
 	# recomputed (2 pow() calls + a fresh country_cities() lookup) per route
 	var sf := speed_factor()
 	var cities := Economy.country_cities(current_country)
-	var const_mult := _delivery_const_mult()
+	var const_mult := _delivery_const_mult(n)
 	var s := 0.0
 	for r in range(n):
 		var d := _route_dist(r, cities)
 		var tt := 2.0 * d / (BASE_SPEED * sf)
 		s += const_mult * (1.0 + d) / tt
 	return float(drones) * (s / float(n))
+
+func projected_city_income_gain(current_income := -1.0) -> float:
+	if cities_unlocked >= max_cities():
+		return 0.0
+	var income := income_per_sec() if current_income < 0.0 else current_income
+	return maxf(0.0, _income_for_route_count(cities_unlocked + 1) - income)
 
 ## Exact contribution of one active trade route to the displayed realm income.
 ## The fleet is distributed evenly across all routes, matching income_per_sec().

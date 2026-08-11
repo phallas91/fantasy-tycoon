@@ -67,6 +67,9 @@ func _run() -> void:
 		if not _check("/s" in str((opening_rows["cargo"]["detail"] as Label).text),
 				"visible construction card does not preview its income gain"):
 			break
+		if not _check("/s" in str((main.get("_city_detail") as Label).text),
+				"next settlement does not preview its network income gain"):
+			break
 		GameState.prosperity_rank = 1
 		main.call("_process", 0.0)
 		if not _check(not bool((opening_rows["speed"]["card"] as Control).get_meta("progression_hidden"))

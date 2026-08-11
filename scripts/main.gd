@@ -1158,7 +1158,10 @@ func _build_cities_tab() -> ScrollContainer:
 	_city_btn = _cbuy(UITheme.CYAN.darkened(0.10), 150.0)
 	_city_btn.pressed.connect(func():
 		if not _can_tap(): return
-		if GameState.unlock_city(): Fx.press(_city_btn); Audio.play("buy")
+		var income_before := GameState.income_per_sec()
+		if GameState.unlock_city():
+			Fx.press(_city_btn); Audio.play("buy")
+			_show_income_gain(income_before, _city_btn)
 		else: Fx.error_shake(_city_btn)
 	)
 	cr["right"].add_child(_city_btn); v.add_child(cr["card"])
@@ -1981,7 +1984,9 @@ func _process(delta: float) -> void:
 		_city_btn.text = Fmt.short(next_city_cost); _city_btn.disabled = GameState.credits < next_city_cost
 		var ci := GameState.current_country; var cities := Economy.country_cities(ci)
 		var nx: int = clampi(GameState.cities_unlocked + 1, 1, cities.size() - 1)
-		_city_detail.text = (tr("Próxima: %s") % cities[nx]["name"]) + _eta_suffix(next_city_cost, ips)
+		_city_detail.text = (tr("Próxima: %s") % cities[nx]["name"]) + "  ·  " \
+			+ (tr("Renda +%s/s") % Fmt.short(GameState.projected_city_income_gain(ips))) \
+			+ _eta_suffix(next_city_cost, ips)
 	_afford(_city_btn, not _city_btn.disabled and next_city_cost >= 0.0)
 	var ec := GameState.expand_cost()
 	if ec < 0.0:

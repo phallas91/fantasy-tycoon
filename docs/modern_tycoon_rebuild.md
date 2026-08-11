@@ -73,6 +73,9 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 - Realm expansion now starts a fresh local city and base fleet while preserving
   influence, talents, collection and legacy progress; a confirmation explains
   the exchange before anything is reset.
+- Every settlement now adds permanent local network capacity instead of merely
+  redistributing the same fleet. Its card previews the exact income increase,
+  and all 40 realms are tested to keep every city unlock economically positive.
 - Give each upgrade a distinct audio consequence. *(completed; four investment
   signatures plus four landmark variants)*
 - Every manual courier or construction purchase now reports its exact income
