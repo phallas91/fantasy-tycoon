@@ -1875,11 +1875,7 @@ func _process(delta: float) -> void:
 	# earned. Marking them as progression-hidden lets pagination remove them
 	# entirely instead of leaving blank slots/pages.
 	if _upgrade_unlock_rank != GameState.prosperity_rank:
-		_upgrade_unlock_rank = GameState.prosperity_rank
-		for unlock_key: String in _rows:
-			(_rows[unlock_key]["card"] as Control).set_meta("progression_hidden",
-				not GameState.is_upgrade_unlocked(unlock_key))
-		_show_management_page(_pages[0] as ScrollContainer, int(_page_indices.get(_pages[0], 0)))
+		_sync_upgrade_unlocks()
 
 	for key: String in _rows:
 		var count := GameState.planned_count(key); var cost := GameState.upgrade_cost_multi(key, maxi(1, count))
@@ -2191,6 +2187,26 @@ func _show_control_page(sc: ScrollContainer, target: Control) -> void:
 			_show_management_page(sc, floori(float(i) / float(MANAGEMENT_PAGE_SIZE)))
 			return
 
+func _sync_upgrade_unlocks() -> void:
+	_upgrade_unlock_rank = GameState.prosperity_rank
+	for unlock_key: String in _rows:
+		(_rows[unlock_key]["card"] as Control).set_meta("progression_hidden",
+			not GameState.is_upgrade_unlocked(unlock_key))
+	_show_management_page(_pages[0] as ScrollContainer, int(_page_indices.get(_pages[0], 0)))
+
+func _reveal_prosperity_unlocks(rank: int) -> void:
+	_sync_upgrade_unlocks()
+	var unlocked := GameState.upgrade_keys_unlocked_at(rank)
+	if unlocked.is_empty(): return
+	for key: String in unlocked:
+		_toast(tr("%s desbloqueada!") % tr(str(Economy.UPGRADES[key]["name"])),
+			UITheme.GOLD, str(Economy.UPGRADES[key].get("icon", "ic_city")))
+	if _active_tab == 0:
+		var reveal_card := _rows[unlocked[0]]["card"] as Control
+		_show_control_page(_pages[0] as ScrollContainer, reveal_card)
+		Fx.shimmer(reveal_card, UITheme.GOLD)
+		Fx.ring_pulse(reveal_card, reveal_card.size * 0.5, UITheme.GOLD, 1.7)
+
 func _update_nav_dots() -> void:
 	if _nav_dots.size() < 6: return
 	# Fleet
@@ -2270,6 +2286,7 @@ func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> 
 	Fx.screen_flash(self, UITheme.GOLD, 0.08 + float(rank) * 0.02)
 	if rank == 2:
 		_toast(tr("%s desbloqueada!") % tr("Gestor de Frota Automático"), UITheme.VIOLET, "ic_blessing")
+	call_deferred("_reveal_prosperity_unlocks", rank)
 	Audio.play("milestone")
 	Fx.vibrate(28 + rank * 8)
 	_map.focus_city(0)

@@ -46,6 +46,8 @@ required_main = (
 	"_auto_mgr_section.visible = auto_manager_unlocked",
 	'not GameState.is_upgrade_unlocked(unlock_key)',
 	'get_meta("progression_hidden", false)',
+	"func _reveal_prosperity_unlocks(rank: int) -> void:",
+	'call_deferred("_reveal_prosperity_unlocks", rank)',
 )
 required_map = (
 	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
@@ -90,6 +92,7 @@ missing += [token for token in (
 	"func recommended_affordable_purchase() -> Dictionary:",
 	'const UPGRADE_UNLOCK_RANK := {"cargo": 0, "speed": 1, "value": 1, "routes": 2}',
 	"func is_upgrade_unlocked(key: String) -> bool:",
+	"func upgrade_keys_unlocked_at(rank: int) -> Array[String]:",
 	"var buy_mode := 1",
 	"drones = Prestige.starting_drones()",
 	"levels = Prestige.starting_levels()",

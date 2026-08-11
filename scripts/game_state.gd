@@ -170,6 +170,13 @@ func is_upgrade_unlocked(key: String) -> bool:
 	return UPGRADE_UNLOCK_RANK.has(key) \
 		and prosperity_rank >= int(UPGRADE_UNLOCK_RANK[key])
 
+func upgrade_keys_unlocked_at(rank: int) -> Array[String]:
+	var unlocked: Array[String] = []
+	for key: String in Economy.UPGRADE_ORDER:
+		if int(UPGRADE_UNLOCK_RANK.get(key, 99)) == rank:
+			unlocked.append(key)
+	return unlocked
+
 ## Best affordable automatic purchase, including another courier. Kept public
 ## for transparent UI/tests: automation follows the same value-per-credit rule
 ## as the player-facing advisor and never gets a hidden economic advantage.

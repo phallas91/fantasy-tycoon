@@ -83,6 +83,10 @@ func _run() -> void:
 	if not game_state.is_upgrade_unlocked("routes"):
 		_fail("route construction does not unlock with automation")
 		return
+	if game_state.upgrade_keys_unlocked_at(1) != ["speed", "value"] \
+			or game_state.upgrade_keys_unlocked_at(2) != ["routes"]:
+		_fail("chapter unlock reveal does not match the actual construction gates")
+		return
 	game_state.credits = 1.0e12
 	game_state.drones = 4
 	var advised_kind := str(game_state.recommended_affordable_purchase().get("kind", ""))

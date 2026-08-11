@@ -66,6 +66,8 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
   maximum buying unlock across the first three prosperity chapters.
 - Construction paths are earned in chapters instead of appearing as four rows
   at once: cargo first, speed/value at city rank 1, routes at city rank 2.
+- Reaching a new city rank now reveals each earned construction path with a
+  localized reward toast, moves the fleet pager to it and highlights its card.
 - The automatic caravan master stays hidden until city rank 2, then follows the
   same income-gain-per-credit recommendation as the visible city advisor.
 - Realm expansion now starts a fresh local city and base fleet while preserving
