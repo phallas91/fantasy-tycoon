@@ -25,6 +25,7 @@ required_main = (
 	"func _opening_city_chapter_active() -> bool:",
 	"if _opening_city_chapter_active():",
 	"return _prosperity_objective()",
+	"func _next_prosperity_unlock_text() -> String:",
 	'"focus": _focus_btn, "cost": GameState.drone_cost_multi(1)',
     "func _nav_unlocked(tab_index: int) -> bool:",
     "_nav_btns[i].visible = dashboard_ready and _nav_unlocked(i)",

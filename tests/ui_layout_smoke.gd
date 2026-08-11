@@ -65,8 +65,16 @@ func _run() -> void:
 		GameState.prosperity_rank = 0
 		var construction_objective: Dictionary = main.call("_smart_objective")
 		if not _check(construction_objective.get("tab") == 0
-				and construction_objective.get("upgrade_key") == "cargo",
+				and construction_objective.get("upgrade_key") == "cargo"
+				and tr("Reisetempo") in str(construction_objective.get("text", ""))
+				and tr("Handelswert") in str(construction_objective.get("text", "")),
 				"affordable settlement interrupts the opening construction chapter"):
+			break
+		GameState.prosperity_rank = 1
+		var route_preview: String = str(main.call("_next_prosperity_unlock_text"))
+		if not _check(tr("Handelsrouten") in route_preview
+				and tr("Gestor de Frota Automático") in route_preview,
+				"opening chapter does not preview routes and automation"):
 			break
 		GameState.prosperity_rank = 2
 		var realm_objective: Dictionary = main.call("_smart_objective")

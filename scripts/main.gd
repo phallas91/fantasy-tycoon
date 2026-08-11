@@ -2170,12 +2170,24 @@ func _prosperity_objective() -> Dictionary:
 	if reward_gems > 0:
 		reward_text += " +%d◆" % reward_gems
 	var prosperity_focus: Control = _rows[recommended_key]["btn"] if _rows.has(recommended_key) else null
-	return {"text": tr("Cidade em construção %d/%d · Prémio: %s") % [GameState.investment_total(), prosperity_target, reward_text],
+	var objective_text := tr("Cidade em construção %d/%d · Prémio: %s") % [GameState.investment_total(), prosperity_target, reward_text]
+	var next_unlock := _next_prosperity_unlock_text()
+	if not next_unlock.is_empty():
+		objective_text = tr("Cidade em construção %d/%d · Próxima: %s") % [GameState.investment_total(), prosperity_target, next_unlock]
+	return {"text": objective_text,
 		"tab": 0, "focus": prosperity_focus, "cost": recommended_cost,
 		"progress": GameState.prosperity_chapter_progress(),
 		"progress_override": true, "accent": UITheme.GOLD,
 		"upgrade_key": recommended_key,
 		"icon": str(Economy.UPGRADES[recommended_key].get("icon", "ic_city"))}
+
+func _next_prosperity_unlock_text() -> String:
+	match GameState.prosperity_rank:
+		0:
+			return tr("Reisetempo") + " + " + tr("Handelswert")
+		1:
+			return tr("Handelsrouten") + " + " + tr("Gestor de Frota Automático")
+	return ""
 
 func _refresh_smart_objective() -> void:
 	_objective_cache = _smart_objective()
