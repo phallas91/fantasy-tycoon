@@ -20,7 +20,9 @@ required_economy = (
 	"func next_district_stage(key: String, level: int) -> Dictionary:",
 )
 required_main = (
-    "func _progression_stage() -> int:",
+	"func _progression_stage() -> int:",
+	'if _progression_stage() == 0:',
+	'"focus": _focus_btn, "cost": GameState.drone_cost_multi(1)',
     "func _nav_unlocked(tab_index: int) -> bool:",
     "_nav_btns[i].visible = dashboard_ready and _nav_unlocked(i)",
     "if not _nav_unlocked(i):",

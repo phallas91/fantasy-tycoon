@@ -2036,6 +2036,13 @@ func _set_fill(p: Panel, pct: float) -> void:
 ## progression beats outrank routine purchases; otherwise the advisor picks an
 ## affordable early-growth action before returning to the next unlock target.
 func _smart_objective() -> Dictionary:
+	# The opening chapter has exactly one job. Persisted contracts, daily state or
+	# veteran-side systems must never compete with the guided courier card before
+	# the player has completed that first meaningful action.
+	if _progression_stage() == 0:
+		return {"text": tr("Começa a tua primeira rota comercial"), "tab": 0,
+			"focus": _focus_btn, "cost": GameState.drone_cost_multi(1), "progress": 0.0,
+			"accent": UITheme.GOLD, "icon": "ic_drone"}
 	for i in range(Contracts.slots.size()):
 		var contract: Dictionary = Contracts.slots[i]
 		if contract.get("ready", false) and not contract.get("claimed", false):

@@ -34,6 +34,8 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
 - Hide the management dashboard and navigation on a fresh save.
 - Show the city, current cash/income and one griffin-courier action.
 - Reveal the fleet dashboard after the first meaningful purchase.
+- Until that purchase, the HUD objective and guided world card both point to
+  the same first griffin courier; persisted contracts cannot steal focus.
 - Absences under one minute are credited silently; only meaningful idle
   sessions interrupt the world with the full return-reward ceremony.
 

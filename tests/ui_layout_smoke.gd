@@ -38,6 +38,17 @@ func _run() -> void:
 		for _frame in range(5):
 			await get_tree().process_frame
 
+		GameState.current_country = 0
+		GameState.cities_unlocked = 1
+		GameState.drones = 1
+		for opening_key: String in GameState.levels:
+			GameState.levels[opening_key] = 0
+		var opening_objective: Dictionary = main.call("_smart_objective")
+		if not _check(str(opening_objective.get("text", "")) == tr("Começa a tua primeira rota comercial")
+				and opening_objective.get("focus") == main.get("_focus_btn"),
+				"opening objective competes with the guided courier action"):
+			break
+
 		# The automatic manager used to dominate the fresh fleet panel before the
 		# player understood manual construction. Guard both sides of its rank gate.
 		GameState.prosperity_rank = 0
