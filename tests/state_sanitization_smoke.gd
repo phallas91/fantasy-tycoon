@@ -95,6 +95,14 @@ func _run() -> void:
 				_fail("city expansion is not guaranteed positive in realm %d" % country_index)
 				return
 	game_state.reset()
+	game_state.drones = 10
+	game_state.credits = 1.0e12
+	var signalled_city_gain := float(game_state.projected_city_income_gain())
+	if not game_state.unlock_city() or not is_equal_approx(
+			float(game_state.last_city_income_gain), signalled_city_gain):
+		_fail("city unlock feedback does not report its exact income gain")
+		return
+	game_state.reset()
 	if not game_state.is_upgrade_unlocked("cargo") or game_state.is_upgrade_unlocked("speed") \
 			or game_state.is_upgrade_unlocked("value") or game_state.is_upgrade_unlocked("routes"):
 		_fail("opening construction paths are not progressively gated")

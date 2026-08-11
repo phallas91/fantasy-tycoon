@@ -102,6 +102,7 @@ missing += [token for token in (
 	"func projected_upgrade_income_gain(key: String, count: int, current_income := -1.0) -> float:",
 	"func city_network_mult(route_count := -1) -> float:",
 	"func projected_city_income_gain(current_income := -1.0) -> float:",
+	"var last_city_income_gain := 0.0",
 	"func cargo_mult(level := -1) -> float:",
 	"func value_mult(level := -1) -> float:",
 	"var buy_mode := 1",

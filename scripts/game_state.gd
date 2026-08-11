@@ -41,6 +41,7 @@ var influence_total := 0
 var current_country := 0
 var regions_done: Array = []   # region indices whose one-time completion bonus is earned (permanent)
 var cities_unlocked := 1          # active delivery cities (capital is always home)
+var last_city_income_gain := 0.0  # exact measured gain for unified unlock feedback
 var drones := 1
 var levels := {"speed": 0, "cargo": 0, "value": 0, "routes": 0}
 var talents := {"global": 0, "speed": 0, "value": 0, "hangar": 0}
@@ -503,9 +504,11 @@ func can_unlock_city() -> bool:
 func unlock_city() -> bool:
 	if not can_unlock_city():
 		return false
+	var income_before := income_per_sec()
 	credits -= next_city_cost()
 	cities_unlocked += 1
 	_rebuild_drones()
+	last_city_income_gain = maxf(0.0, income_per_sec() - income_before)
 	city_unlocked.emit(cities_unlocked)
 	_check_regions()   # unlocking the final country's last city completes the last region
 	return true
@@ -753,6 +756,7 @@ func from_dict(d: Dictionary) -> void:
 	influence_total = maxi(influence, int(d.get("influence_total", influence)))
 	current_country = clampi(int(d.get("current_country", 0)), 0, Economy.num_countries() - 1)
 	cities_unlocked = clampi(int(d.get("cities_unlocked", 1)), 1, max_cities())
+	last_city_income_gain = 0.0
 	drones = clampi(int(d.get("drones", 1)), 1, 1_000_000_000)
 	var lv := {"speed": 0, "cargo": 0, "value": 0, "routes": 0}
 	var slv: Dictionary = d.get("levels", {})

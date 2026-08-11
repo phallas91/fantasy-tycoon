@@ -1159,10 +1159,8 @@ func _build_cities_tab() -> ScrollContainer:
 	_city_btn = _cbuy(UITheme.CYAN.darkened(0.10), 150.0)
 	_city_btn.pressed.connect(func():
 		if not _can_tap(): return
-		var income_before := GameState.income_per_sec()
 		if GameState.unlock_city():
 			Fx.press(_city_btn); Audio.play("buy")
-			_show_income_gain(income_before, _city_btn)
 		else: Fx.error_shake(_city_btn)
 	)
 	cr["right"].add_child(_city_btn); v.add_child(cr["card"])
@@ -2317,7 +2315,11 @@ func _talent_effect_total(key: String, lvl: int) -> String:
 
 func _on_city_unlocked(i: int) -> void:
 	_refresh_progressive_nav()
-	_toast(tr("Cidade desbloqueada!"), UITheme.CYAN, "ic_city")
+	var cities := Economy.country_cities(GameState.current_country)
+	var city_index := clampi(i, 0, cities.size() - 1)
+	var city_name := str(cities[city_index].get("name", tr("Cidade")))
+	_toast(tr("%s desbloqueada · Renda +%s/s") % [city_name, Fmt.short(GameState.last_city_income_gain)],
+		UITheme.CYAN, "ic_city")
 	var c := Vector2(size.x * 0.5, size.y * 0.42)
 	Fx.confetti(self, c, 22)
 	Fx.ring_pulse(self, c, UITheme.CYAN, 2.2)
