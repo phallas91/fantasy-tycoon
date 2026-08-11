@@ -126,22 +126,33 @@ func _check_regions() -> void:
 ## by typical impact.
 func mult_breakdown() -> Array:
 	return [
-		["Prestígio", Prestige.effective_mult()],
-		["Gildensegen", guild_blessing_mult()],
+		["Prestige", Prestige.effective_mult()],
+		["Bênção da Guilda", guild_blessing_mult()],
 		["Evento", Events.current_mult],
-		["Combo", combo_mult()],
 		["Influência", 1.0 + 0.05 * float(influence)],
 		["Talento Global", 1.0 + 0.06 * float(talents["global"])],
 		["Núcleo de Lucro", 1.0 + 0.25 * float(gem_boost)],
-		["Skins", skin_collection_mult()],
+		["Hangar de Skins", skin_collection_mult()],
 		["Regiões", region_bonus_mult()],
+		["Rede de cidades", city_network_mult()],
+		["Capacidade de Carga", cargo_mult()],
+		["Valor da Encomenda", value_mult()],
 		["Rede de Rotas", route_mult()],
-		["Velocidade", speed_factor()],
+		["Velocidade dos Drones", speed_factor()],
+		["Bónus Premium", Billing.premium_income_mult()],
 	]
 
 func route_mult() -> float:
 	var rl := int(levels.get("routes", 0))
 	return 1.0 + 0.025 * float(rl) * Economy.milestone_mult(rl)
+
+func cargo_mult(level := -1) -> float:
+	var cargo_level: int = int(levels.get("cargo", 0)) if level < 0 else int(level)
+	return 1.0 + 0.25 * float(cargo_level) * Economy.milestone_mult(cargo_level)
+
+func value_mult(level := -1) -> float:
+	var value_level: int = int(levels.get("value", 0)) if level < 0 else int(level)
+	return pow(1.04, float(value_level)) * Economy.milestone_mult(value_level)
 
 ## Picks the construction path with the strongest immediate income gain per
 ## credit. This keeps the advisor useful instead of merely pointing at the
@@ -218,9 +229,9 @@ func _upgrade_income_factor(key: String, level: int) -> float:
 			return 1.0 + 0.03 * float(level) * Economy.milestone_mult(level) \
 				+ 0.04 * float(talents.get("speed", 0))
 		"cargo":
-			return 1.0 + 0.25 * float(level) * Economy.milestone_mult(level)
+			return cargo_mult(level)
 		"value":
-			return pow(1.04, float(level)) * Economy.milestone_mult(level)
+			return value_mult(level)
 		"routes":
 			return 1.0 + 0.025 * float(level) * Economy.milestone_mult(level)
 	return 1.0
@@ -272,8 +283,8 @@ func city_network_mult(route_count := -1) -> float:
 	return 1.0 + 0.12 * float(maxi(active_routes, 1) - 1)
 
 func _delivery_const_mult(route_count := -1) -> float:
-	var vf := (1.0 + 0.25 * float(levels["cargo"]) * Economy.milestone_mult(int(levels["cargo"]))) \
-		* pow(1.04, float(levels["value"])) * Economy.milestone_mult(int(levels["value"])) \
+	var vf := cargo_mult() \
+		* value_mult() \
 		* (1.0 + 0.04 * float(talents["value"]))
 	return BASE_DELIV * vf * Economy.pay_tier(current_country) * global_mult() * route_mult() \
 		* city_network_mult(route_count)

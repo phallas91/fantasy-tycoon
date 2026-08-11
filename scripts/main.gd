@@ -2851,7 +2851,7 @@ func _show_income_breakdown() -> void:
 			continue   # only show factors actually contributing
 		total *= val
 		var rr := HBoxContainer.new(); rr.add_theme_constant_override("separation", 6); box.add_child(rr)
-		var nm := _lbl(str(row[0]), 16, UITheme.MUTED); nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL; rr.add_child(nm)
+		var nm := _lbl(tr(str(row[0])), 16, UITheme.MUTED); nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL; rr.add_child(nm)
 		var vl := _lbl("×%.2f" % val, 16, UITheme.INK); vl.add_theme_font_override("font", UITheme.font("Bold")); rr.add_child(vl)
 	var tot := _lbl(tr("Total ×%.2f") % total, 19, UITheme.GOLD)
 	tot.add_theme_font_override("font", UITheme.font("Bold"))

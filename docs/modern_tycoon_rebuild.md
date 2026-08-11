@@ -78,6 +78,9 @@ mobile idle tycoons, not a desktop dashboard compressed onto a phone.
   and all 40 realms are tested to keep every city unlock economically positive.
 - The frontier settlement now carries a restrained live-income chip on the
   world map, while every active city row shows its exact route contribution.
+- The income inspector now translates and accounts for city network, cargo,
+  trade value and premium factors; temporary delivery combo is no longer
+  misrepresented as part of the permanent per-second rate.
 - Give each upgrade a distinct audio consequence. *(completed; four investment
   signatures plus four landmark variants)*
 - Every manual courier or construction purchase now reports its exact income

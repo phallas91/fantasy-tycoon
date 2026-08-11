@@ -70,6 +70,16 @@ func _run() -> void:
 		return
 
 	game_state.reset()
+	var breakdown_labels: Array[String] = []
+	for row: Array in game_state.mult_breakdown():
+		breakdown_labels.append(str(row[0]))
+	for expected_label in ["Rede de cidades", "Capacidade de Carga", "Valor da Encomenda", "Bónus Premium"]:
+		if not breakdown_labels.has(expected_label):
+			_fail("income breakdown omits %s" % expected_label)
+			return
+	if breakdown_labels.has("Combo"):
+		_fail("temporary delivery combo is presented as permanent income")
+		return
 	# Every settlement must be a real tycoon expansion, not a cosmetic route
 	# that silently dilutes the same fleet across more destinations.
 	for country_index in range(economy.num_countries()):
