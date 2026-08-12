@@ -154,6 +154,25 @@ func _run() -> void:
 				and not realm_objective.has("upgrade_key"),
 				"opening construction chapter does not hand off to realm growth"):
 			break
+		# A fresh later realm must not point at a stored meta reward while its city
+		# is still an empty capital. The reward remains claimable after rank 2.
+		var contract_was_ready := bool(Contracts.slots[0].get("ready", false))
+		var contract_was_claimed := bool(Contracts.slots[0].get("claimed", false))
+		Contracts.slots[0]["ready"] = true
+		Contracts.slots[0]["claimed"] = false
+		GameState.current_country = 1
+		GameState.cities_unlocked = 1
+		GameState.prosperity_rank = 0
+		GameState.drones = 4
+		var rebuilt_realm_objective: Dictionary = main.call("_smart_objective")
+		Contracts.slots[0]["ready"] = contract_was_ready
+		Contracts.slots[0]["claimed"] = contract_was_claimed
+		if not _check(rebuilt_realm_objective.get("tab") == 0
+				and rebuilt_realm_objective.get("upgrade_key") == "cargo",
+				"stored contract reward interrupts a fresh realm's city chapter"):
+			break
+		GameState.current_country = 0
+		GameState.prosperity_rank = 2
 		# Realm growth introduces missions after the first new route. Talents wait
 		# for the second realm where influence is actually awarded; shop and legacy
 		# remain later realm beats instead of exposing disabled systems.

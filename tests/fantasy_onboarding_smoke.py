@@ -27,6 +27,7 @@ required_main = (
 	"if GameState.drones >= 4 or upgrade_total >= 2:",
 	'if _progression_stage() == 0:',
 	"func _opening_city_chapter_active() -> bool:",
+	"return GameState.cities_unlocked == 1 and GameState.prosperity_rank < 2",
 	"func _courier_objective() -> Dictionary:",
 	"const OPENING_FLEET_TARGET := 4",
 	'"progress_override": true, "accent": UITheme.ACCENT, "icon": "ic_drone"',

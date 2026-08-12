@@ -2178,9 +2178,9 @@ func _smart_objective() -> Dictionary:
 			"accent": UITheme.GOLD, "icon": "ic_drone"}
 	if _progression_stage() == 0:
 		return _courier_objective()
-	# Finish the first two construction chapters before unrelated rewards or an
-	# already-affordable settlement can pull the player away. Rank 2 is the
-	# deliberate hand-off: routes and automation have then been introduced.
+	# Finish the first two local construction chapters before unrelated rewards or
+	# an already-affordable settlement can pull the player away. This repeats in
+	# every fresh realm: rank 2 is the hand-off after routes and automation exist.
 	if _opening_city_chapter_active():
 		if GameState.drones < 4:
 			return _courier_objective()
@@ -2246,8 +2246,7 @@ func _smart_objective() -> Dictionary:
 		"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
 
 func _opening_city_chapter_active() -> bool:
-	return GameState.current_country == 0 and GameState.cities_unlocked == 1 \
-		and GameState.prosperity_rank < 2
+	return GameState.cities_unlocked == 1 and GameState.prosperity_rank < 2
 
 func _courier_objective() -> Dictionary:
 	const OPENING_FLEET_TARGET := 4
