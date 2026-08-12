@@ -63,6 +63,8 @@ required_main = (
 	"func _refresh_daily_hud() -> void:",
 	'_streak_lbl.text = tr("Recolher") if Daily.pending else "%dd" % Daily.streak',
 	"func _show_expansion_confirm() -> void:",
+	'"expansion_reward_card"',
+	"GameState.influence_reputation_mult(GameState.influence_total + influence_gain)",
 	'"progress_override": true',
 	'"upgrade_key": recommended_key',
 	"(_mode_btns[mode] as Button).visible = GameState.prosperity_rank >= required_rank",

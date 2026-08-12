@@ -86,7 +86,9 @@ func _run() -> void:
 		for economy_locale: String in ["pt", "en", "es", "fr", "it", "ru", "ja", "zh"]:
 			TranslationServer.set_locale(economy_locale)
 			if not _check(tr("Reisetempo") != "Reisetempo"
-					and tr("Große Handelsgilde") != "Große Handelsgilde",
+					and tr("Große Handelsgilde") != "Große Handelsgilde"
+					and (economy_locale == "pt" or tr("Reputação permanente ×%.2f → ×%.2f")
+						!= "Reputação permanente ×%.2f → ×%.2f"),
 					"economy data remains German in locale " + economy_locale):
 				break
 		TranslationServer.set_locale(original_locale)
@@ -414,6 +416,15 @@ func _run() -> void:
 		await get_tree().process_frame
 		var overlays := main.find_children("", "CanvasLayer", false, false)
 		if not _check(not overlays.is_empty(), "realm expansion confirmation missing"):
+			break
+		var reward_cards := main.find_children("", "PanelContainer", true, false).filter(
+			func(node: Node): return bool(node.get_meta("expansion_reward_card", false)))
+		var power_labels := main.find_children("", "Label", true, false).filter(
+			func(node: Node): return bool(node.get_meta("expansion_power_label", false)))
+		if not _check(reward_cards.size() == 1 and power_labels.size() == 1
+				and "×" in str((power_labels[0] as Label).text)
+				and "→" in str((power_labels[0] as Label).text),
+				"realm expansion does not preview its permanent power gain"):
 			break
 
 		for button_node in main.find_children("", "Button", true, false):

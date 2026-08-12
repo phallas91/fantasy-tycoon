@@ -74,6 +74,10 @@ func _run() -> void:
 	# the same global reputation multiplier used to advertise progression.
 	game_state.influence = 8
 	game_state.influence_total = 8
+	if not is_equal_approx(float(game_state.influence_reputation_mult()), 1.4) \
+			or not is_equal_approx(float(game_state.influence_reputation_mult(12)), 1.6):
+		_fail("permanent realm reputation preview does not match earned influence")
+		return
 	var pre_talent_mult := float(game_state.global_mult())
 	if not game_state.buy_talent("global") or float(game_state.global_mult()) <= pre_talent_mult:
 		_fail("spending influence on a talent makes the player weaker")
