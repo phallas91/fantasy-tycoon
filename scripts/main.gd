@@ -3102,6 +3102,10 @@ func _show_city_inspector(index: int) -> void:
 	var status := tr("SEDE") if is_capital else (tr("Obtido") if is_active else tr("Bloqueado"))
 	var status_lbl := _lbl(status, 17, accent)
 	status_lbl.add_theme_font_override("font", UITheme.font("Bold")); iv.add_child(status_lbl)
+	var progress_fill: Panel = null
+	var progress_label: Label = null
+	var next_cost_label: Label = null
+	var next_detail_label: Label = null
 	if is_active:
 		var realm_income: float = model["realm_income"]
 		var city_income: float = model["city_income"]
@@ -3116,11 +3120,11 @@ func _show_city_inspector(index: int) -> void:
 		iv.add_child(_lbl(tr("Custo: %s") % Fmt.short(unlock_cost), 20, UITheme.GOLD))
 		var prog_bg := Panel.new(); prog_bg.custom_minimum_size = Vector2(0, 9)
 		prog_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); iv.add_child(prog_bg)
-		var prog_fill := Panel.new(); prog_fill.anchor_left = 0; prog_fill.anchor_right = unlock_pct
-		prog_fill.anchor_top = 0; prog_fill.anchor_bottom = 1
-		prog_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.ACCENT)); prog_bg.add_child(prog_fill)
-		var pct_lbl := _lbl(tr("Progresso: %d%%") % int(round(unlock_pct * 100.0)), 15, UITheme.MUTED)
-		pct_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; iv.add_child(pct_lbl)
+		progress_fill = Panel.new(); progress_fill.anchor_left = 0; progress_fill.anchor_right = unlock_pct
+		progress_fill.anchor_top = 0; progress_fill.anchor_bottom = 1
+		progress_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.ACCENT)); prog_bg.add_child(progress_fill)
+		progress_label = _lbl(tr("Progresso: %d%%") % int(round(unlock_pct * 100.0)), 15, UITheme.MUTED)
+		progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; iv.add_child(progress_label)
 	box.add_child(info)
 
 	# An active settlement is not a dead-end statistics card. It also previews the
@@ -3134,10 +3138,11 @@ func _show_city_inspector(index: int) -> void:
 		var next_title := _lbl(tr("Próxima: %s") % model["next_name"], 18, UITheme.INK)
 		next_title.add_theme_font_override("font", UITheme.font("Bold")); next_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		next_head.add_child(next_title)
-		next_head.add_child(_lbl(Fmt.short(float(model["next_cost"])), 18, UITheme.GOLD))
-		var next_detail := _lbl(tr("Renda +%s/s") % Fmt.short(float(model["next_gain"])), 15, UITheme.GREEN)
-		next_detail.text += _eta_suffix(float(model["next_cost"]), float(model["realm_income"]))
-		nv.add_child(next_detail)
+		next_cost_label = _lbl(Fmt.short(float(model["next_cost"])), 18, UITheme.GOLD)
+		next_head.add_child(next_cost_label)
+		next_detail_label = _lbl(tr("Renda +%s/s") % Fmt.short(float(model["next_gain"])), 15, UITheme.GREEN)
+		next_detail_label.text += _eta_suffix(float(model["next_cost"]), float(model["realm_income"]))
+		nv.add_child(next_detail_label)
 		box.add_child(next_card)
 
 	var action := _buy_btn(accent)
@@ -3161,7 +3166,43 @@ func _show_city_inspector(index: int) -> void:
 		action.text = tr("Bloqueado")
 		action.disabled = true
 	box.add_child(action)
+	if is_next or (is_active and bool(model["has_next"])):
+		_bind_city_unlock_live(layer, action, progress_fill, progress_label, next_cost_label, next_detail_label)
 	box.add_child(_close_btn(layer))
+
+## Idle income continues while the inspector is open. Refreshing this small
+## decision card four times a second makes waiting legible and, critically,
+## enables the purchase the moment it becomes affordable without forcing the
+## player to close and reopen the city.
+func _bind_city_unlock_live(layer: Node, action: Button, progress_fill: Panel = null,
+		progress_label: Label = null, cost_label: Label = null, detail_label: Label = null) -> void:
+	var timer := Timer.new()
+	timer.wait_time = 0.25
+	timer.one_shot = false
+	layer.add_child(timer)
+	var refresh := func() -> void:
+		if not is_instance_valid(layer) or not is_instance_valid(action):
+			return
+		var cost := GameState.next_city_cost()
+		if cost < 0.0:
+			action.text = tr("TODAS")
+			action.disabled = true
+			if is_instance_valid(progress_fill): progress_fill.anchor_right = 1.0
+			if is_instance_valid(progress_label): progress_label.text = tr("Progresso: %d%%") % 100
+			return
+		var pct := clampf(GameState.credits / maxf(1.0, cost), 0.0, 1.0)
+		action.text = tr("Abrir") + "  ·  " + Fmt.short(cost)
+		action.disabled = GameState.credits < cost
+		_afford(action, not action.disabled)
+		if is_instance_valid(progress_fill): progress_fill.anchor_right = pct
+		if is_instance_valid(progress_label): progress_label.text = tr("Progresso: %d%%") % int(round(pct * 100.0))
+		if is_instance_valid(cost_label): cost_label.text = Fmt.short(cost)
+		if is_instance_valid(detail_label):
+			detail_label.text = tr("Renda +%s/s") % Fmt.short(GameState.projected_city_income_gain())
+			detail_label.text += _eta_suffix(cost, GameState.income_per_sec())
+	timer.timeout.connect(refresh)
+	refresh.call()
+	timer.start()
 
 ## Pure presentation model for the city popup. Keeping progression math outside
 ## the controls makes the map interaction testable and prevents labels/actions

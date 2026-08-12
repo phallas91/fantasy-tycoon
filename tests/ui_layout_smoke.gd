@@ -229,6 +229,25 @@ func _run() -> void:
 				and is_equal_approx(float(city_model.get("next_cost")), float(frontier_model.get("next_cost"))),
 				"city map inspector does not lead active settlements into the next rewarding expansion"):
 			break
+		# The inspector must keep pace with idle earnings instead of freezing its
+		# progress and forcing the player to close/reopen it when the city becomes
+		# affordable.
+		var unlock_cost := float(city_model["next_cost"])
+		GameState.credits = unlock_cost * 0.5
+		var live_layer := Control.new(); main.add_child(live_layer)
+		var live_action: Button = main.call("_buy_btn", UITheme.CYAN); live_layer.add_child(live_action)
+		var live_fill := Panel.new(); live_layer.add_child(live_fill)
+		var live_progress := Label.new(); live_layer.add_child(live_progress)
+		main.call("_bind_city_unlock_live", live_layer, live_action, live_fill, live_progress)
+		await get_tree().create_timer(0.3).timeout
+		var waiting_ok := live_action.disabled and live_fill.anchor_right > 0.45 and live_fill.anchor_right < 0.55
+		GameState.credits = unlock_cost * 1.1
+		await get_tree().create_timer(0.3).timeout
+		var ready_ok := not live_action.disabled and is_equal_approx(live_fill.anchor_right, 1.0)
+		live_layer.queue_free()
+		if not _check(waiting_ok and ready_ok,
+				"city inspector does not become actionable as idle income reaches its cost"):
+			break
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")
 		main.call("_update_contract_visibility")
