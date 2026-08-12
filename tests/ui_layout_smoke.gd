@@ -51,6 +51,23 @@ func _run() -> void:
 		var map := main.get("_map") as Control
 		GameState.cities_unlocked = 1
 		GameState.prosperity_rank = 0
+		# World taps must lead to a real tycoon decision. The highlighted building
+		# opens its construction card, built cities open inspection, and locked map
+		# scenery remains inert. No map tap spends currency by itself.
+		map.call("set_recommended_investment", "cargo")
+		var tap_cities: Array = Economy.country_cities(GameState.current_country)
+		var capital_tap := map.call("_proj", Vector2(tap_cities[0]["x"], tap_cities[0]["y"])) as Vector2
+		var build_tap := map.call("_investment_target", capital_tap, "cargo") as Vector2
+		var build_target: Dictionary = map.call("_world_tap_target", build_tap)
+		var city_target: Dictionary = map.call("_world_tap_target", capital_tap)
+		var locked_pos := map.call("_proj", Vector2(tap_cities[2]["x"], tap_cities[2]["y"])) as Vector2
+		var locked_target: Dictionary = map.call("_world_tap_target", locked_pos)
+		var credits_before_tap := GameState.credits
+		if not _check(build_target.get("kind") == "investment" and build_target.get("key") == "cargo"
+				and city_target.get("kind") == "city" and int(city_target.get("index", -1)) == 0
+				and locked_target.is_empty() and GameState.credits == credits_before_tap,
+				"fantasy map taps do not resolve safely to construction and built cities"):
+			break
 		var fresh_realm_fog := float(map.call("_growth_fog_strength"))
 		GameState.cities_unlocked = 5
 		GameState.prosperity_rank = 3

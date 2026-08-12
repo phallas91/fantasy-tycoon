@@ -489,6 +489,7 @@ func _build_map() -> void:
 	_map.management_panel_right = SIDE_PANEL_W
 	add_child(_map)
 	_map.city_selected.connect(_show_city_inspector)
+	_map.investment_selected.connect(_open_investment_from_map)
 	# vignette over the map (under the UI chrome added later)
 	var vig := _opt_tex("vignette")
 	if vig != null:
@@ -2396,6 +2397,17 @@ func _reveal_prosperity_unlocks(rank: int) -> void:
 		_show_control_page(_pages[0] as ScrollContainer, reveal_card)
 		Fx.shimmer(reveal_card, UITheme.GOLD)
 		Fx.ring_pulse(reveal_card, reveal_card.size * 0.5, UITheme.GOLD, 1.7)
+
+## The city is the primary game surface: tapping its highlighted construction
+## site opens the exact decision card. Spending remains a second deliberate tap.
+func _open_investment_from_map(key: String) -> void:
+	if not _rows.has(key) or not GameState.is_upgrade_unlocked(key):
+		return
+	_switch_tab(0)
+	var card := _rows[key]["card"] as Control
+	_show_control_page(_pages[0] as ScrollContainer, card)
+	Fx.shimmer(card, UITheme.GOLD)
+	Fx.ring_pulse(card, card.size * 0.5, UITheme.GOLD, 1.5)
 
 func _update_nav_dots() -> void:
 	if _nav_dots.size() < 6: return

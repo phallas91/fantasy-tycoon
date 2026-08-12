@@ -77,9 +77,15 @@ required_main = (
 	"func _reveal_prosperity_unlocks(rank: int) -> void:",
 	'call_deferred("_reveal_prosperity_unlocks", rank)',
 	"_map.reveal_landmark(key, landmark_name)",
+	"_map.investment_selected.connect(_open_investment_from_map)",
+	"func _open_investment_from_map(key: String) -> void:",
 )
 required_map = (
 	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
+	"signal investment_selected(key: String)",
+	"func _world_tap_target(pos: Vector2) -> Dictionary:",
+	'investment_selected.emit(str(target["key"]))',
+	'city_selected.emit(int(target["index"]))',
 	"func _draw_realm_details(",
 	"func _draw_ground_traffic(",
 	"func _draw_district_investments(",

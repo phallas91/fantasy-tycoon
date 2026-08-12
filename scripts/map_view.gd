@@ -6,6 +6,7 @@ class_name ArcaneMapView
 ## mouse_filter IGNORE, draws via _draw()/queue_redraw(). Performant for mobile.
 
 signal city_selected(index: int)
+signal investment_selected(key: String)
 
 # --- public API (set every frame by main.gd) ---
 var band_top := 150.0
@@ -53,6 +54,8 @@ var _bbox_ci := -1   # country the bbox/outline was last computed for (self-heal
 var _deliver_seen := 0   # throttles beacon flashes to perceived drone-arrival rate
 var _tap_start_pos := Vector2.ZERO
 var _tap_start_ms := 0
+var _mouse_tap_start_pos := Vector2.ZERO
+var _mouse_tap_start_ms := 0
 var _cam_tween: Tween
 
 # --- landmass geometry cache (rebuilt only when zoom/pan actually change) ---
@@ -455,6 +458,40 @@ func _tap_ripple(pos: Vector2) -> void:
 	if not Fx.reduce_motion:
 		Fx.ring_pulse(self, pos, Color(SKY.r, SKY.g, SKY.b, 0.9), 1.5)
 
+## Resolve a world tap to one intentional action. The active construction site
+## wins inside its tight ring; otherwise only built settlements are selectable.
+## Locked scenery never opens an inspector and purchasing still requires the
+## explicit dashboard button, preventing accidental spending while panning.
+func _world_tap_target(pos: Vector2) -> Dictionary:
+	if pos.y < band_top or pos.y > band_bottom:
+		return {}
+	var cities := Economy.country_cities(GameState.current_country)
+	if cities.is_empty():
+		return {}
+	var capital := _proj(Vector2(cities[0]["x"], cities[0]["y"]))
+	if not _recommended_investment.is_empty():
+		var build_target := _investment_target(capital, _recommended_investment)
+		if pos.distance_to(build_target) <= 30.0:
+			return {"kind": "investment", "key": _recommended_investment}
+	var nearest_index := -1
+	var nearest_distance := 48.0
+	for i in range(mini(cities.size(), GameState.cities_unlocked + 1)):
+		var city_pos := _proj(Vector2(cities[i]["x"], cities[i]["y"]))
+		var distance := pos.distance_to(city_pos)
+		if distance < nearest_distance:
+			nearest_distance = distance
+			nearest_index = i
+	if nearest_index >= 0:
+		return {"kind": "city", "index": nearest_index}
+	return {}
+
+func _activate_world_tap(pos: Vector2) -> void:
+	var target := _world_tap_target(pos)
+	_tap_ripple(pos)
+	match str(target.get("kind", "")):
+		"investment": investment_selected.emit(str(target["key"]))
+		"city": city_selected.emit(int(target["index"]))
+
 func _gui_input(event: InputEvent) -> void:
 	# any interaction cancels the cinematic camera — the player always wins
 	if _cam_tween != null and _cam_tween.is_valid():
@@ -475,7 +512,7 @@ func _gui_input(event: InputEvent) -> void:
 			# quick tap (no drag, no pinch) → responsive ripple + tick
 			if was_single and t.position.distance_to(_tap_start_pos) < 14.0 \
 					and Time.get_ticks_msec() - _tap_start_ms < 250:
-				_tap_ripple(t.position)
+				_activate_world_tap(t.position)
 	elif event is InputEventScreenDrag:
 		var d := event as InputEventScreenDrag
 		_touches[d.index] = d.position
@@ -499,6 +536,13 @@ func _gui_input(event: InputEvent) -> void:
 			_zoom_at(zoom * 1.12, mb.position); accept_event()
 		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			_zoom_at(zoom / 1.12, mb.position); accept_event()
+		elif mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				_mouse_tap_start_pos = mb.position
+				_mouse_tap_start_ms = Time.get_ticks_msec()
+			elif mb.position.distance_to(_mouse_tap_start_pos) < 14.0 \
+					and Time.get_ticks_msec() - _mouse_tap_start_ms < 250:
+				_activate_world_tap(mb.position)
 	elif event is InputEventMouseMotion:
 		if not _touches.is_empty():
 			return
@@ -647,10 +691,13 @@ func _draw_recommended_investment(cap: Vector2) -> void:
 	var colors := {"cargo": GOLD, "value": SKY, "speed": CYAN, "routes": MINT}
 	var target := _investment_target(cap, _recommended_investment)
 	var col: Color = colors.get(_recommended_investment, GOLD)
+	var cost := GameState.upgrade_cost_multi(_recommended_investment, 1)
+	if GameState.credits >= cost:
+		col = MINT
 	var pulse := 0.0 if Fx.reduce_motion else 2.0 * (0.5 + 0.5 * sin(_t * 3.2))
 	draw_arc(target, 13.0 + pulse, 0.0, TAU, 28, Color(col.r, col.g, col.b, 0.88), 2.4)
 	draw_line(target + Vector2(0, -14), target + Vector2(0, -27), Color(col.r, col.g, col.b, 0.72), 1.6)
-	var label := tr(str(Economy.UPGRADES[_recommended_investment]["name"]))
+	var label := tr(str(Economy.UPGRADES[_recommended_investment]["name"])) + "  ·  " + Fmt.short(cost) + "  ›"
 	var tw := _font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x
 	var chip := Rect2(target.x - tw * 0.5 - 9.0, target.y - 49.0, tw + 18.0, 23.0)
 	_chip_sb.border_color = Color(col.r, col.g, col.b, 0.82)
