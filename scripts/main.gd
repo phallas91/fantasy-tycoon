@@ -7,7 +7,7 @@ const OFFLINE_POPUP_MIN_SECONDS := 60.0
 # The top HUD owns the first 198 logical pixels once its objective ribbon is
 # visible. Starting management at 150 made the panel cover that objective on
 # every landscape device; keep a small breathing gap below the complete HUD.
-const LANDSCAPE_PANEL_TOP := 204.0
+const LANDSCAPE_PANEL_TOP := 170.0
 const MANAGEMENT_PAGE_SIZE := 3
 const ART    := "res://assets/art/"
 const GUTTER := 12.0
@@ -523,6 +523,9 @@ func _build_hud() -> void:
 	# split that just fragmented the type ramp); the size step is the hero chip's
 	var c2 := _chip("ic_gems", UITheme.CYAN, 22); _gems_lbl = c2["label"]; _gems_chip = c2["root"]; r1.add_child(c2["root"])
 	var c3 := _chip("ic_prestige", UITheme.VIOLET, 22); _infl_lbl = c3["label"]; _infl_chip = c3["root"]; r1.add_child(c3["root"])
+	_country_lbl = Label.new(); _country_lbl.add_theme_font_size_override("font_size", 17)
+	_country_lbl.add_theme_color_override("font_color", UITheme.MUTED)
+	r1.add_child(_country_lbl)
 	_blessing_badge = PanelContainer.new(); _blessing_badge.add_theme_stylebox_override("panel", UITheme.solid(UITheme.GOLD, 14))
 	var vb := HBoxContainer.new(); vb.add_theme_constant_override("separation", 3); _blessing_badge.add_child(vb)
 	vb.add_child(_icon("ic_blessing", 18))
@@ -531,19 +534,10 @@ func _build_hud() -> void:
 	vl.add_theme_font_override("font", UITheme.font("Bold")); vb.add_child(vl)
 	_blessing_badge.visible = false; r1.add_child(_blessing_badge)
 	var sp := Control.new(); sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL; r1.add_child(sp)
-	var gear := Button.new(); gear.icon = _opt_tex("ic_gear")
-	gear.expand_icon = true; gear.add_theme_constant_override("icon_max_width", 40)
-	gear.custom_minimum_size = Vector2(64, 64)
-	gear.add_theme_stylebox_override("normal", UITheme.nav_item(false))
-	gear.add_theme_stylebox_override("hover",  UITheme.nav_item(true))
-	gear.add_theme_stylebox_override("focus",  StyleBoxEmpty.new())
-	gear.pressed.connect(func(): Fx.press(gear); _show_settings()); r1.add_child(gear)
 
-	# Row 2: country | streak chip | income
-	var r2 := HBoxContainer.new(); r2.add_theme_constant_override("separation", 6); v.add_child(r2)
-	_country_lbl = Label.new(); _country_lbl.add_theme_font_size_override("font_size", 17)
-	_country_lbl.add_theme_color_override("font_color", UITheme.MUTED)
-	_country_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL; r2.add_child(_country_lbl)
+	# Return reward, combo and live rate share the same compact resource rail.
+	# Keeping every 44px+ target in one row gives the fantasy world another 44px
+	# of vertical breathing room without sacrificing information or touch size.
 	_streak_chip = PanelContainer.new()
 	_streak_chip.custom_minimum_size = Vector2(92, 44)
 	_streak_chip.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -562,7 +556,7 @@ func _build_hud() -> void:
 	_streak_lbl = Label.new(); _streak_lbl.add_theme_font_size_override("font_size", 15)
 	_streak_lbl.add_theme_color_override("font_color", UITheme.AMBER)
 	_streak_lbl.add_theme_font_override("font", UITheme.font("Bold")); sh.add_child(_streak_lbl)
-	r2.add_child(_streak_chip)
+	r1.add_child(_streak_chip)
 	_combo_chip = PanelContainer.new()
 	_combo_chip.add_theme_stylebox_override("panel", UITheme.stat_chip(UITheme.ORANGE))
 	var cch := HBoxContainer.new(); cch.add_theme_constant_override("separation", 3); _combo_chip.add_child(cch)
@@ -570,11 +564,18 @@ func _build_hud() -> void:
 	_combo_lbl = Label.new(); _combo_lbl.add_theme_font_size_override("font_size", 17)
 	_combo_lbl.add_theme_color_override("font_color", UITheme.ORANGE)
 	_combo_lbl.add_theme_font_override("font", UITheme.font("Bold")); cch.add_child(_combo_lbl)
-	_combo_chip.visible = false; r2.add_child(_combo_chip)
+	_combo_chip.visible = false; r1.add_child(_combo_chip)
 	_income_lbl = Label.new(); _income_lbl.add_theme_font_size_override("font_size", 21)
 	_income_lbl.add_theme_color_override("font_color", UITheme.GREEN)
 	_income_lbl.add_theme_font_override("font", UITheme.font("Bold"))
-	_income_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; r2.add_child(_income_lbl)
+	_income_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; r1.add_child(_income_lbl)
+	var gear := Button.new(); gear.icon = _opt_tex("ic_gear")
+	gear.expand_icon = true; gear.add_theme_constant_override("icon_max_width", 40)
+	gear.custom_minimum_size = Vector2(64, 64)
+	gear.add_theme_stylebox_override("normal", UITheme.nav_item(false))
+	gear.add_theme_stylebox_override("hover",  UITheme.nav_item(true))
+	gear.add_theme_stylebox_override("focus",  StyleBoxEmpty.new())
+	gear.pressed.connect(func(): Fx.press(gear); _show_settings()); r1.add_child(gear)
 
 	# Row 3: progress ribbon (% to next unlock)
 	_ribbon_bg = Panel.new(); _ribbon_bg.custom_minimum_size = Vector2(0, 8)
@@ -1837,7 +1838,7 @@ func _buy_gem(id: String, btn: Button) -> void:
 
 func _build_toasts() -> void:
 	_toasts = VBoxContainer.new(); _toasts.anchor_left = 0.5; _toasts.anchor_right = 0.5
-	_toasts.offset_top = 200; _toasts.offset_left = -290; _toasts.offset_right = 290
+	_toasts.offset_top = 166; _toasts.offset_left = -290; _toasts.offset_right = 290
 	_toasts.alignment = BoxContainer.ALIGNMENT_CENTER; add_child(_toasts)
 
 func _toast(text: String, accent: Color, icon_name := "") -> void:

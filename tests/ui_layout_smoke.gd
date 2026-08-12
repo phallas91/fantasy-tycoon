@@ -12,7 +12,7 @@ const LAYOUTS := [
 const REF_GUTTER := 12.0
 const REF_HUD_TOP := 20.0
 const REF_PANEL_RIGHT := 410.0
-const REF_PANEL_TOP := 204.0
+const REF_PANEL_TOP := 170.0
 const REF_NAV_HEIGHT := 70.0
 
 var _failure := ""
@@ -380,7 +380,8 @@ func _run() -> void:
 			break
 		if not _check(absf(hud.position.x - REF_GUTTER) <= 1.0
 				and absf(hud.position.y - REF_HUD_TOP) <= 1.0
-				and absf(hud.position.x + hud.size.x - (canvas.x - REF_GUTTER)) <= 1.0,
+				and absf(hud.position.x + hud.size.x - (canvas.x - REF_GUTTER)) <= 1.0
+				and hud.position.y + hud.size.y <= REF_PANEL_TOP - 4.0,
 				"HUD %s size %s no longer matches canvas %s reference frame at %s" % [hud.position, hud.size, canvas, requested_size]):
 			break
 		if not _check(absf(panel.position.x - REF_GUTTER) <= 1.0
