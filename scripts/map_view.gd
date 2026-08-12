@@ -1182,7 +1182,7 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 						dense = true
 						break
 			if dense:
-				_compact_marker(cp, flash)
+				_compact_marker(cp, flash, i)
 			else:
 				_draw_city_district(cp, i, false)
 				_active_marker(cp, flash, i)
@@ -1202,12 +1202,13 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 
 ## Level-of-detail marker for older hubs whose full crests would overlap in the
 ## portrait overview. Zooming past 1.65 restores the complete city artwork.
-func _compact_marker(p: Vector2, flash: float) -> void:
+func _compact_marker(p: Vector2, flash: float, city_index: int) -> void:
 	var pulse := 0.5 + 0.5 * sin(_t * 2.4)
 	draw_circle(p, 8.0 + pulse * 2.0, Color(CYAN.r, CYAN.g, CYAN.b, 0.10))
 	draw_circle(p, 4.2, Color(MIDNIGHT.r, MIDNIGHT.g, MIDNIGHT.b, 0.96))
 	draw_circle(p, 2.4, Color(CYAN.r, CYAN.g, CYAN.b, 0.82))
 	draw_arc(p, 6.0, 0.0, TAU, 16, Color(CYAN.r, CYAN.g, CYAN.b, 0.35 + pulse * 0.20), 1.2)
+	_city_development_ring(p, city_index, 11.5)
 	if flash > 0.0:
 		_delivery_flash(p, CYAN, flash)
 
@@ -1448,8 +1449,22 @@ func _active_marker(p: Vector2, flash: float, city_index: int) -> void:
 		draw_circle(p, 8.0, CYAN)
 		draw_circle(p, 3.6, INK)
 	draw_arc(p, 11.0, 0, TAU, 24, Color(CYAN.r, CYAN.g, CYAN.b, 0.4 + 0.3 * pulse), 1.6)
+	_city_development_ring(p, city_index, 16.0)
 	if flash > 0.0:
 		_delivery_flash(p, CYAN, flash)
+
+## Three restrained rune segments make local investment readable even when an
+## older city collapses to its compact LOD marker. Empty slots stay violet and
+## completed ones turn gold; no labels or extra HUD are needed on a dense map.
+func _city_development_ring(p: Vector2, city_index: int, radius: float) -> void:
+	var level := GameState.city_development_level(city_index)
+	if level <= 0:
+		return
+	for stage in range(GameState.CITY_DEVELOPMENT_MAX):
+		var from := PI * 0.82 + float(stage) * 0.52
+		var col := GOLD if stage < level else Color(SKY.r, SKY.g, SKY.b, 0.34)
+		var width := 2.8 if stage < level else 1.5
+		draw_arc(p, radius, from, from + 0.34, 7, col, width, true)
 
 func _locked_marker(p: Vector2, is_next: bool) -> void:
 	if is_next:
