@@ -99,7 +99,7 @@ func _soft_reset() -> void:
     gs.influence = 0
     gs.current_country = starting_country()
     gs.cities_unlocked = 1
-    gs.drones = starting_drones()
+    gs.drones = gs.realm_starting_drones()
     gs.levels = starting_levels()
     gs.talents = {"global": 0, "speed": 0, "value": 0, "hangar": 0}
     gs.gem_boost = 0

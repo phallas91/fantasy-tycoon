@@ -148,7 +148,7 @@ missing += [token for token in (
 	"func cargo_mult(level := -1) -> float:",
 	"func value_mult(level := -1) -> float:",
 	"var buy_mode := 1",
-	"drones = Prestige.starting_drones()",
+	"drones = realm_starting_drones()",
 	"levels = Prestige.starting_levels()",
 ) if token not in game_state]
 if missing:

@@ -70,6 +70,18 @@ func _run() -> void:
 		return
 
 	game_state.reset()
+	prestige.reset()
+	billing.starter_owned = true
+	game_state.reset()
+	if game_state.drones != 3:
+		_fail("founder pack does not grant its permanent realm-start courier bonus")
+		return
+	prestige._soft_reset()
+	if game_state.drones != 3:
+		_fail("founder courier bonus is lost on prestige")
+		return
+	billing.starter_owned = false
+	game_state.reset()
 	# Spending influence on a talent must be a power gain, never a hidden loss of
 	# the same global reputation multiplier used to advertise progression.
 	game_state.influence = 8

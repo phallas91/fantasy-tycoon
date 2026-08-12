@@ -15,7 +15,7 @@ var vip := false               # VIP pass: 2x always + 24h offline + bonus
 var starter_owned := false     # hides the "Founder offer" card once bought
 
 const PRODUCTS := {
-	"starter":  {"name": "Pacote Inicial", "price": "€2,99", "type": "nonconsumable", "desc": "+300 Gemas, +5 drones e Lucros x2 por 1h. Arranque rápido!"},
+	"starter":  {"name": "Pacote Inicial", "price": "€2,99", "type": "nonconsumable", "desc": "+300 Gemas, +5 drones agora, +2 em cada novo reino e Lucros x2 por 1h."},
 	"vip":      {"name": "Passe VIP", "price": "€9,99", "type": "nonconsumable", "desc": "Lucros x2 SEMPRE ativos, offline até 24h, +500 Gemas."},
 	"perm_x2":  {"name": "Lucros x2 (para sempre)", "price": "€6,99", "type": "nonconsumable", "desc": "Duplica todos os lucros, para sempre."},
 	"gems_xs":  {"name": "Bolso de Gemas", "price": "€0,99", "type": "consumable", "gems": 50, "desc": "+50 Gemas"},
@@ -237,6 +237,9 @@ func premium_income_mult() -> float:
 
 func premium_offline_cap() -> float:
 	return 86400.0 if vip else 0.0
+
+func starter_realm_drones() -> int:
+	return 2 if starter_owned else 0
 
 ## Never simulate purchases on an exported mobile build. Until StoreKit is
 ## integrated, iOS fails closed instead of granting paid products for free.

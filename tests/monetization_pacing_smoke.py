@@ -7,6 +7,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 main = (ROOT / "scripts" / "main.gd").read_text(encoding="utf-8")
 billing = (ROOT / "scripts" / "billing.gd").read_text(encoding="utf-8")
+game_state = (ROOT / "scripts" / "game_state.gd").read_text(encoding="utf-8")
+prestige = (ROOT / "scripts" / "prestige.gd").read_text(encoding="utf-8")
 
 required = (
     "func _shop_catalog_stage() -> int:",
@@ -21,6 +23,14 @@ required = (
 missing = [token for token in required if token not in main]
 if missing:
     raise SystemExit("MONETIZATION_PACING: FAIL: missing gates: " + ", ".join(missing))
+
+durable_starter_guards = (
+    "func starter_realm_drones() -> int:" in billing,
+    "drones = realm_starting_drones()" in game_state,
+    "gs.drones = gs.realm_starting_drones()" in prestige,
+)
+if not all(durable_starter_guards):
+    raise SystemExit("MONETIZATION_PACING: FAIL: starter pack value is lost on a realm reset")
 
 # Paid purchase calls belong exclusively to deliberate button handlers. They
 # must never be triggered by boot, progression, rewards or modal presentation.

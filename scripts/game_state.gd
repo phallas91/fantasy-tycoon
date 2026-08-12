@@ -551,7 +551,7 @@ func expand_country() -> bool:
 	credits = 0.0
 	current_country += 1
 	cities_unlocked = 1
-	drones = Prestige.starting_drones()
+	drones = realm_starting_drones()
 	levels = Prestige.starting_levels()
 	prosperity_rank = prosperity_rank_for_investment()
 	buy_mode = 1
@@ -749,6 +749,12 @@ func collect_offline(multiplier: float) -> float:
 ## instead of duplicating the defaults a second time.
 func reset() -> void:
 	from_dict({})
+	drones = realm_starting_drones()
+	_rebuild_drones()
+
+func realm_starting_drones() -> int:
+	var founder_bonus := Billing.starter_realm_drones() if has_node("/root/Billing") else 0
+	return mini(50, Prestige.starting_drones() + founder_bonus)
 
 # ---------------------------------------------------------------- persistence
 func to_dict() -> Dictionary:
