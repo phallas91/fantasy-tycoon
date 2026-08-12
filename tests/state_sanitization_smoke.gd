@@ -22,6 +22,7 @@ func _run() -> void:
 		"cities_unlocked": 9_999_999,
 		"drones": 9_999_999_999,
 		"levels": {"speed": 9_999_999, "cargo": -8, "value": 9_999_999, "routes": 9_999_999},
+		"city_development": [999, 999, -8, 2, 999, 999, 999, 999],
 		"talents": {"global": 999, "speed": -4, "value": 999, "hangar": 999},
 		"gem_boost": 9_999_999,
 		"earn_boost_timer": INF,
@@ -67,6 +68,10 @@ func _run() -> void:
 		return
 	if billing._processed_tokens.size() > 200 or "" in billing._processed_tokens:
 		_fail("billing token history was not sanitized")
+		return
+	if game_state.city_development_level(1) != game_state.CITY_DEVELOPMENT_MAX \
+			or game_state.city_development_level(2) != 0:
+		_fail("hostile city development levels were not sanitized")
 		return
 
 	game_state.reset()
@@ -127,6 +132,32 @@ func _run() -> void:
 			float(game_state.last_city_income_gain), signalled_city_gain):
 		_fail("city unlock feedback does not report its exact income gain")
 		return
+	var route_before := float(game_state.route_income_per_sec(0))
+	var realm_before := float(game_state.income_per_sec())
+	var development_gain := float(game_state.projected_city_development_gain(1))
+	var development_cost := float(game_state.city_development_cost(1))
+	if development_cost <= 0.0 or development_gain <= 0.0 \
+			or not game_state.buy_city_development(1) \
+			or game_state.city_development_level(1) != 1 \
+			or game_state.route_income_per_sec(0) <= route_before \
+			or not is_equal_approx(float(game_state.income_per_sec()) - realm_before, development_gain):
+		_fail("local city development is not a positive exact route investment")
+		return
+	var development_round_trip: Dictionary = game_state.to_dict()
+	game_state.from_dict(development_round_trip)
+	if game_state.city_development_level(1) != 1:
+		_fail("city development did not survive save round-trip")
+		return
+	game_state.credits = 1.0e12
+	while game_state.city_development_cost(1) >= 0.0:
+		if not game_state.buy_city_development(1):
+			_fail("affordable city development stopped before its level cap")
+			return
+	if game_state.city_development_level(1) != game_state.CITY_DEVELOPMENT_MAX \
+			or game_state.projected_city_development_gain(1) != 0.0 \
+			or game_state.buy_city_development(1):
+		_fail("city development cap can be exceeded")
+		return
 	game_state.reset()
 	if not game_state.is_upgrade_unlocked("cargo") or game_state.is_upgrade_unlocked("speed") \
 			or game_state.is_upgrade_unlocked("value") or game_state.is_upgrade_unlocked("routes"):
@@ -162,7 +193,8 @@ func _run() -> void:
 		_fail("fully built realm cannot expand during chapter reset check")
 		return
 	if game_state.current_country != 1 or game_state.prosperity_rank != 0 \
-			or game_state.buy_mode != 1 or game_state.investment_total() != 0:
+			or game_state.buy_mode != 1 or game_state.investment_total() != 0 \
+			or game_state.city_development_level(1) != 0:
 		_fail("new realm inherits completed local construction progression")
 		return
 	if not game_state.auto_manager or game_state.auto_manager_available():

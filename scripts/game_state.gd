@@ -23,6 +23,7 @@ const VISUAL_SPEED_FACTOR := 0.05
 ## add `count`, not 1. `amount` is the summed credits for all of them.
 signal delivered(amount: float, city_index: int, count: int)
 signal city_unlocked(index: int)
+signal city_developed(index: int, level: int, income_gain: float)
 signal country_changed(index: int)
 signal fleet_changed()
 signal region_completed(region_index: int)
@@ -55,6 +56,8 @@ var combo_window_bonus := 0.0   # +seconds on combo decay (gem shop, permanent)
 var guild_blessing_until := 0  # earned through the Vermächtnis shop
 var auto_manager := false      # gameplay feature, available to every player
 var prosperity_rank := 0
+var city_development: Array = [] # local route levels; rebuilt in every realm
+const CITY_DEVELOPMENT_MAX := 3
 
 # --- transient ---
 var earn_boost_mult := 2.0
@@ -71,6 +74,8 @@ const AUTO_MANAGER_INTERVAL := 2.5
 signal auto_bought(kind: String)
 
 func _ready() -> void:
+	if city_development.is_empty():
+		_reset_city_development()
 	_rebuild_drones()
 
 # ---------------------------------------------------------------- derived
@@ -291,6 +296,47 @@ func city_network_mult(route_count := -1) -> float:
 	var active_routes: int = cities_unlocked if route_count < 0 else int(route_count)
 	return 1.0 + 0.12 * float(maxi(active_routes, 1) - 1)
 
+func city_development_level(city_index: int) -> int:
+	if city_index <= 0 or city_index >= city_development.size():
+		return 0
+	return clampi(int(city_development[city_index]), 0, CITY_DEVELOPMENT_MAX)
+
+func city_development_mult(city_index: int, level := -1) -> float:
+	var resolved := city_development_level(city_index) if level < 0 else clampi(level, 0, CITY_DEVELOPMENT_MAX)
+	return 1.0 + 0.20 * float(resolved)
+
+func city_development_cost(city_index: int) -> float:
+	if city_index <= 0 or city_index > cities_unlocked:
+		return -1.0
+	var level := city_development_level(city_index)
+	if level >= CITY_DEVELOPMENT_MAX:
+		return -1.0
+	var route_scale := Economy.city_unlock_cost(current_country, maxi(1, city_index))
+	return route_scale * 0.18 * pow(2.0, float(level)) * cost_scale()
+
+func projected_city_development_gain(city_index: int) -> float:
+	var level := city_development_level(city_index)
+	if city_index <= 0 or city_index > cities_unlocked or level >= CITY_DEVELOPMENT_MAX:
+		return 0.0
+	var current := route_income_per_sec(city_index - 1)
+	return current * (city_development_mult(city_index, level + 1) / city_development_mult(city_index, level) - 1.0)
+
+func buy_city_development(city_index: int) -> bool:
+	var cost := city_development_cost(city_index)
+	if cost < 0.0 or credits < cost:
+		return false
+	var before := income_per_sec()
+	credits -= cost
+	city_development[city_index] = city_development_level(city_index) + 1
+	var gain := maxf(0.0, income_per_sec() - before)
+	city_developed.emit(city_index, city_development_level(city_index), gain)
+	return true
+
+func _reset_city_development() -> void:
+	city_development.clear()
+	city_development.resize(max_cities() + 1)
+	city_development.fill(0)
+
 func _delivery_const_mult(route_count := -1) -> float:
 	var vf := cargo_mult() \
 		* value_mult() \
@@ -321,7 +367,7 @@ func _income_for_route_count(n: int) -> float:
 	for r in range(n):
 		var d := _route_dist(r, cities)
 		var tt := 2.0 * d / (BASE_SPEED * sf)
-		s += const_mult * (1.0 + d) / tt
+		s += const_mult * city_development_mult(r + 1) * (1.0 + d) / tt
 	return float(drones) * (s / float(n))
 
 func projected_city_income_gain(current_income := -1.0) -> float:
@@ -341,7 +387,7 @@ func route_income_per_sec(route: int) -> float:
 	var cities := Economy.country_cities(current_country)
 	var d := _route_dist(route, cities)
 	var tt := 2.0 * d / (BASE_SPEED * speed_factor())
-	var route_rate := _delivery_const_mult() * (1.0 + d) / tt
+	var route_rate := _delivery_const_mult() * city_development_mult(route + 1) * (1.0 + d) / tt
 	return (float(drones) / float(n)) * route_rate
 
 func drone_cost() -> float:
@@ -413,7 +459,7 @@ func _process(delta: float) -> void:
 			# those rates, so the difference is confined to a negligible ramp.
 			combo += arrivals
 			_combo_decay_t = COMBO_DECAY + combo_window_bonus
-			var delivery_factor := (1.0 + d) * fs * boost * combo_mult()
+			var delivery_factor := city_development_mult(1 + int(v["route"])) * (1.0 + d) * fs * boost * combo_mult()
 			var amt := const_mult * delivery_factor * float(arrivals)
 			if Events.is_one_shot_active():
 				# The boosted cached multiplier applies to exactly the first arrival.
@@ -551,6 +597,7 @@ func expand_country() -> bool:
 	credits = 0.0
 	current_country += 1
 	cities_unlocked = 1
+	_reset_city_development()
 	drones = realm_starting_drones()
 	levels = Prestige.starting_levels()
 	prosperity_rank = prosperity_rank_for_investment()
@@ -767,6 +814,7 @@ func to_dict() -> Dictionary:
 		"skins_owned": skins_owned.duplicate(), "skin_active": skin_active,
 		"guild_blessing_until": guild_blessing_until, "auto_manager": auto_manager,
 		"prosperity_rank": prosperity_rank,
+		"city_development": city_development.duplicate(),
 		"regions_done": regions_done.duplicate(),
 	}
 
@@ -778,6 +826,11 @@ func from_dict(d: Dictionary) -> void:
 	influence_total = maxi(influence, int(d.get("influence_total", influence)))
 	current_country = clampi(int(d.get("current_country", 0)), 0, Economy.num_countries() - 1)
 	cities_unlocked = clampi(int(d.get("cities_unlocked", 1)), 1, max_cities())
+	_reset_city_development()
+	var stored_city_development: Array = Array(d.get("city_development", []))
+	for city_index in range(1, mini(city_development.size(), stored_city_development.size())):
+		if city_index <= cities_unlocked:
+			city_development[city_index] = clampi(int(stored_city_development[city_index]), 0, CITY_DEVELOPMENT_MAX)
 	last_city_income_gain = 0.0
 	drones = clampi(int(d.get("drones", 1)), 1, 1_000_000_000)
 	var lv := {"speed": 0, "cargo": 0, "value": 0, "routes": 0}

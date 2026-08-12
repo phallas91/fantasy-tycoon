@@ -173,6 +173,7 @@ func _ready() -> void:
 	call_deferred("_apply_safe_area")
 
 	GameState.city_unlocked.connect(_on_city_unlocked)
+	GameState.city_developed.connect(_on_city_developed)
 	GameState.country_changed.connect(_on_country_changed)
 	GameState.region_completed.connect(_on_region_completed)
 	GameState.prosperity_advanced.connect(_on_prosperity_advanced)
@@ -2242,6 +2243,15 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Próximo: Prestige disponível!"), "tab": 0,
 			"focus": _prestige_btn, "cost": -1.0, "progress": 1.0,
 			"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
+	# Teach one local improvement on the newest route before pointing at another
+	# city unlock. Further levels remain an optional map decision, so this adds a
+	# meaningful city beat without turning the advisor into repetitive chores.
+	var frontier_city := GameState.cities_unlocked
+	if frontier_city > 0 and GameState.city_development_level(frontier_city) == 0:
+		var frontier_cities := Economy.country_cities(GameState.current_country)
+		return {"text": tr("Próximo: desenvolver %s") % frontier_cities[frontier_city]["name"],
+			"city_index": frontier_city, "cost": GameState.city_development_cost(frontier_city),
+			"progress": 0.0, "accent": UITheme.CYAN, "icon": "ic_range"}
 	if GameState.can_unlock_city():
 		var ready_cities := Economy.country_cities(GameState.current_country)
 		var ready_city_idx := clampi(GameState.cities_unlocked + 1, 1, ready_cities.size() - 1)
@@ -2357,6 +2367,11 @@ func _objective_progress() -> float:
 func _jump_to_objective() -> void:
 	if _objective_cache.is_empty(): return
 	Fx.press(_next_obj_lbl); Audio.play("tap")
+	if _objective_cache.has("city_index"):
+		var city_index := int(_objective_cache["city_index"])
+		_map.focus_city(city_index)
+		_show_city_inspector(city_index)
+		return
 	var tab := clampi(int(_objective_cache.get("tab", 0)), 0, _pages.size() - 1)
 	_switch_tab(tab)
 	var focus: Control = _objective_cache.get("focus", null)
@@ -2485,6 +2500,20 @@ func _on_city_unlocked(i: int) -> void:
 	# decision instead of four disabled cards.
 	if GameState.current_country == 0 and i == 2:
 		_toast(tr("%s desbloqueada!") % tr("Missões"), UITheme.CYAN, "ic_achieve")
+
+func _on_city_developed(index: int, level: int, income_gain: float) -> void:
+	var cities := Economy.country_cities(GameState.current_country)
+	if index <= 0 or index >= cities.size():
+		return
+	var city_name := str(cities[index].get("name", tr("Cidade")))
+	_toast(tr("%s desenvolvida · Nível %d · Renda +%s/s") % [
+		city_name, level, Fmt.short(income_gain)], UITheme.CYAN, "ic_range")
+	var centre := Vector2(size.x * 0.62, size.y * 0.44)
+	Fx.confetti(self, centre, 16 + level * 4, [UITheme.CYAN, UITheme.GOLD, UITheme.GREEN])
+	Fx.ring_pulse(self, centre, UITheme.CYAN, 1.8 + float(level) * 0.15)
+	Fx.screen_flash(self, UITheme.CYAN, 0.06)
+	Fx.vibrate(22 + level * 6)
+	_map.focus_city(index)
 
 func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> void:
 	var reward_text := "+" + Fmt.short(cash_reward)
@@ -3088,6 +3117,7 @@ func _show_city_inspector(index: int) -> void:
 	var accent := UITheme.GOLD if is_capital else (UITheme.CYAN if is_active else UITheme.ACCENT)
 	var layer := _overlay()
 	var box := _popup_box(layer, accent)
+	box.add_theme_constant_override("separation", 8)
 
 	var head := HBoxContainer.new(); head.add_theme_constant_override("separation", 12)
 	head.add_child(_icon_badge("ic_city" if is_capital or is_next else "ic_range", accent, 56, 30))
@@ -3098,7 +3128,7 @@ func _show_city_inspector(index: int) -> void:
 	head.add_child(titles); box.add_child(head)
 
 	var info := _card(accent)
-	var iv := VBoxContainer.new(); iv.add_theme_constant_override("separation", 8); info.add_child(iv)
+	var iv := VBoxContainer.new(); iv.add_theme_constant_override("separation", 6); info.add_child(iv)
 	var status := tr("SEDE") if is_capital else (tr("Obtido") if is_active else tr("Bloqueado"))
 	var status_lbl := _lbl(status, 17, accent)
 	status_lbl.add_theme_font_override("font", UITheme.font("Bold")); iv.add_child(status_lbl)
@@ -3106,14 +3136,18 @@ func _show_city_inspector(index: int) -> void:
 	var progress_label: Label = null
 	var next_cost_label: Label = null
 	var next_detail_label: Label = null
+	var development_cost_label: Label = null
+	var development_detail_label: Label = null
 	if is_active:
 		var realm_income: float = model["realm_income"]
 		var city_income: float = model["city_income"]
-		iv.add_child(_lbl(tr("Rendimento: %s/s") % Fmt.short(city_income), 20, UITheme.GREEN))
+		# Keep this map popup fully visible on 720p landscape. Ownership and income
+		# are one status statement; the fleet count already lives in the persistent
+		# HUD and only repeated information while pushing the close action offscreen.
+		status_lbl.text = status + "  ·  " + tr("Rendimento: %s/s") % Fmt.short(city_income)
 		if not is_capital:
 			var share := 0 if realm_income <= 0.0 else int(round(city_income / realm_income * 100.0))
 			iv.add_child(_lbl(tr("Contribuição para o reino: %d%%") % share, 15, UITheme.CYAN))
-		iv.add_child(_lbl(tr("Tens %d drones") % GameState.drones, 16, UITheme.MUTED))
 	elif is_next:
 		var unlock_cost: float = model["next_cost"]
 		var unlock_pct: float = model["progress"]
@@ -3126,6 +3160,23 @@ func _show_city_inspector(index: int) -> void:
 		progress_label = _lbl(tr("Progresso: %d%%") % int(round(unlock_pct * 100.0)), 15, UITheme.MUTED)
 		progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; iv.add_child(progress_label)
 	box.add_child(info)
+
+	if is_active and not is_capital and int(model["development_level"]) < GameState.CITY_DEVELOPMENT_MAX:
+		var development_card := _card(UITheme.CYAN)
+		var dv := VBoxContainer.new(); dv.add_theme_constant_override("separation", 6); development_card.add_child(dv)
+		var development_head := HBoxContainer.new(); development_head.add_theme_constant_override("separation", 8); dv.add_child(development_head)
+		development_head.add_child(_icon("ic_range", 22))
+		var development_title := _lbl(tr("Desenvolver cidade"), 18, UITheme.INK)
+		development_title.add_theme_font_override("font", UITheme.font("Bold")); development_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		development_head.add_child(development_title)
+		development_cost_label = _lbl(Fmt.short(float(model["development_cost"])), 18, UITheme.GOLD)
+		development_head.add_child(development_cost_label)
+		development_detail_label = _lbl(tr("Nível de rota %d/%d · Renda +%s/s") % [
+			int(model["development_level"]), GameState.CITY_DEVELOPMENT_MAX,
+			Fmt.short(float(model["development_gain"]))], 15, UITheme.GREEN)
+		development_detail_label.text += _eta_suffix(float(model["development_cost"]), float(model["realm_income"]))
+		dv.add_child(development_detail_label)
+		box.add_child(development_card)
 
 	# An active settlement is not a dead-end statistics card. It also previews the
 	# next network beat, including its actual income gain, so every map tap leaves
@@ -3147,7 +3198,19 @@ func _show_city_inspector(index: int) -> void:
 
 	var action := _buy_btn(accent)
 	action.custom_minimum_size = Vector2(0, 72)
-	if is_next or (is_active and bool(model["has_next"])):
+	var can_develop := is_active and not is_capital \
+		and int(model["development_level"]) < GameState.CITY_DEVELOPMENT_MAX
+	if can_develop:
+		var development_cost: float = model["development_cost"]
+		action.text = tr("Desenvolver cidade") + "  ·  " + Fmt.short(development_cost)
+		action.disabled = GameState.credits < development_cost
+		action.pressed.connect(func():
+			if GameState.buy_city_development(index):
+				Fx.press(action); Audio.play("milestone"); _dismiss(layer)
+			else:
+				Fx.error_shake(action)
+		)
+	elif is_next or (is_active and bool(model["has_next"])):
 		var cost: float = model["next_cost"]
 		action.text = tr("Abrir") + "  ·  " + Fmt.short(cost)
 		action.disabled = GameState.credits < cost
@@ -3166,9 +3229,39 @@ func _show_city_inspector(index: int) -> void:
 		action.text = tr("Bloqueado")
 		action.disabled = true
 	box.add_child(action)
-	if is_next or (is_active and bool(model["has_next"])):
+	if can_develop:
+		_bind_city_development_live(layer, action, index, development_cost_label, development_detail_label)
+	elif is_next or (is_active and bool(model["has_next"])):
 		_bind_city_unlock_live(layer, action, progress_fill, progress_label, next_cost_label, next_detail_label)
 	box.add_child(_close_btn(layer))
+
+func _bind_city_development_live(layer: Node, action: Button, city_index: int,
+		cost_label: Label = null, detail_label: Label = null) -> void:
+	var timer := Timer.new()
+	timer.wait_time = 0.25
+	timer.one_shot = false
+	layer.add_child(timer)
+	var refresh := func() -> void:
+		if not is_instance_valid(layer) or not is_instance_valid(action):
+			return
+		var cost := GameState.city_development_cost(city_index)
+		var level := GameState.city_development_level(city_index)
+		if cost < 0.0:
+			action.text = tr("NÍVEL MÁXIMO")
+			action.disabled = true
+			return
+		action.text = tr("Desenvolver cidade") + "  ·  " + Fmt.short(cost)
+		action.disabled = GameState.credits < cost
+		_afford(action, not action.disabled)
+		if is_instance_valid(cost_label): cost_label.text = Fmt.short(cost)
+		if is_instance_valid(detail_label):
+			detail_label.text = tr("Nível de rota %d/%d · Renda +%s/s") % [
+				level, GameState.CITY_DEVELOPMENT_MAX,
+				Fmt.short(GameState.projected_city_development_gain(city_index))]
+			detail_label.text += _eta_suffix(cost, GameState.income_per_sec())
+	timer.timeout.connect(refresh)
+	refresh.call()
+	timer.start()
 
 ## Idle income continues while the inspector is open. Refreshing this small
 ## decision card four times a second makes waiting legible and, critically,
@@ -3227,6 +3320,9 @@ func _city_inspector_model(index: int) -> Dictionary:
 		"next_cost": next_cost,
 		"next_gain": GameState.projected_city_income_gain(realm_income) if has_next else 0.0,
 		"progress": clampf(GameState.credits / maxf(1.0, next_cost), 0.0, 1.0) if has_next else 1.0,
+		"development_level": GameState.city_development_level(index),
+		"development_cost": GameState.city_development_cost(index),
+		"development_gain": GameState.projected_city_development_gain(index),
 	}
 
 ## "Sair do jogo?" — only reached via the Android Back button with no popup open.
@@ -3504,8 +3600,8 @@ func _popup_box(layer: CanvasLayer, accent := UITheme.ACCENT) -> VBoxContainer:
 	return box
 
 func _close_btn(layer: CanvasLayer) -> Button:
-	var close := Button.new(); close.text = "Fechar"; close.add_theme_font_size_override("font_size", 30)
-	close.custom_minimum_size = Vector2(0, 84); close.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	var close := Button.new(); close.text = "Fechar"; close.add_theme_font_size_override("font_size", 26)
+	close.custom_minimum_size = Vector2(0, 64); close.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	close.pressed.connect(func(): Fx.press(close); _dismiss(layer))
 	return close
 

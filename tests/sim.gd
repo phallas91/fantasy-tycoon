@@ -68,12 +68,25 @@ func _state_is_valid() -> bool:
 		return false
 	if GameState.cities_unlocked < 1 or GameState.cities_unlocked > GameState.max_cities():
 		return false
+	for city_index in range(1, GameState.cities_unlocked + 1):
+		var city_level := GameState.city_development_level(city_index)
+		if city_level < 0 or city_level > GameState.CITY_DEVELOPMENT_MAX:
+			return false
 	for key: String in Economy.UPGRADE_ORDER:
 		if int(GameState.levels.get(key, -1)) < 0:
 			return false
 	return true
 
 func _auto_buy() -> void:
+	# Follow the same single local-development lesson as the smart objective so
+	# the long simulation exercises city-specific active/offline income in every
+	# realm instead of leaving the new system at its default value.
+	var frontier_city := GameState.cities_unlocked
+	if GameState.city_development_level(frontier_city) == 0:
+		var development_cost := GameState.city_development_cost(frontier_city)
+		if development_cost >= 0.0 and GameState.credits >= development_cost:
+			GameState.buy_city_development(frontier_city)
+			return
 	if GameState.can_expand():
 		var reward := GameState.expansion_influence_reward()
 		var influence_before := GameState.influence
@@ -82,6 +95,7 @@ func _auto_buy() -> void:
 		elif GameState.credits != 0.0 or GameState.cities_unlocked != 1 \
 				or GameState.drones != Prestige.starting_drones() \
 				or GameState.levels != Prestige.starting_levels() \
+				or GameState.city_development_level(1) != 0 \
 				or GameState.influence != influence_before + reward:
 			_expansion_reset_valid = false
 		return

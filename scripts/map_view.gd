@@ -190,6 +190,7 @@ func _ready() -> void:
 	_seed_ambiance()
 	_recalc_bbox()
 	GameState.city_unlocked.connect(_on_city_unlocked_visual)
+	GameState.city_developed.connect(_on_city_developed_visual)
 	_refresh_next_cost()
 	set_process(true)
 
@@ -1213,13 +1214,18 @@ func _compact_marker(p: Vector2, flash: float) -> void:
 ## Development is now visible on the map itself. Upgrade investment raises the
 ## skyline through four restrained tiers; the capital is always one tier ahead.
 ## All shapes are code-native, so they stay crisp at every viewport and zoom.
-func _city_development_tier(is_capital: bool) -> int:
+func _city_development_tier(is_capital: bool, city_index := 0) -> int:
 	var invested := 0
 	for key in GameState.levels:
 		invested += int(GameState.levels[key])
 	var tier := 1 + int(float(invested) / 32.0)
 	if is_capital:
 		tier += 1
+	else:
+		# Local route investment now belongs to the city that received it. Each
+		# level adds a visible skyline step without making untouched settlements
+		# look mysteriously upgraded by construction in the capital.
+		tier += GameState.city_development_level(city_index)
 	return clampi(tier, 1, 4)
 
 func _city_reveal(city_index: int) -> float:
@@ -1229,7 +1235,7 @@ func _city_reveal(city_index: int) -> float:
 	return ease(clampf(age / 0.72, 0.0, 1.0), -1.8)
 
 func _draw_city_district(p: Vector2, city_index: int, is_capital: bool) -> void:
-	var tier := _city_development_tier(is_capital)
+	var tier := _city_development_tier(is_capital, city_index)
 	var reveal := _city_reveal(city_index)
 	var col := GOLD if is_capital else CYAN
 	var overview_scale := 0.84 if zoom < 1.65 else 1.0
@@ -1384,6 +1390,11 @@ func _on_city_unlocked_visual(index: int) -> void:
 	if not Fx.reduce_motion:
 		_city_growth[index] = 1.25
 
+func _on_city_developed_visual(index: int, _level: int, _income_gain: float) -> void:
+	_flash[index] = 0.65
+	if not Fx.reduce_motion:
+		_city_growth[index] = 1.25
+
 func _on_country_changed_visual(_index: int) -> void:
 	_recalc_bbox()
 	_reset_view()
@@ -1427,7 +1438,7 @@ func _capital_marker(p: Vector2, flash: float) -> void:
 func _active_marker(p: Vector2, flash: float, city_index: int) -> void:
 	var pulse: float = 0.5 + 0.5 * sin(_t * 3.0)
 	var reveal := _city_reveal(city_index)
-	var tier := _city_development_tier(false)
+	var tier := _city_development_tier(false, city_index)
 	draw_circle(p, 14.0 + pulse * 4.0, Color(CYAN.r, CYAN.g, CYAN.b, 0.16))
 	if _hub_city != null:
 		var s := (40.0 + float(tier) * 2.0) if zoom < 1.65 else (50.0 + float(tier) * 2.0)

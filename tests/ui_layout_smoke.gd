@@ -124,6 +124,7 @@ func _run() -> void:
 
 		GameState.current_country = 0
 		GameState.cities_unlocked = 1
+		GameState.call("_reset_city_development")
 		GameState.drones = 1
 		for opening_key: String in GameState.levels:
 			GameState.levels[opening_key] = 0
@@ -190,9 +191,17 @@ func _run() -> void:
 				"opening chapter does not preview routes and automation"):
 			break
 		GameState.prosperity_rank = 2
+		var ready_states: Array[bool] = []
+		for contract: Dictionary in Contracts.slots:
+			ready_states.append(bool(contract.get("ready", false)))
+			contract["ready"] = false
 		var realm_objective: Dictionary = main.call("_smart_objective")
+		for contract_index in range(Contracts.slots.size()):
+			Contracts.slots[contract_index]["ready"] = ready_states[contract_index]
 		if not _check(not bool(main.call("_opening_city_chapter_active"))
-				and not realm_objective.has("upgrade_key"),
+				and not realm_objective.has("upgrade_key")
+				and int(realm_objective.get("city_index", -1)) == 1
+				and float(realm_objective.get("cost", -1.0)) > 0.0,
 				"opening construction chapter does not hand off to realm growth"):
 			break
 		# A fresh later realm must not point at a stored meta reward while its city
@@ -220,14 +229,35 @@ func _run() -> void:
 		GameState.cities_unlocked = 2
 		var city_model: Dictionary = main.call("_city_inspector_model", 1)
 		var frontier_model: Dictionary = main.call("_city_inspector_model", 3)
+		var base_city_tier := int(map.call("_city_development_tier", false, 1))
+		GameState.city_development[1] = GameState.CITY_DEVELOPMENT_MAX
+		var developed_city_tier := int(map.call("_city_development_tier", false, 1))
+		GameState.city_development[1] = 0
 		if not _check(bool(city_model.get("active"))
 				and bool(city_model.get("has_next"))
 				and float(city_model.get("city_income", 0.0)) > 0.0
 				and float(city_model.get("next_gain", 0.0)) > 0.0
+				and int(city_model.get("development_level", -1)) == 0
+				and float(city_model.get("development_cost", -1.0)) > 0.0
+				and float(city_model.get("development_gain", 0.0)) > 0.0
 				and str(city_model.get("next_name", "")) != ""
 				and bool(frontier_model.get("next"))
+				and developed_city_tier > base_city_tier
 				and is_equal_approx(float(city_model.get("next_cost")), float(frontier_model.get("next_cost"))),
 				"city map inspector does not lead active settlements into the next rewarding expansion"):
+			break
+		main.call("_show_city_inspector", 1)
+		await get_tree().process_frame
+		var inspector_layer: CanvasLayer = null
+		for child in main.get_children():
+			if child is CanvasLayer and (child as CanvasLayer).layer == 150:
+				inspector_layer = child as CanvasLayer
+		var inspector_scroll: ScrollContainer = inspector_layer.get_child(1) if inspector_layer != null else null
+		var inspector_fits := inspector_scroll != null and not inspector_scroll.get_v_scroll_bar().visible
+		if inspector_layer != null: inspector_layer.queue_free()
+		await get_tree().process_frame
+		if not _check(inspector_fits,
+				"city development inspector requires scrolling at %s" % requested_size):
 			break
 		# The inspector must keep pace with idle earnings instead of freezing its
 		# progress and forcing the player to close/reopen it when the city becomes
@@ -247,6 +277,20 @@ func _run() -> void:
 		live_layer.queue_free()
 		if not _check(waiting_ok and ready_ok,
 				"city inspector does not become actionable as idle income reaches its cost"):
+			break
+		var route_cost := float(city_model["development_cost"])
+		GameState.credits = route_cost * 0.5
+		var route_layer := Control.new(); main.add_child(route_layer)
+		var route_action: Button = main.call("_buy_btn", UITheme.CYAN); route_layer.add_child(route_action)
+		main.call("_bind_city_development_live", route_layer, route_action, 1)
+		await get_tree().create_timer(0.3).timeout
+		var route_waiting_ok := route_action.disabled
+		GameState.credits = route_cost * 1.1
+		await get_tree().create_timer(0.3).timeout
+		var route_ready_ok := not route_action.disabled
+		route_layer.queue_free()
+		if not _check(route_waiting_ok and route_ready_ok,
+				"local route development does not become actionable with live idle income"):
 			break
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")
