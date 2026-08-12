@@ -482,7 +482,9 @@ func _bg() -> void:
 			aur_tw.tween_property(ab, "modulate:a", 0.42, 4.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 func _build_map() -> void:
-	_map = MAP_VIEW.new(); _map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); add_child(_map)
+	_map = MAP_VIEW.new(); _map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_map.management_panel_right = SIDE_PANEL_W
+	add_child(_map)
 	_map.city_selected.connect(_show_city_inspector)
 	# vignette over the map (under the UI chrome added later)
 	var vig := _opt_tex("vignette")

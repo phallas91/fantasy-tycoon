@@ -93,6 +93,8 @@ required_map = (
 	"if route_level >= 25:",
 	"func _draw_recommended_investment(",
 	"func _draw_construction_activity(",
+	"func _growth_fog_strength() -> float:",
+	"func _draw_growth_fog(",
 	"func reveal_landmark(key: String, landmark_name: String) -> void:",
 	"func _draw_landmark_reveal(cap: Vector2) -> void:",
 	"func _income_chip(p: Vector2, income: String) -> void:",

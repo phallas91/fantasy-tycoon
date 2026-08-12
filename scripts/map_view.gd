@@ -10,6 +10,7 @@ signal city_selected(index: int)
 # --- public API (set every frame by main.gd) ---
 var band_top := 150.0
 var band_bottom := 760.0
+var management_panel_right := 0.0
 
 # --- zoom / pan (pinch + drag) ---
 var zoom := 1.0
@@ -38,6 +39,7 @@ var _vig_bottom: GradientTexture2D
 var _vig_left: GradientTexture2D
 var _vig_right: GradientTexture2D
 var _land_grad: GradientTexture2D
+var _growth_fog: GradientTexture2D
 var _grid_tile: Texture2D
 var _coin: Texture2D
 var _lock: Texture2D
@@ -168,6 +170,20 @@ func _ready() -> void:
 	_land_grad.gradient = lg
 	_land_grad.fill_from = Vector2(0, 0); _land_grad.fill_to = Vector2(0, 1)
 	_land_grad.width = 4; _land_grad.height = 128
+	# A soft radial veil lets the premium panorama act as the promised future city
+	# instead of showing every district as finished on arrival. Live buildings,
+	# routes and couriers are drawn above it and progressively reclaim the scene.
+	var growth_gradient := Gradient.new()
+	growth_gradient.offsets = PackedFloat32Array([0.0, 0.34, 0.68, 1.0])
+	growth_gradient.colors = PackedColorArray([
+		Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.04),
+		Color(1, 1, 1, 0.72), Color(1, 1, 1, 1.0)])
+	_growth_fog = GradientTexture2D.new()
+	_growth_fog.gradient = growth_gradient
+	_growth_fog.fill = GradientTexture2D.FILL_RADIAL
+	_growth_fog.fill_from = Vector2(0.5, 0.5)
+	_growth_fog.fill_to = Vector2(1.0, 0.5)
+	_growth_fog.width = 384; _growth_fog.height = 384
 	_seed_ambiance()
 	_recalc_bbox()
 	GameState.city_unlocked.connect(_on_city_unlocked_visual)
@@ -537,6 +553,7 @@ func _draw() -> void:
 		return
 
 	var cap := _proj(Vector2(cities[0]["x"], cities[0]["y"]))
+	_draw_growth_fog(w, h, cap)
 	var route_geom := _draw_routes(cap, cities)
 	_draw_ground_traffic(cap, route_geom)
 	_draw_drones(cap, cities, route_geom)
@@ -548,6 +565,34 @@ func _draw() -> void:
 	_draw_stars(w, h)
 	_draw_vignette(w, h)
 	_draw_pops()
+
+## The authored panorama depicts the mature fantasy capital. A fresh realm now
+## begins as a readable illuminated outpost surrounded by violet construction
+## mist; prosperity chapters and opened settlements steadily reveal the city.
+func _growth_fog_strength() -> float:
+	var chapter_reveal := float(GameState.prosperity_rank) * 0.17
+	var network_reveal := float(maxi(0, GameState.cities_unlocked - 1)) * 0.055
+	return clampf(0.68 - chapter_reveal - network_reveal, 0.06, 0.68)
+
+func _draw_growth_fog(w: float, h: float, cap: Vector2) -> void:
+	if _growth_fog == null:
+		return
+	var strength := _growth_fog_strength()
+	# Keep the texture over the whole panorama and move its transparent radial
+	# centre onto the live capital. Drawing an oversized radial texture kept every
+	# screen pixel near its clear centre and barely changed the mature artwork.
+	# Keep the veil inside the playable world band; management cards and the HUD
+	# are translucent by design and must not become collateral damage underneath.
+	var fog_rect := Rect2(management_panel_right, band_top,
+		maxf(1.0, w - management_panel_right), maxf(1.0, h))
+	var centre := Vector2(clampf((cap.x - fog_rect.position.x) / fog_rect.size.x, 0.0, 1.0),
+		clampf((cap.y - fog_rect.position.y) / fog_rect.size.y, 0.0, 1.0))
+	var clear_radius := 0.22 + float(GameState.prosperity_rank) * 0.035 \
+		+ float(maxi(0, GameState.cities_unlocked - 1)) * 0.012
+	_growth_fog.fill_from = centre
+	_growth_fog.fill_to = centre + Vector2(clear_radius, 0.0)
+	draw_texture_rect(_growth_fog, fog_rect, false,
+		Color(0.055, 0.022, 0.075, strength))
 
 func _investment_target(cap: Vector2, key: String) -> Vector2:
 	var offsets := {

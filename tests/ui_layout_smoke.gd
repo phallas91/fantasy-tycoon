@@ -38,6 +38,15 @@ func _run() -> void:
 		for _frame in range(5):
 			await get_tree().process_frame
 		var map := main.get("_map") as Control
+		GameState.cities_unlocked = 1
+		GameState.prosperity_rank = 0
+		var fresh_realm_fog := float(map.call("_growth_fog_strength"))
+		GameState.cities_unlocked = 5
+		GameState.prosperity_rank = 3
+		var mature_realm_fog := float(map.call("_growth_fog_strength"))
+		if not _check(fresh_realm_fog >= 0.65 and mature_realm_fog <= 0.25,
+				"mature panorama is not progressively revealed through city growth"):
+			break
 		map.call("reveal_landmark", "cargo", tr("Armazéns da Guilda"))
 		if not _check(str(map.get("_landmark_reveal_key")) == "cargo"
 				and str(map.get("_landmark_reveal_name")) == tr("Armazéns da Guilda")
