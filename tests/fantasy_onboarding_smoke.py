@@ -67,6 +67,8 @@ required_map = (
 	"func _draw_realm_details(",
 	"func _draw_ground_traffic(",
 	"func _draw_district_investments(",
+	"_draw_city_district(cp, i, true)",
+	"_draw_city_district(cp, i, false)",
 	'GameState.levels.get("cargo", 0)',
 	'GameState.levels.get("value", 0)',
 	'GameState.levels.get("speed", 0)',

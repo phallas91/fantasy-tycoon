@@ -1025,8 +1025,13 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 		var nm: String = cities[i]["name"]
 		var flash: float = float(_flash.get(i, 0.0))
 		if i == 0:
-			if _hub_home == null:
-				_draw_city_district(cp, i, true)
+			# The illustrated hub is the landmark at the heart of the settlement,
+			# not a replacement for its growing districts. Always draw the live
+			# skyline and investment structures first, then place the authored hub
+			# above them in _capital_marker(). Previously the normal asset path
+			# skipped every warehouse, market, beacon and route lamp, so the city
+			# looked unchanged no matter how much the player invested.
+			_draw_city_district(cp, i, true)
 			_capital_marker(cp, flash)
 			_label(cp, nm, GOLD)
 			occupied.append(cp)
@@ -1040,8 +1045,7 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 			if dense:
 				_compact_marker(cp, flash)
 			else:
-				if _hub_city == null:
-					_draw_city_district(cp, i, false)
+				_draw_city_district(cp, i, false)
 				_active_marker(cp, flash, i)
 			occupied.append(cp)
 			# On the overview only the frontier city is named. Pinch-zooming turns
@@ -1091,8 +1095,12 @@ func _draw_city_district(p: Vector2, city_index: int, is_capital: bool) -> void:
 	var reveal := _city_reveal(city_index)
 	var col := GOLD if is_capital else CYAN
 	var overview_scale := 0.84 if zoom < 1.65 else 1.0
-	var width := (62.0 if is_capital else 46.0) * overview_scale
-	var base_y := p.y + 7.0
+	# Leave enough room around the authored hub for the live settlement to read
+	# as an expanding city. The previous 62px capital strip sat almost entirely
+	# behind the 62px hub texture, technically drawing growth that players could
+	# barely see. Satellite towns stay restrained to preserve route readability.
+	var width := (108.0 if is_capital else 58.0) * overview_scale
+	var base_y := p.y + (11.0 if is_capital else 7.0)
 
 	# Soft foundation and a narrow upward light column make the settlement read
 	# as part of the magical map without competing with labels or couriers.
@@ -1102,26 +1110,31 @@ func _draw_city_district(p: Vector2, city_index: int, is_capital: bool) -> void:
 		Vector2(p.x + width * 0.12, base_y - 44.0 * reveal), Vector2(p.x + width * 0.34, base_y),
 	]), Color(col.r, col.g, col.b, 0.035 * reveal))
 
-	var count := tier + 2
+	var count := tier + (4 if is_capital else 2)
 	for n in range(count):
 		var slot: float = float(n) - float(count - 1) * 0.5
-		var bw := 7.0 + float((n + city_index) % 2) * 2.0
+		var bw := (8.0 if is_capital else 7.0) + float((n + city_index) % 2) * 2.0
 		var bh := (13.0 + float((n * 11 + city_index * 5) % 18) + float(tier) * 3.0) * reveal
 		if n == count / 2:
 			bh += (10.0 if is_capital else 5.0) * reveal
 		var bx := p.x + slot * (width / float(count)) - bw * 0.5
 		var top := base_y - bh
-		var body := Color(MIDNIGHT.r * 0.72, MIDNIGHT.g * 0.72, MIDNIGHT.b * 0.78, 0.94 * reveal)
-		draw_rect(Rect2(bx, top, bw, bh), body)
-		# Arcane spires provide a recognisable fantasy silhouette at small scale.
-		if (n + tier) % 2 == 0:
-			draw_colored_polygon(PackedVector2Array([
-				Vector2(bx - 1.0, top), Vector2(bx + bw * 0.5, top - (5.0 + tier) * reveal),
-				Vector2(bx + bw + 1.0, top),
-			]), Color(MIDNIGHT.r * 0.65, MIDNIGHT.g * 0.65, MIDNIGHT.b * 0.72, 0.96 * reveal))
+		var tower_rect := Rect2(bx, top, bw, bh)
+		var body := Color(0.16, 0.075, 0.22, 0.92 * reveal)
+		draw_rect(tower_rect, body)
+		draw_rect(tower_rect, Color(GOLD.r, GOLD.g, GOLD.b, 0.22 * reveal), false, 1.0)
+		# Every tower receives a steep arcane roof. Consistent spires form a
+		# deliberately authored skyline instead of a row of dark debug blocks.
+		var roof_height := (5.0 + float(tier) + float(n % 2) * 2.0) * reveal
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(bx - 1.5, top), Vector2(bx + bw * 0.5, top - roof_height),
+			Vector2(bx + bw + 1.5, top),
+		]), Color(0.32, 0.12, 0.38, 0.96 * reveal))
+		draw_line(Vector2(bx - 1.0, top), Vector2(bx + bw * 0.5, top - roof_height), Color(GOLD.r, GOLD.g, GOLD.b, 0.28 * reveal), 1.0)
+		draw_line(Vector2(bx + bw * 0.5, top - roof_height), Vector2(bx + bw + 1.0, top), Color(GOLD.r, GOLD.g, GOLD.b, 0.28 * reveal), 1.0)
 		# One or two warm/cyan windows per tower imply life without visual noise.
 		if reveal > 0.45:
-			var window_col := Color(col.r, col.g, col.b, 0.66)
+			var window_col := Color(1.0, 0.72, 0.24, 0.82 * reveal) if is_capital else Color(col.r, col.g, col.b, 0.72 * reveal)
 			draw_rect(Rect2(bx + bw * 0.5 - 1.0, base_y - minf(8.0, bh * 0.45), 2.0, 3.0), window_col)
 			if tier >= 3 and bh > 24.0:
 				draw_rect(Rect2(bx + bw * 0.5 - 1.0, base_y - 17.0, 2.0, 3.0), window_col)
