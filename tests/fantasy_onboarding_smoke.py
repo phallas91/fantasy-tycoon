@@ -40,6 +40,7 @@ required_main = (
     'tr("%s desbloqueada!") % tr(str(def.get("name", id)))',
 	"DisplayServer.SCREEN_LANDSCAPE",
 	"const SIDE_PANEL_W := 410.0",
+	"const LANDSCAPE_PANEL_TOP := 204.0",
 	"func _build_guided_action() -> void:",
 	"var dashboard_ready := stage > 0",
 	"_focus_card.visible = not dashboard_ready",

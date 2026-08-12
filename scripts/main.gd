@@ -4,7 +4,10 @@ extends Control
 const NAV_H := 70.0
 const SIDE_PANEL_W := 410.0
 const OFFLINE_POPUP_MIN_SECONDS := 60.0
-const LANDSCAPE_PANEL_TOP := 150.0
+# The top HUD owns the first 198 logical pixels once its objective ribbon is
+# visible. Starting management at 150 made the panel cover that objective on
+# every landscape device; keep a small breathing gap below the complete HUD.
+const LANDSCAPE_PANEL_TOP := 204.0
 const MANAGEMENT_PAGE_SIZE := 3
 const ART    := "res://assets/art/"
 const GUTTER := 12.0

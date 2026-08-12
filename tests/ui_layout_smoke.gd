@@ -12,7 +12,7 @@ const LAYOUTS := [
 const REF_GUTTER := 12.0
 const REF_HUD_TOP := 20.0
 const REF_PANEL_RIGHT := 410.0
-const REF_PANEL_TOP := 150.0
+const REF_PANEL_TOP := 204.0
 const REF_NAV_HEIGHT := 70.0
 
 var _failure := ""
@@ -99,7 +99,7 @@ func _run() -> void:
 		var fleet_page := (main.get("_pages") as Array)[0] as ScrollContainer
 		var fleet_pager := fleet_page.get_meta("page_pager") as Control
 		if not _check(not fleet_pager.visible and fleet_page.anchor_bottom == 0.0
-				and fleet_page.offset_bottom < 500.0,
+				and fleet_page.offset_bottom < main.size.y - 70.0,
 				"single-page opening dashboard leaves an empty pager panel"):
 			break
 		var construction_objective: Dictionary = main.call("_smart_objective")
@@ -156,6 +156,10 @@ func _run() -> void:
 				and not bool((opening_rows["value"]["card"] as Control).get_meta("progression_hidden"))
 				and bool((opening_rows["routes"]["card"] as Control).get_meta("progression_hidden")),
 				"city rank 1 construction paths are not staged correctly"):
+			break
+		await get_tree().process_frame
+		if not _check(fleet_pager.visible and fleet_page.anchor_bottom == 1.0,
+				"multi-page construction dashboard does not reserve stable paging space"):
 			break
 		GameState.prosperity_rank = 2
 		main.call("_process", 0.0)
