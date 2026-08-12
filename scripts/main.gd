@@ -93,6 +93,7 @@ var _expand_btn: Button
 var _expand_detail: Label
 var _streak_lbl: Label
 var _streak_chip: PanelContainer
+var _daily_hud_sig := ""
 var _combo_chip: PanelContainer
 var _combo_lbl: Label
 var _city_prog_fill: Panel
@@ -173,7 +174,9 @@ func _ready() -> void:
 	Achievements.unlocked.connect(_on_achievement)
 	Events.started.connect(_on_event_start)
 	Events.ended.connect(func(_id): _event_row.visible = false)
-	Daily.reward_ready.connect(func(): _show_daily_popup())
+	# Daily rewards are an optional return incentive, never a launch blocker.
+	# The compact HUD claim chip and Shop dot update from Daily.pending instead.
+	Daily.reward_ready.connect(_refresh_daily_hud)
 	Prestige.prestiged.connect(_on_prestige)
 	Contracts.completed.connect(_on_contract_completed)
 	SaveSystem.session_offline_ready.connect(_on_session_offline_ready)
@@ -209,8 +212,6 @@ func _post_boot(loaded: bool) -> void:
 		_show_offline_popup(GameState.pending_offline, GameState.pending_offline_seconds)
 	else:
 		_collect_short_offline_reward()
-		if Daily.pending:
-			_show_daily_popup()
 
 ## Brief app switches should never interrupt play with a full-screen reward
 ## ceremony. One minute is long enough for offline earnings to feel intentional;
@@ -538,7 +539,18 @@ func _build_hud() -> void:
 	_country_lbl.add_theme_color_override("font_color", UITheme.MUTED)
 	_country_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL; r2.add_child(_country_lbl)
 	_streak_chip = PanelContainer.new()
+	_streak_chip.custom_minimum_size = Vector2(92, 44)
+	_streak_chip.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_streak_chip.tooltip_text = tr("Recompensa Diária")
 	_streak_chip.add_theme_stylebox_override("panel", UITheme.stat_chip(UITheme.AMBER))
+	_streak_chip.gui_input.connect(func(e: InputEvent):
+		var tapped := (e is InputEventMouseButton and (e as InputEventMouseButton).pressed) \
+			or (e is InputEventScreenTouch and (e as InputEventScreenTouch).pressed)
+		if tapped:
+			Fx.press(_streak_chip)
+			Audio.play("tap")
+			_show_daily_popup()
+	)
 	var sh := HBoxContainer.new(); sh.add_theme_constant_override("separation", 3); _streak_chip.add_child(sh)
 	sh.add_child(_icon("ic_streak", 18))
 	_streak_lbl = Label.new(); _streak_lbl.add_theme_font_size_override("font_size", 15)
@@ -1890,8 +1902,7 @@ func _process(delta: float) -> void:
 	var country_nm := Economy.country_name(GameState.current_country)
 	_country_lbl.text = "%s · %d/%d" % [
 		country_nm, GameState.current_country + 1, Economy.num_countries()]
-	_streak_lbl.text = "%dd" % Daily.streak
-	_streak_chip.modulate = UITheme.GOLD if Daily.streak >= 7 else Color.WHITE
+	_refresh_daily_hud()
 
 	_map.band_top    = _hud.position.y + _hud.size.y + 8.0
 	_map.band_bottom = _map_floor_anchor.position.y - 8.0
@@ -3250,10 +3261,23 @@ func _show_offline_popup(amount: float, seconds: float) -> void:
 		Fx.chip_pop(_credits_chip, UITheme.GOLD)
 		Audio.play("milestone")
 		layer.queue_free()
-		if Daily.pending:
-			_show_daily_popup()
 	)
 	box.add_child(collect)
+
+## Keeps the return reward discoverable without stealing the first interaction.
+## A stable signature avoids rebuilding the chip style every frame.
+func _refresh_daily_hud() -> void:
+	if not is_instance_valid(_streak_chip) or not is_instance_valid(_streak_lbl):
+		return
+	var sig := "%s:%d" % [str(Daily.pending), Daily.streak]
+	if sig == _daily_hud_sig:
+		return
+	_daily_hud_sig = sig
+	_streak_lbl.text = tr("Recolher") if Daily.pending else "%dd" % Daily.streak
+	var accent := UITheme.GOLD if Daily.pending else UITheme.AMBER
+	_streak_lbl.add_theme_color_override("font_color", accent)
+	_streak_chip.add_theme_stylebox_override("panel", UITheme.stat_chip(accent))
+	_streak_chip.modulate = UITheme.GOLD if not Daily.pending and Daily.streak >= 7 else Color.WHITE
 
 func _overlay() -> CanvasLayer:
 	var layer := CanvasLayer.new(); layer.layer = 150

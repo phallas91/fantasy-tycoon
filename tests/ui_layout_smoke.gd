@@ -38,6 +38,27 @@ func _run() -> void:
 		for _frame in range(5):
 			await get_tree().process_frame
 
+		# A ready return reward must invite rather than interrupt. Even when the
+		# pending flag is already true at boot, no blocking overlay may be created;
+		# the reachable 44px HUD chip carries the claim state instead.
+		Daily.pending = true
+		GameState.pending_offline = 0.0
+		GameState.pending_offline_seconds = 0.0
+		main.call("_post_boot", true)
+		main.call("_process", 0.0)
+		await get_tree().process_frame
+		var launch_reward_overlays := 0
+		for launch_child in main.get_children():
+			if launch_child is CanvasLayer and (launch_child as CanvasLayer).layer == 150:
+				launch_reward_overlays += 1
+		if not _check(launch_reward_overlays == 0
+				and (main.get("_streak_chip") as Control).custom_minimum_size.y >= 44.0
+				and (main.get("_streak_lbl") as Label).text == tr("Recolher"),
+				"daily reward blocks launch instead of waiting in its HUD claim chip"):
+			break
+		Daily.pending = false
+		main.call("_process", 0.0)
+
 		# Data-authored economy labels must use the same locale pipeline as scene
 		# copy. These were previously German literals in every non-German locale.
 		var original_locale := TranslationServer.get_locale()
