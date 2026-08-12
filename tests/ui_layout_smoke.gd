@@ -87,6 +87,7 @@ func _run() -> void:
 			TranslationServer.set_locale(economy_locale)
 			if not _check(tr("Reisetempo") != "Reisetempo"
 					and tr("Große Handelsgilde") != "Große Handelsgilde"
+					and (economy_locale == "pt" or tr("Caçador Dourado") != "Caçador Dourado")
 					and (economy_locale == "pt" or tr("Reputação permanente ×%.2f → ×%.2f")
 						!= "Reputação permanente ×%.2f → ×%.2f"),
 					"economy data remains German in locale " + economy_locale):
@@ -144,7 +145,8 @@ func _run() -> void:
 		var fleet_pager := fleet_page.get_meta("page_pager") as Control
 		if not _check(not fleet_pager.visible and fleet_page.anchor_bottom == 0.0
 				and fleet_page.offset_bottom < main.size.y - 70.0,
-				"single-page opening dashboard leaves an empty pager panel"):
+				"single-page opening dashboard leaves an empty pager panel (pager=%s, anchor=%.1f, bottom=%.1f, canvas=%.1f)" % [
+					fleet_pager.visible, fleet_page.anchor_bottom, fleet_page.offset_bottom, main.size.y]):
 			break
 		var construction_objective: Dictionary = main.call("_smart_objective")
 		if not _check(construction_objective.get("tab") == 0
@@ -281,8 +283,10 @@ func _run() -> void:
 				"city rank 1 construction paths are not staged correctly"):
 			break
 		await get_tree().process_frame
-		if not _check(fleet_pager.visible and fleet_page.anchor_bottom == 1.0,
-				"multi-page construction dashboard does not reserve stable paging space"):
+		if not _check(fleet_pager.visible and fleet_pager.modulate.a >= 0.99
+				and fleet_page.anchor_bottom == 0.0
+				and fleet_page.offset_bottom <= main.size.y - REF_NAV_HEIGHT,
+				"multi-page construction dashboard is not compact or its pager is delayed"):
 			break
 		GameState.prosperity_rank = 2
 		main.call("_process", 0.0)
@@ -356,6 +360,30 @@ func _run() -> void:
 		if not _check(int(main.call("_shop_catalog_stage")) == 4
 				and bool(main.call("_shop_product_unlocked", "gems_xl", 4)),
 				"veteran catalogue never reaches its final stage"):
+			break
+		# The first earned shop chapter is one calm, self-contained page: promise,
+		# starter offer, and its nested restore action. Later IAPs, gem utilities,
+		# cosmetics, and the duplicate daily card must not inflate it to nine pages.
+		Prestige.count = 0; GameState.current_country = 2
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		main.call("_switch_tab", 4)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var shop_page := (main.get("_pages") as Array)[4] as ScrollContainer
+		var shop_items: Array = main.call("_available_page_items", shop_page)
+		var shop_pager := shop_page.get_meta("page_pager") as Control
+		var compact_panel := main.get("_bottom_bg") as Control
+		var visible_shop_bottom := shop_page.global_position.y
+		for shop_item: Control in shop_items:
+			if shop_item.is_visible_in_tree():
+				visible_shop_bottom = maxf(visible_shop_bottom, shop_item.get_global_rect().end.y)
+		if not _check(shop_items.size() == 3 and not shop_pager.visible,
+				"first shop chapter is still an overloaded multi-page catalogue"):
+			break
+		if not _check(compact_panel.get_global_rect().end.y <= visible_shop_bottom + 18.0
+				and compact_panel.get_global_rect().end.y < main.size.y - REF_NAV_HEIGHT - 60.0,
+				"small shop leaves a large empty panel over the fantasy city"):
 			break
 		GameState.current_country = 0; Prestige.count = 0
 		main.call("_refresh_progressive_nav")

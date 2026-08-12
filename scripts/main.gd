@@ -83,6 +83,9 @@ var _iap_rows := {}
 var _iap_section: Control
 var _iap_intro_card: PanelContainer
 var _restore_iap_btn: Button
+var _arcane_collection_nodes: Array[Control] = []
+var _courier_style_nodes: Array[Control] = []
+var _daily_shop_card: PanelContainer
 var _section_lbls: Array = []   # section header labels, re-translated on locale change
 var _mode_btns := {}
 var _drone_btn: Button
@@ -825,25 +828,35 @@ func _show_management_page(sc: ScrollContainer, requested: int) -> void:
 			tw.tween_property(item, "modulate:a", 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 			order += 1
 
-## A single early page should read as a compact command card over the world,
-## not as a mostly empty full-height menu. The panel expands to its established
-## dashboard height as soon as real pagination is needed.
+## Every management page hugs its visible cards. Hidden catalogue entries and
+## rows on neighbouring pages must never turn into an empty full-height slab
+## over the world; tall pages still clamp safely against the navigation bar.
 func _fit_management_panel(sc: ScrollContainer, total_pages: int) -> void:
 	if not is_instance_valid(sc) or _pages.is_empty() or sc != _pages[_active_tab]:
 		return
 	var nav_top := size.y - NAV_H - _safe_bottom
-	if total_pages <= 1 and sc.get_child_count() > 0:
-		var box := sc.get_child(0) as VBoxContainer
-		var compact_bottom := minf(nav_top, sc.offset_top + box.get_combined_minimum_size().y + 8.0)
+	if sc.get_child_count() > 0:
+		# VBoxContainer's combined minimum still includes progression-hidden rows
+		# for part of the layout cycle. That made a one-offer shop reserve the full
+		# dashboard height and leave a large dead violet slab over the city. Measure
+		# the cards which are actually visible on the selected page instead.
+		var content_height := 0.0
+		var visible_count := 0
+		for candidate in _available_page_items(sc):
+			var item := candidate as Control
+			if is_instance_valid(item) and item.is_visible_in_tree():
+				content_height += item.get_combined_minimum_size().y
+				visible_count += 1
+		if visible_count > 1:
+			content_height += float(visible_count - 1) * 11.0
+		var pager := sc.get_meta("page_pager") as Control
+		if total_pages > 1 and is_instance_valid(pager) and pager.is_visible_in_tree():
+			content_height += pager.get_combined_minimum_size().y + 11.0
+		var compact_bottom := minf(nav_top, sc.offset_top + maxf(96.0, content_height + 10.0))
 		sc.anchor_bottom = 0.0
 		sc.offset_bottom = compact_bottom
 		_bottom_bg.anchor_bottom = 0.0
 		_bottom_bg.offset_bottom = compact_bottom + 6.0
-	else:
-		sc.anchor_bottom = 1.0
-		sc.offset_bottom = -(NAV_H + _safe_bottom)
-		_bottom_bg.anchor_bottom = 1.0
-		_bottom_bg.offset_bottom = -(NAV_H + _safe_bottom)
 
 ## Make the WHOLE card surface swipe-aware. Buttons stay usable but pass gesture
 ## events to the page container; non-interactive decoration never intercepts.
@@ -1028,6 +1041,10 @@ func _progression_stage() -> int:
 	var upgrade_total := 0
 	for level: int in GameState.levels.values():
 		upgrade_total += level
+	# A prestige veteran has already learned every dashboard system. Resetting the
+	# local city must not hide the shop, legacy, and research navigation again.
+	if Prestige.count > 0:
+		return 5
 	if GameState.current_country >= 3:
 		return 5
 	if GameState.current_country >= 2:
@@ -1103,6 +1120,13 @@ func _stagger_in(i: int) -> void:
 	for child in vbox.get_children():
 		if not (child is CanvasItem): continue
 		var ci := child as CanvasItem
+		# Page management has already hidden every off-page catalogue row. Counting
+		# those invisible rows delayed the pager by more than a second in the shop,
+		# leaving a seemingly broken empty panel. Animate only what the player sees;
+		# navigation itself remains immediately usable.
+		if not ci.visible or bool(ci.get_meta("page_pager", false)):
+			ci.modulate.a = 1.0
+			continue
 		ci.modulate = Color(1, 1, 1, 0)
 		var tw := ci.create_tween()
 		tw.tween_interval(float(k) * 0.04)
@@ -1512,19 +1536,27 @@ func _build_shop_tab() -> ScrollContainer:
 		Fx.press(_restore_iap_btn)
 		if not Billing.restore(): Fx.error_shake(_restore_iap_btn)
 	)
-	v.add_child(_restore_iap_btn)
+	# Restoration is a platform requirement, but it does not need a mostly empty
+	# second catalogue page. Keep the compact action inside the shop explanation.
+	_restore_iap_btn.add_theme_font_size_override("font_size", 16)
+	intro.add_child(_restore_iap_btn)
 
-	v.add_child(_section("Coleção Arcana", UITheme.GOLD, "ic_gems"))
+	var collection_section := _section("Coleção Arcana", UITheme.GOLD, "ic_gems")
+	v.add_child(collection_section); _arcane_collection_nodes.append(collection_section)
 	for id: String in Economy.GEM_SHOP_ORDER:
-		v.add_child(_make_gem_row(id))
+		var gem_card := _make_gem_row(id)
+		v.add_child(gem_card); _arcane_collection_nodes.append(gem_card)
 
-	v.add_child(_section("Trajes de Mensageiro", UITheme.CYAN, "ic_drone"))
+	var style_section := _section("Trajes de Mensageiro", UITheme.CYAN, "ic_drone")
+	v.add_child(style_section); _courier_style_nodes.append(style_section)
 	var sk_info := _lbl("Skins permanentes para a tua frota. Cada skin extra dá +2% de lucros.", 15, UITheme.MUTED)
-	sk_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(sk_info)
+	sk_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; v.add_child(sk_info); _courier_style_nodes.append(sk_info)
 	for id: String in Economy.SKIN_ORDER:
-		v.add_child(_make_skin_row(id))
+		var skin_card := _make_skin_row(id)
+		v.add_child(skin_card); _courier_style_nodes.append(skin_card)
 
 	var daily_card := _card(UITheme.GOLD); v.add_child(daily_card)
+	_daily_shop_card = daily_card
 	var daily_v := VBoxContainer.new(); daily_v.add_theme_constant_override("separation", 4); daily_card.add_child(daily_v)
 	var dch := HBoxContainer.new(); dch.add_theme_constant_override("separation", 6); daily_v.add_child(dch)
 	dch.add_child(_icon("ic_daily", 22))
@@ -1576,13 +1608,23 @@ func _refresh_shop_catalog() -> void:
 		var row: Dictionary = _iap_rows[product_id]
 		var card := row.get("card") as CanvasItem
 		if card != null:
-			card.visible = _shop_product_unlocked(product_id, catalog_stage)
+			card.set_meta("progression_hidden", not _shop_product_unlocked(product_id, catalog_stage))
 	if _iap_section != null:
-		_iap_section.visible = catalog_stage > 0
+		_iap_section.set_meta("progression_hidden", catalog_stage <= 0)
 	if _iap_intro_card != null:
-		_iap_intro_card.visible = catalog_stage > 0
-	if _restore_iap_btn != null:
-		_restore_iap_btn.visible = catalog_stage > 0
+		_iap_intro_card.set_meta("progression_hidden", catalog_stage <= 0)
+	# Utility purchases and cosmetics arrive only after the player has completed
+	# a full run. Before then the shop explains its promise and offers at most the
+	# small set of contextual permanent purchases earned by realm progress.
+	var collection_unlocked := catalog_stage >= 3
+	for node: Control in _arcane_collection_nodes:
+		node.set_meta("progression_hidden", not collection_unlocked)
+	for node: Control in _courier_style_nodes:
+		node.set_meta("progression_hidden", not collection_unlocked)
+	if _daily_shop_card != null:
+		# The same reward already has a permanent HUD entry; duplicating it in the
+		# shop creates clutter and makes the catalogue feel more aggressive.
+		_daily_shop_card.set_meta("progression_hidden", true)
 	var shop_page := _pages[4] as ScrollContainer if _pages != null and _pages.size() > 4 else null
 	if shop_page != null and _page_labels.has(shop_page):
 		_refresh_page_units(shop_page)

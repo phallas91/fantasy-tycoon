@@ -41,16 +41,30 @@ for script in sorted((ROOT / "scripts").glob("*.gd")):
             missing.append(f"{script.relative_to(ROOT)}:{line}: {value!r}")
 
 # Economy definitions are data rather than direct Label assignments, but their
-# upgrade and talent names/descriptions are rendered throughout the dashboard.
+# names/descriptions are rendered throughout the dashboard. Cover every visible
+# catalogue instead of only upgrades and talents: an untranslated shop offer,
+# skin, or constructed landmark otherwise falls back to Portuguese at runtime.
 # Keep them under the same nine-locale coverage guarantee as scripted UI copy.
 economy_source = (ROOT / "scripts" / "economy.gd").read_text(encoding="utf-8")
-for block_name, next_block in (("UPGRADES", "UPGRADE_ORDER"), ("TALENTS", "TALENT_ORDER")):
+for block_name, next_block in (
+    ("UPGRADES", "UPGRADE_ORDER"),
+    ("DISTRICT_STAGES", "current_district_stage"),
+    ("TALENTS", "TALENT_ORDER"),
+    ("GEM_SHOP", "MILESTONE_STEP"),
+    ("SKINS", "_ready"),
+):
     block = economy_source.split(f"const {block_name} := {{", 1)[1].split(
-        f"const {next_block}", 1
+        (f"const {next_block}" if next_block.isupper() else f"func {next_block}"), 1
     )[0]
     for field, value in re.findall(r'"(name|desc)"\s*:\s*"([^"]+)"', block):
         if value not in keys:
             missing.append(f"scripts/economy.gd: {block_name}.{field}: {value!r}")
+
+achievement_source = (ROOT / "scripts" / "achievements.gd").read_text(encoding="utf-8")
+achievement_block = achievement_source.split("const DEFS := {", 1)[1].split("var unlocked_ids", 1)[0]
+for field, value in re.findall(r'"(name|desc)"\s*:\s*"([^"]+)"', achievement_block):
+    if value not in keys:
+        missing.append(f"scripts/achievements.gd: DEFS.{field}: {value!r}")
 
 if missing:
     raise SystemExit(
