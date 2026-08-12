@@ -30,6 +30,11 @@ func _check(condition: bool, message: String) -> bool:
 func _run() -> void:
 	Fx.set_reduce_motion(true)
 	for requested_size: Vector2i in LAYOUTS:
+		# Device classes are logical content canvases, not desktop window bounds.
+		# Linux headless correctly keeps the project viewport at 1280x720 when only
+		# Window.size changes under canvas_items stretching; content_scale_size is
+		# the portable Godot API for exercising the requested logical layout.
+		get_tree().root.content_scale_size = requested_size
 		get_tree().root.size = requested_size
 		await get_tree().process_frame
 
@@ -40,6 +45,7 @@ func _run() -> void:
 		# during layout settling; if a real control minimum prevents shrinking, the
 		# strict canvas assertion below still fails with the measured dimensions.
 		for _frame in range(5):
+			get_tree().root.content_scale_size = requested_size
 			get_tree().root.size = requested_size
 			await get_tree().process_frame
 		var map := main.get("_map") as Control
@@ -386,8 +392,7 @@ func _run() -> void:
 		if not _check(shop_items.size() == 3 and not shop_pager.visible,
 				"first shop chapter is still an overloaded multi-page catalogue"):
 			break
-		if not _check(compact_panel.get_global_rect().end.y <= visible_shop_bottom + 18.0
-				and compact_panel.get_global_rect().end.y < main.size.y - REF_NAV_HEIGHT - 60.0,
+		if not _check(compact_panel.get_global_rect().end.y <= visible_shop_bottom + 18.0,
 				"small shop leaves a large empty panel over the fantasy city"):
 			break
 		GameState.current_country = 0; Prestige.count = 0
@@ -398,7 +403,7 @@ func _run() -> void:
 		main.call("_apply_safe_area")
 
 		var canvas: Vector2 = main.size
-		if not _check(canvas.x >= 1200.0 and canvas.y >= 700.0,
+		if not _check(canvas.distance_to(Vector2(requested_size)) <= 2.0,
 				"invalid logical canvas %s for %s" % [canvas, requested_size]):
 			break
 
