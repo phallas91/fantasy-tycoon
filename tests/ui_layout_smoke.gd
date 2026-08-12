@@ -164,8 +164,15 @@ func _run() -> void:
 		GameState.prosperity_rank = 2
 		main.call("_process", 0.0)
 		if not _check(not bool((opening_rows["routes"]["card"] as Control).get_meta("progression_hidden"))
-				and not bool((main.get("_auto_mgr_section") as Control).get_meta("progression_hidden", false)),
+				and not bool((main.get("_auto_mgr_section") as Control).get_meta("progression_hidden", false))
+				and not (main.get("_auto_mgr_section") as Control).visible
+				and not (main.get("_auto_mgr_toggle") as Control).visible,
 				"route network and automatic manager did not unlock at city rank 2"):
+			break
+		main.call("_show_control_page", fleet_page, main.get("_auto_mgr_toggle") as Control)
+		if not _check((main.get("_auto_mgr_section") as Control).visible
+				and (main.get("_auto_mgr_toggle") as Control).visible,
+				"automatic manager cannot be reached on its earned management page"):
 			break
 		GameState.prosperity_rank = 0
 		GameState.pending_offline = 12.0

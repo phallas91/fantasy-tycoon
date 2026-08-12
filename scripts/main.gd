@@ -116,6 +116,7 @@ var _prestige_ready_prev := false
 var _tap_block_until := 0   # ms; swipe guard so paging never triggers a purchase
 var _auto_mgr_toggle: Control
 var _auto_mgr_section: Control
+var _auto_manager_panel_unlocked := false
 var _upgrade_unlock_rank := -1
 var _ascendant_lbl: Label
 var _ascendant_btn: Button
@@ -1162,9 +1163,13 @@ func _build_fleet_tab() -> ScrollContainer:
 		v.add_child(_make_upgrade_row(key))
 
 	_auto_mgr_section = _section("Gestor Automático", UITheme.VIOLET, "ic_blessing")
+	_auto_mgr_section.set_meta("progression_hidden", true)
+	_auto_mgr_section.visible = false
 	v.add_child(_auto_mgr_section)
 	_auto_mgr_toggle = _settings_toggle("Gestor de Frota Automático", GameState.auto_manager, func(on: bool):
 		GameState.auto_manager = on; SaveSystem.save_game())
+	_auto_mgr_toggle.set_meta("progression_hidden", true)
+	_auto_mgr_toggle.visible = false
 	_auto_mgr_toggle.tooltip_text = tr("Compra automaticamente a opção com maior ganho por moeda. Disponível para todos.")
 	v.add_child(_auto_mgr_toggle)
 
@@ -1941,10 +1946,11 @@ func _process(delta: float) -> void:
 	# construction paths. Hiding both heading and toggle keeps the opening screen
 	# focused, while existing saves retain access through derived prosperity.
 	var auto_manager_unlocked := GameState.prosperity_rank >= 2
-	_auto_mgr_section.visible = auto_manager_unlocked
-	_auto_mgr_toggle.visible = auto_manager_unlocked
-	_auto_mgr_section.set_meta("progression_hidden", not auto_manager_unlocked)
-	_auto_mgr_toggle.set_meta("progression_hidden", not auto_manager_unlocked)
+	if auto_manager_unlocked != _auto_manager_panel_unlocked:
+		_auto_manager_panel_unlocked = auto_manager_unlocked
+		_auto_mgr_section.set_meta("progression_hidden", not auto_manager_unlocked)
+		_auto_mgr_toggle.set_meta("progression_hidden", not auto_manager_unlocked)
+		_refresh_page_container(_auto_mgr_toggle)
 	var prestige_panel_unlocked := GameState.current_country >= 3 or Prestige.count > 0
 	if prestige_panel_unlocked != _prestige_panel_unlocked:
 		_prestige_panel_unlocked = prestige_panel_unlocked
