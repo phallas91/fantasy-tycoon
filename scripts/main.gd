@@ -133,6 +133,10 @@ var _mission_x2_btns: Array = []
 var _mission_reroll_btns: Array = []
 var _mission_gem_lbls: Array = []
 var _mission_gem_icons: Array = []
+var _mission_cards: Array = []
+var _mission_weekly_section: Control
+var _mission_visible_count := -1
+var _claim_all_available := false
 # change-detection so _update_contracts() (called 4x/sec) only rebuilds a
 # slot's text/fills when its progress/ready/claimed actually moved, instead
 # of unconditionally re-shaping every label every call
@@ -3440,6 +3444,7 @@ func _check_income_milestones(ips: float) -> void:
 # ── Contract card UI updates ──────────────────────────────────────────────────────
 
 func _update_contracts() -> void:
+	_update_contract_visibility()
 	for i in range(Contracts.SLOT_COUNT):
 		if i >= _mission_title_lbls.size(): break
 		var s: Dictionary = Contracts.slots[i] if i < Contracts.slots.size() else {}
@@ -3479,9 +3484,10 @@ func _update_contracts() -> void:
 			cbtn.text = tr("Em curso"); cbtn.icon = null
 		_afford(cbtn, ready)
 		if i < _mission_x2_btns.size():
-			(_mission_x2_btns[i] as Button).visible = ready
+			# Teach the free claim loop before presenting a gem-spend alternative.
+			(_mission_x2_btns[i] as Button).visible = ready and GameState.current_country >= 1
 		if i < _mission_reroll_btns.size():
-			(_mission_reroll_btns[i] as Button).visible = (i < 3) and not ready and not claimed
+			(_mission_reroll_btns[i] as Button).visible = (i < 3) and _mission_visible_count >= 2 and not ready and not claimed
 		var rc: float = float(s.get("reward_credits", 0.0))
 		var rg: int = int(s.get("reward_gems", 0))
 		(_mission_reward_lbls[i] as Label).text = "+" + Fmt.short(rc)
@@ -3493,11 +3499,41 @@ func _update_contracts() -> void:
 	# show "claim all" only when 2+ contracts are claimable at once
 	if _claim_all_btn != null and is_instance_valid(_claim_all_btn):
 		var ready_n := 0
-		for i in range(Contracts.slots.size()):
+		for i in range(mini(_mission_visible_count, Contracts.slots.size())):
 			var s: Dictionary = Contracts.slots[i]
 			if s.get("ready", false) and not s.get("claimed", false):
 				ready_n += 1
-		_claim_all_btn.visible = ready_n >= 2
+		var claim_all_available := ready_n >= 2
+		if claim_all_available != _claim_all_available:
+			_claim_all_available = claim_all_available
+			_claim_all_btn.set_meta("progression_hidden", not claim_all_available)
+			_refresh_page_container(_claim_all_btn)
+
+## Grow the contract board with the trade network instead of presenting the
+## complete live-service stack on its first reveal. Existing contracts keep
+## progressing in the background, so no earned progress or reward is lost.
+func _available_contract_count() -> int:
+	if GameState.current_country >= 1:
+		return Contracts.SLOT_COUNT
+	if GameState.cities_unlocked >= 5:
+		return 3
+	if GameState.cities_unlocked >= 4:
+		return 2
+	if GameState.cities_unlocked >= 2:
+		return 1
+	return 0
+
+func _update_contract_visibility() -> void:
+	var visible_count := _available_contract_count()
+	if visible_count == _mission_visible_count:
+		return
+	_mission_visible_count = visible_count
+	for i in range(_mission_cards.size()):
+		(_mission_cards[i] as Control).set_meta("progression_hidden", i >= visible_count)
+	if is_instance_valid(_mission_weekly_section):
+		_mission_weekly_section.set_meta("progression_hidden", visible_count < Contracts.SLOT_COUNT)
+	if not _mission_cards.is_empty():
+		_refresh_page_container(_mission_cards[0] as Control)
 
 # ── Missions tab ──────────────────────────────────────────────────────────────────
 
@@ -3511,6 +3547,7 @@ func _build_missions_tab() -> ScrollContainer:
 	_claim_all_btn = _wide_btn(UITheme.GREEN)
 	_claim_all_btn.text = tr("Reivindicar tudo")
 	_claim_all_btn.custom_minimum_size = Vector2(0, 58)
+	_claim_all_btn.set_meta("progression_hidden", true)
 	_claim_all_btn.visible = false
 	_claim_all_btn.pressed.connect(func():
 		if not _can_tap(): return
@@ -3525,10 +3562,15 @@ func _build_missions_tab() -> ScrollContainer:
 
 	for i in range(Contracts.SLOT_COUNT):
 		if i == 3:
-			v.add_child(_section("Desafio Semanal", UITheme.GOLD, "ic_achieve"))
+			_mission_weekly_section = _section("Desafio Semanal", UITheme.GOLD, "ic_achieve")
+			_mission_weekly_section.set_meta("progression_hidden", true)
+			v.add_child(_mission_weekly_section)
 		var slot_color: Color = UITheme.GOLD if i == 3 else UITheme.CYAN
 		var s: Dictionary = Contracts.slots[i] if i < Contracts.slots.size() else {}
-		var card := _card(slot_color); v.add_child(card)
+		var card := _card(slot_color)
+		card.set_meta("progression_hidden", true)
+		_mission_cards.append(card)
+		v.add_child(card)
 		var cv := VBoxContainer.new(); cv.add_theme_constant_override("separation", 8); card.add_child(cv)
 
 		# Top row: title + time remaining
@@ -3627,4 +3669,5 @@ func _build_missions_tab() -> ScrollContainer:
 		bot.add_child(xbtn)
 		_mission_x2_btns.append(xbtn)
 
+	_update_contract_visibility()
 	return r[0]

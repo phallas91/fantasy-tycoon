@@ -160,11 +160,19 @@ func _run() -> void:
 		GameState.cities_unlocked = 2
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")
+		main.call("_update_contract_visibility")
+		main.call("_update_contracts")
 		var nav_buttons: Array = main.get("_nav_btns")
+		var mission_cards: Array = main.get("_mission_cards")
 		if not _check((nav_buttons[5] as Control).visible
 				and not (nav_buttons[2] as Control).visible
 				and not (nav_buttons[4] as Control).visible
-				and not (nav_buttons[3] as Control).visible,
+				and not (nav_buttons[3] as Control).visible
+				and not bool((mission_cards[0] as Control).get_meta("progression_hidden"))
+				and bool((mission_cards[1] as Control).get_meta("progression_hidden"))
+				and bool((mission_cards[3] as Control).get_meta("progression_hidden"))
+				and bool((main.get("_claim_all_btn") as Control).get_meta("progression_hidden"))
+				and not ((main.get("_mission_reroll_btns") as Array)[0] as Control).visible,
 				"first settlement unlock exposes multiple advanced systems at once"):
 			break
 		GameState.cities_unlocked = 3
@@ -175,6 +183,19 @@ func _run() -> void:
 				and not (nav_buttons[4] as Control).visible,
 				"second settlement does not introduce talents as its own progression beat"):
 			break
+		GameState.cities_unlocked = 4
+		main.call("_update_contract_visibility")
+		if not _check(not bool((mission_cards[1] as Control).get_meta("progression_hidden"))
+				and bool((mission_cards[2] as Control).get_meta("progression_hidden")),
+				"contract board does not grow to a second focused mission with the network"):
+			break
+		GameState.current_country = 1
+		main.call("_update_contract_visibility")
+		if not _check(not bool((mission_cards[3] as Control).get_meta("progression_hidden"))
+				and not bool((main.get("_mission_weekly_section") as Control).get_meta("progression_hidden")),
+				"weekly contract appears before the second realm or remains hidden after it"):
+			break
+		GameState.current_country = 0
 		GameState.cities_unlocked = 1
 		GameState.drones = 1
 		GameState.credits = 0.0
