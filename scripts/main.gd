@@ -336,7 +336,7 @@ func _show_welcome_popup() -> void:
 		badge_icon.texture = _opt_tex(str(slide[0]))
 		title.text = tr(str(slide[2])); body.text = tr(str(slide[3]))
 		back.disabled = page == 0
-		next.text = tr("Vamos a voar!") if page == slides.size() - 1 else "%d / %d   →" % [page + 1, slides.size()]
+		next.text = tr("Abrir o Basar!") if page == slides.size() - 1 else "%d / %d   →" % [page + 1, slides.size()]
 		for i in dots.size():
 			var c: Color = accent if i == page else UITheme.MUTED.darkened(0.45)
 			(dots[i] as Panel).add_theme_stylebox_override("panel", UITheme.prog_fill(c))
@@ -3080,10 +3080,11 @@ func _show_city_inspector(index: int) -> void:
 	var cities := Economy.country_cities(GameState.current_country)
 	if index < 0 or index >= cities.size():
 		return
+	var model := _city_inspector_model(index)
 	Audio.play("tap")
 	var is_capital := index == 0
-	var is_active := index <= GameState.cities_unlocked
-	var is_next := index == GameState.cities_unlocked + 1
+	var is_active: bool = model["active"]
+	var is_next: bool = model["next"]
 	var accent := UITheme.GOLD if is_capital else (UITheme.CYAN if is_active else UITheme.ACCENT)
 	var layer := _overlay()
 	var box := _popup_box(layer, accent)
@@ -3102,16 +3103,16 @@ func _show_city_inspector(index: int) -> void:
 	var status_lbl := _lbl(status, 17, accent)
 	status_lbl.add_theme_font_override("font", UITheme.font("Bold")); iv.add_child(status_lbl)
 	if is_active:
-		var realm_income := GameState.income_per_sec()
-		var city_income := realm_income if is_capital else GameState.route_income_per_sec(index - 1)
+		var realm_income: float = model["realm_income"]
+		var city_income: float = model["city_income"]
 		iv.add_child(_lbl(tr("Rendimento: %s/s") % Fmt.short(city_income), 20, UITheme.GREEN))
 		if not is_capital:
 			var share := 0 if realm_income <= 0.0 else int(round(city_income / realm_income * 100.0))
 			iv.add_child(_lbl(tr("Contribuição para o reino: %d%%") % share, 15, UITheme.CYAN))
 		iv.add_child(_lbl(tr("Tens %d drones") % GameState.drones, 16, UITheme.MUTED))
 	elif is_next:
-		var unlock_cost := GameState.next_city_cost()
-		var unlock_pct := clampf(GameState.credits / maxf(1.0, unlock_cost), 0.0, 1.0)
+		var unlock_cost: float = model["next_cost"]
+		var unlock_pct: float = model["progress"]
 		iv.add_child(_lbl(tr("Custo: %s") % Fmt.short(unlock_cost), 20, UITheme.GOLD))
 		var prog_bg := Panel.new(); prog_bg.custom_minimum_size = Vector2(0, 9)
 		prog_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); iv.add_child(prog_bg)
@@ -3122,10 +3123,27 @@ func _show_city_inspector(index: int) -> void:
 		pct_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; iv.add_child(pct_lbl)
 	box.add_child(info)
 
+	# An active settlement is not a dead-end statistics card. It also previews the
+	# next network beat, including its actual income gain, so every map tap leaves
+	# the player with one understandable growth decision.
+	if is_active and bool(model["has_next"]):
+		var next_card := _card(UITheme.ACCENT)
+		var nv := VBoxContainer.new(); nv.add_theme_constant_override("separation", 6); next_card.add_child(nv)
+		var next_head := HBoxContainer.new(); next_head.add_theme_constant_override("separation", 8); nv.add_child(next_head)
+		next_head.add_child(_icon("ic_city", 22))
+		var next_title := _lbl(tr("Próxima: %s") % model["next_name"], 18, UITheme.INK)
+		next_title.add_theme_font_override("font", UITheme.font("Bold")); next_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		next_head.add_child(next_title)
+		next_head.add_child(_lbl(Fmt.short(float(model["next_cost"])), 18, UITheme.GOLD))
+		var next_detail := _lbl(tr("Renda +%s/s") % Fmt.short(float(model["next_gain"])), 15, UITheme.GREEN)
+		next_detail.text += _eta_suffix(float(model["next_cost"]), float(model["realm_income"]))
+		nv.add_child(next_detail)
+		box.add_child(next_card)
+
 	var action := _buy_btn(accent)
 	action.custom_minimum_size = Vector2(0, 72)
-	if is_next:
-		var cost := GameState.next_city_cost()
+	if is_next or (is_active and bool(model["has_next"])):
+		var cost: float = model["next_cost"]
 		action.text = tr("Abrir") + "  ·  " + Fmt.short(cost)
 		action.disabled = GameState.credits < cost
 		action.pressed.connect(func():
@@ -3144,6 +3162,31 @@ func _show_city_inspector(index: int) -> void:
 		action.disabled = true
 	box.add_child(action)
 	box.add_child(_close_btn(layer))
+
+## Pure presentation model for the city popup. Keeping progression math outside
+## the controls makes the map interaction testable and prevents labels/actions
+## from drifting apart as the economy is tuned.
+func _city_inspector_model(index: int) -> Dictionary:
+	var cities := Economy.country_cities(GameState.current_country)
+	if index < 0 or index >= cities.size():
+		return {}
+	var active := index <= GameState.cities_unlocked
+	var next := index == GameState.cities_unlocked + 1
+	var realm_income := GameState.income_per_sec()
+	var has_next := not GameState.all_cities_unlocked()
+	var next_index := clampi(GameState.cities_unlocked + 1, 1, cities.size() - 1)
+	var next_cost := GameState.next_city_cost() if has_next else -1.0
+	return {
+		"active": active,
+		"next": next,
+		"realm_income": realm_income,
+		"city_income": realm_income if index == 0 else GameState.route_income_per_sec(index - 1),
+		"has_next": has_next,
+		"next_name": str(cities[next_index]["name"]) if has_next else "",
+		"next_cost": next_cost,
+		"next_gain": GameState.projected_city_income_gain(realm_income) if has_next else 0.0,
+		"progress": clampf(GameState.credits / maxf(1.0, next_cost), 0.0, 1.0) if has_next else 1.0,
+	}
 
 ## "Sair do jogo?" — only reached via the Android Back button with no popup open.
 func _show_exit_confirm() -> void:

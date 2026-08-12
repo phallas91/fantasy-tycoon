@@ -218,6 +218,17 @@ func _run() -> void:
 		# for the second realm where influence is actually awarded; shop and legacy
 		# remain later realm beats instead of exposing disabled systems.
 		GameState.cities_unlocked = 2
+		var city_model: Dictionary = main.call("_city_inspector_model", 1)
+		var frontier_model: Dictionary = main.call("_city_inspector_model", 3)
+		if not _check(bool(city_model.get("active"))
+				and bool(city_model.get("has_next"))
+				and float(city_model.get("city_income", 0.0)) > 0.0
+				and float(city_model.get("next_gain", 0.0)) > 0.0
+				and str(city_model.get("next_name", "")) != ""
+				and bool(frontier_model.get("next"))
+				and is_equal_approx(float(city_model.get("next_cost")), float(frontier_model.get("next_cost"))),
+				"city map inspector does not lead active settlements into the next rewarding expansion"):
+			break
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")
 		main.call("_update_contract_visibility")
