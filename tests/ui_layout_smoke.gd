@@ -377,6 +377,22 @@ func _run() -> void:
 				and "/s" in str((city_income_labels.values()[0] as Label).text),
 				"active settlement list does not show live route production"):
 			break
+		var city_rows := (main.get("_city_list_box") as VBoxContainer).get_children()
+		var active_city_row := city_rows[1] as Button
+		var next_city_row := city_rows[2] as Button
+		if not _check(active_city_row != null
+				and active_city_row.custom_minimum_size.y >= 44.0
+				and int(active_city_row.get_meta("city_index", -1)) == 1
+				and int(active_city_row.get_meta("development_level", -1))
+					== GameState.city_development_level(1)
+				and not active_city_row.pressed.get_connections().is_empty(),
+				"active settlement row is not a touch-safe development entry"):
+			break
+		if not _check(next_city_row != null and not next_city_row.disabled
+				and int(next_city_row.get_meta("city_index", -1)) == 2
+				and not next_city_row.pressed.get_connections().is_empty(),
+				"next settlement row is not a direct unlock entry"):
+			break
 		GameState.prosperity_rank = 1
 		main.call("_process", 0.0)
 		if not _check(not bool((opening_rows["speed"]["card"] as Control).get_meta("progression_hidden"))

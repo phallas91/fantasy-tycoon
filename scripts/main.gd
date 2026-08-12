@@ -1301,30 +1301,65 @@ func _rebuild_city_list() -> void:
 	var ci := GameState.current_country
 	var cities := Economy.country_cities(ci)
 	for i in range(cities.size()):
-		var row := PanelContainer.new()
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var city_index := i
+		var row := Button.new()
+		row.custom_minimum_size = Vector2(0, 50)
+		row.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+		row.set_meta("city_index", city_index)
 		var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 8); row.add_child(h)
 		var nm := _lbl(str(cities[i]["name"]), 17, UITheme.INK)
 		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		if i == 0:
-			row.add_theme_stylebox_override("panel", UITheme.solid(UITheme.PANEL2.lerp(UITheme.GOLD, 0.10), 14))
+			var base := UITheme.PANEL2.lerp(UITheme.GOLD, 0.10)
+			row.add_theme_stylebox_override("normal", UITheme.solid(base, 14))
+			row.add_theme_stylebox_override("hover", UITheme.solid(base.lightened(0.08), 14))
+			row.add_theme_stylebox_override("pressed", UITheme.solid(base.darkened(0.08), 14))
 			h.add_child(_icon("ic_city", 22)); h.add_child(nm)
 			var tag := _lbl("SEDE", 16, UITheme.GOLD)
 			tag.add_theme_font_override("font", UITheme.font("Bold")); h.add_child(tag)
+			h.add_child(_lbl("›", 22, UITheme.GOLD))
+			row.pressed.connect(func():
+				if not _can_tap(): return
+				Fx.press(row); _show_city_inspector(city_index)
+			)
 		elif i <= GameState.cities_unlocked:
-			row.add_theme_stylebox_override("panel", UITheme.solid(UITheme.PANEL2.lerp(UITheme.CYAN, 0.08), 14))
+			var base := UITheme.PANEL2.lerp(UITheme.CYAN, 0.08)
+			row.add_theme_stylebox_override("normal", UITheme.solid(base, 14))
+			row.add_theme_stylebox_override("hover", UITheme.solid(base.lightened(0.08), 14))
+			row.add_theme_stylebox_override("pressed", UITheme.solid(base.darkened(0.08), 14))
 			h.add_child(_icon("ic_range", 22)); h.add_child(nm)
 			var income := _lbl("", 15, UITheme.GREEN)
 			income.add_theme_font_override("font", UITheme.font("Bold")); h.add_child(income)
 			_city_income_labels[i - 1] = income
-			h.add_child(_icon("ic_check", 20))
+			var city_level := GameState.city_development_level(i)
+			var runes := _lbl("◆".repeat(city_level) + "◇".repeat(GameState.CITY_DEVELOPMENT_MAX - city_level), 15, UITheme.GOLD)
+			runes.tooltip_text = tr("Nível de rota %d/%d · Renda +%s/s") % [
+				city_level, GameState.CITY_DEVELOPMENT_MAX, Fmt.short(GameState.projected_city_development_gain(i))]
+			h.add_child(runes); h.add_child(_lbl("›", 22, UITheme.CYAN))
+			row.set_meta("development_level", city_level)
+			row.pressed.connect(func():
+				if not _can_tap(): return
+				Fx.press(row); _show_city_inspector(city_index)
+			)
 		elif i == GameState.cities_unlocked + 1:
-			row.add_theme_stylebox_override("panel", UITheme.solid(UITheme.PANEL2.lerp(UITheme.ACCENT, 0.10), 14))
+			var base := UITheme.PANEL2.lerp(UITheme.ACCENT, 0.10)
+			row.add_theme_stylebox_override("normal", UITheme.solid(base, 14))
+			row.add_theme_stylebox_override("hover", UITheme.solid(base.lightened(0.08), 14))
+			row.add_theme_stylebox_override("pressed", UITheme.solid(base.darkened(0.08), 14))
 			h.add_child(_icon("ic_city", 22)); h.add_child(nm)
 			var cost := _lbl(Fmt.short(Economy.city_unlock_cost(ci, GameState.cities_unlocked)), 15, UITheme.GOLD)
 			cost.add_theme_font_override("font", UITheme.font("Bold")); h.add_child(cost)
+			h.add_child(_lbl("›", 22, UITheme.ACCENT))
+			row.pressed.connect(func():
+				if not _can_tap(): return
+				Fx.press(row); _show_city_inspector(city_index)
+			)
 		else:
-			row.add_theme_stylebox_override("panel", UITheme.solid(UITheme.PANEL2.darkened(0.15), 14))
+			var locked_style := UITheme.solid(UITheme.PANEL2.darkened(0.15), 14)
+			row.add_theme_stylebox_override("normal", locked_style)
+			row.add_theme_stylebox_override("disabled", locked_style)
+			row.disabled = true
 			nm.add_theme_color_override("font_color", UITheme.MUTED)
 			h.add_child(_icon("ic_lock", 20)); h.add_child(nm)
 		_make_scrollable(row)
@@ -2514,6 +2549,7 @@ func _on_city_developed(index: int, level: int, income_gain: float) -> void:
 	Fx.screen_flash(self, UITheme.CYAN, 0.06)
 	Fx.vibrate(22 + level * 6)
 	_map.focus_city(index)
+	_rebuild_city_list()
 
 func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> void:
 	var reward_text := "+" + Fmt.short(cash_reward)
