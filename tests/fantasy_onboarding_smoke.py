@@ -22,6 +22,7 @@ required_economy = (
 )
 required_main = (
 	"func _progression_stage() -> int:",
+	"if GameState.cities_unlocked >= 3:",
 	"func _refresh_focus_action() -> void:",
 	"if GameState.drones >= 4 or upgrade_total >= 2:",
 	'if _progression_stage() == 0:',
@@ -34,6 +35,10 @@ required_main = (
 	"func _next_prosperity_unlock_text() -> String:",
 	'"focus": _focus_btn, "cost": GameState.drone_cost_multi(1)',
     "func _nav_unlocked(tab_index: int) -> bool:",
+	"5: return stage >= 2",
+	"2: return stage >= 3",
+	"4: return stage >= 4",
+	"3: return stage >= 5",
     "_nav_btns[i].visible = dashboard_ready and _nav_unlocked(i)",
     "if not _nav_unlocked(i):",
     "lbl.text = tr(label_text)",

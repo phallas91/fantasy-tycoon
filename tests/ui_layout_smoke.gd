@@ -154,6 +154,28 @@ func _run() -> void:
 				and not realm_objective.has("upgrade_key"),
 				"opening construction chapter does not hand off to realm growth"):
 			break
+		# Realm growth introduces one management layer per earned settlement:
+		# missions after the first new route, talents after the second. Shop and
+		# legacy remain later realm beats instead of joining the same reveal.
+		GameState.cities_unlocked = 2
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		var nav_buttons: Array = main.get("_nav_btns")
+		if not _check((nav_buttons[5] as Control).visible
+				and not (nav_buttons[2] as Control).visible
+				and not (nav_buttons[4] as Control).visible
+				and not (nav_buttons[3] as Control).visible,
+				"first settlement unlock exposes multiple advanced systems at once"):
+			break
+		GameState.cities_unlocked = 3
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		if not _check((nav_buttons[5] as Control).visible
+				and (nav_buttons[2] as Control).visible
+				and not (nav_buttons[4] as Control).visible,
+				"second settlement does not introduce talents as its own progression beat"):
+			break
+		GameState.cities_unlocked = 1
 		GameState.drones = 1
 		GameState.credits = 0.0
 

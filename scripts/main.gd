@@ -1022,8 +1022,10 @@ func _progression_stage() -> int:
 	for level: int in GameState.levels.values():
 		upgrade_total += level
 	if GameState.current_country >= 3:
-		return 4
+		return 5
 	if GameState.current_country >= 1:
+		return 4
+	if GameState.cities_unlocked >= 3:
 		return 3
 	if GameState.cities_unlocked >= 2:
 		return 2
@@ -1046,9 +1048,10 @@ func _nav_unlocked(tab_index: int) -> bool:
 	match tab_index:
 		0: return true
 		1: return stage >= 1
-		2, 5: return stage >= 2
-		4: return stage >= 3
-		3: return stage >= 4
+		5: return stage >= 2
+		2: return stage >= 3
+		4: return stage >= 4
+		3: return stage >= 5
 	return false
 
 func _refresh_progressive_nav() -> void:
@@ -2417,6 +2420,13 @@ func _on_city_unlocked(i: int) -> void:
 	Fx.screen_flash(self, UITheme.CYAN, 0.10)
 	_map.focus_city(i)
 	_rebuild_city_list()
+	# Each early settlement now teaches exactly one new management layer. The old
+	# gate exposed missions and talents together after the first city, recreating
+	# the overload the staged opening was designed to remove.
+	if GameState.current_country == 0 and i == 2:
+		_toast(tr("%s desbloqueada!") % tr("Missões"), UITheme.CYAN, "ic_achieve")
+	elif GameState.current_country == 0 and i == 3:
+		_toast(tr("%s desbloqueada!") % tr("Talentos"), UITheme.VIOLET, "ic_prestige")
 
 func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> void:
 	var reward_text := "+" + Fmt.short(cash_reward)
