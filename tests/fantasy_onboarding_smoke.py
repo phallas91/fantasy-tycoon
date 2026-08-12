@@ -127,6 +127,8 @@ missing += [token for token in (
 	"const PROSPERITY_THRESHOLDS := [4, 10, 20, 40]",
 	"func _check_prosperity() -> void:",
 	'"prosperity_rank": prosperity_rank',
+	"prosperity_rank = prosperity_rank_for_investment()",
+	"if auto_manager_available():",
 	"func next_prosperity_threshold() -> int:",
 	"func prosperity_chapter_progress() -> float:",
 	"func recommended_upgrade_key() -> String:",

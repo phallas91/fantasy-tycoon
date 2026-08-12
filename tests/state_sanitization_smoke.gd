@@ -129,6 +129,33 @@ func _run() -> void:
 			or game_state.upgrade_keys_unlocked_at(2) != ["routes"]:
 		_fail("chapter unlock reveal does not match the actual construction gates")
 		return
+	# Every realm is its own visible city-building chapter. Permanent influence
+	# and talents survive, while local construction, bulk buying and automation
+	# must not silently arrive completed in the next realm.
+	prestige.reset()
+	game_state.current_country = 0
+	game_state.cities_unlocked = game_state.max_cities()
+	game_state.credits = 1.0e18
+	game_state.levels = {"speed": 40, "cargo": 40, "value": 40, "routes": 40}
+	game_state.prosperity_rank = game_state.PROSPERITY_THRESHOLDS.size()
+	game_state.buy_mode = -1
+	game_state.auto_manager = true
+	game_state.influence = 3
+	game_state.influence_total = 3
+	if not game_state.expand_country():
+		_fail("fully built realm cannot expand during chapter reset check")
+		return
+	if game_state.current_country != 1 or game_state.prosperity_rank != 0 \
+			or game_state.buy_mode != 1 or game_state.investment_total() != 0:
+		_fail("new realm inherits completed local construction progression")
+		return
+	if not game_state.auto_manager or game_state.auto_manager_available():
+		_fail("automation preference is not paused until the new city earns it")
+		return
+	game_state.prosperity_rank = 2
+	if not game_state.auto_manager_available():
+		_fail("earned automation does not resume in the rebuilt city")
+		return
 	var income_before_projection: float = float(game_state.income_per_sec())
 	var projected_gain: float = float(game_state.projected_upgrade_income_gain("cargo", 10, income_before_projection))
 	game_state.levels["cargo"] = int(game_state.levels["cargo"]) + 10

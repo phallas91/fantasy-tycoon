@@ -435,7 +435,10 @@ func _process(delta: float) -> void:
 		_autosave_t = 0.0
 		SaveSystem.save_game()
 
-	if auto_manager:
+	# The manager may stay enabled as a player preference between realms, but it
+	# only starts building after the local automation chapter has been earned.
+	# Otherwise a veteran setting silently completes a fresh city's tutorial.
+	if auto_manager_available():
 		_auto_manager_t += delta
 		if _auto_manager_t >= AUTO_MANAGER_INTERVAL:
 			_auto_manager_t = 0.0
@@ -546,6 +549,8 @@ func expand_country() -> bool:
 	cities_unlocked = 1
 	drones = Prestige.starting_drones()
 	levels = Prestige.starting_levels()
+	prosperity_rank = prosperity_rank_for_investment()
+	buy_mode = 1
 	combo = 0
 	_combo_decay_t = 0.0
 	# Bumped alongside the softer talent cost curve so a talent is actually
@@ -557,6 +562,9 @@ func expand_country() -> bool:
 	_check_regions()   # expanding past a region's last country completes it
 	SaveSystem.save_game()
 	return true
+
+func auto_manager_available() -> bool:
+	return auto_manager and prosperity_rank >= 2
 
 # ---------------------------------------------------------------- upgrades
 func upgrade_cost_multi(key: String, count: int) -> float:
