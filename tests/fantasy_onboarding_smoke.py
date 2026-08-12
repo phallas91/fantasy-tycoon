@@ -22,6 +22,8 @@ required_economy = (
 )
 required_main = (
 	"func _progression_stage() -> int:",
+	"func _refresh_focus_action() -> void:",
+	"if GameState.drones >= 4 or upgrade_total >= 2:",
 	'if _progression_stage() == 0:',
 	"func _opening_city_chapter_active() -> bool:",
 	"func _courier_objective() -> Dictionary:",

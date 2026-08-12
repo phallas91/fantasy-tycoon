@@ -984,9 +984,19 @@ func _progression_stage() -> int:
 		return 3
 	if GameState.cities_unlocked >= 2:
 		return 2
-	if GameState.drones >= 2 or upgrade_total >= 2:
+	if GameState.drones >= 4 or upgrade_total >= 2:
 		return 1
 	return 0
+
+func _refresh_focus_action() -> void:
+	if not is_instance_valid(_focus_card) or not _focus_card.visible:
+		return
+	if GameState.drones <= 1:
+		_focus_title.text = tr("Começa a tua primeira rota comercial")
+		_focus_detail.text = tr("Contrata um correio grifo e vê a cidade ganhar vida.")
+	else:
+		_focus_title.text = tr("Comprar Drones") + "  ·  %d/4" % GameState.drones
+		_focus_detail.text = tr("Tens %d drones") % GameState.drones
 
 func _nav_unlocked(tab_index: int) -> bool:
 	var stage := _progression_stage()
@@ -1797,6 +1807,7 @@ func _toast(text: String, accent: Color, icon_name := "") -> void:
 
 func _process(delta: float) -> void:
 	_refresh_progressive_nav()
+	_refresh_focus_action()
 	_disp_credits = lerpf(_disp_credits, GameState.credits, clampf(delta * 8.0, 0.0, 1.0))
 	if abs(_disp_credits - GameState.credits) < 1.0: _disp_credits = GameState.credits
 	_credits_lbl.text = Fmt.short(_disp_credits)
@@ -2095,10 +2106,12 @@ func _smart_objective() -> Dictionary:
 	# The opening chapter has exactly one job. Persisted contracts, daily state or
 	# veteran-side systems must never compete with the guided courier card before
 	# the player has completed that first meaningful action.
-	if _progression_stage() == 0:
+	if _progression_stage() == 0 and GameState.drones <= 1:
 		return {"text": tr("Começa a tua primeira rota comercial"), "tab": 0,
 			"focus": _focus_btn, "cost": GameState.drone_cost_multi(1), "progress": 0.0,
 			"accent": UITheme.GOLD, "icon": "ic_drone"}
+	if _progression_stage() == 0:
+		return _courier_objective()
 	# Finish the first two construction chapters before unrelated rewards or an
 	# already-affordable settlement can pull the player away. Rank 2 is the
 	# deliberate hand-off: routes and automation have then been introduced.

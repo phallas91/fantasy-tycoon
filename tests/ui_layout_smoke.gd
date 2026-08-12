@@ -69,9 +69,12 @@ func _run() -> void:
 		GameState.prosperity_rank = 0
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")
-		if not _check((main.get("_ribbon_bg") as Control).visible
-				and (main.get("_next_obj_lbl") as Control).visible,
-				"global objective ribbon does not appear with the earned dashboard"):
+		main.call("_refresh_focus_action")
+		if not _check(not (main.get("_ribbon_bg") as Control).visible
+				and not (main.get("_next_obj_lbl") as Control).visible
+				and (main.get("_focus_card") as Control).visible
+				and "2/4" in str((main.get("_focus_title") as Label).text),
+				"dashboard opens before the four-griffin lesson is complete"):
 			break
 		var fleet_objective: Dictionary = main.call("_smart_objective")
 		if not _check("2/4" in str(fleet_objective.get("text", ""))
@@ -84,6 +87,13 @@ func _run() -> void:
 		GameState.drones = 4
 		GameState.credits = 1.0e12
 		GameState.prosperity_rank = 0
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		if not _check((main.get("_ribbon_bg") as Control).visible
+				and (main.get("_next_obj_lbl") as Control).visible
+				and not (main.get("_focus_card") as Control).visible,
+				"dashboard does not open after the four-griffin lesson"):
+			break
 		var construction_objective: Dictionary = main.call("_smart_objective")
 		if not _check(construction_objective.get("tab") == 0
 				and construction_objective.get("upgrade_key") == "cargo"
