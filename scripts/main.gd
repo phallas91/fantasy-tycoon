@@ -101,6 +101,9 @@ var _achieve_box: VBoxContainer
 var _prestige_shop_rows := {}
 var _prestige_btn: Button
 var _prestige_info_lbl: Label
+var _prestige_section: Control
+var _prestige_card: PanelContainer
+var _prestige_panel_unlocked := false
 var _pgems_lbl: Label
 var _achieve_cells := {}
 var _achieve_prog_fills := {}
@@ -687,6 +690,7 @@ func _enable_page_mode(sc: ScrollContainer) -> void:
 	pager.add_theme_constant_override("separation", 12)
 	pager.custom_minimum_size = Vector2(0, 48)
 	pager.set_meta("page_pager", true)
+	sc.set_meta("page_pager", pager)
 	var prev := Button.new(); prev.text = "‹"; prev.custom_minimum_size = Vector2(64, 44)
 	var status := _lbl("", 18, UITheme.CYAN); status.custom_minimum_size = Vector2(170, 0)
 	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -780,8 +784,11 @@ func _show_management_page(sc: ScrollContainer, requested: int) -> void:
 		status.text = "%d / %d" % [page + 1, total]
 	var prev := sc.get_meta("pager_prev") as Button
 	var next := sc.get_meta("pager_next") as Button
+	var pager := sc.get_meta("page_pager") as Control
+	pager.visible = total > 1
 	prev.disabled = page <= 0
 	next.disabled = page >= total - 1
+	call_deferred("_fit_management_panel", sc, total)
 	# A restrained stagger makes the discrete page swap read as an intentional
 	# dashboard transition instead of content abruptly blinking in and out.
 	if page != old_page and not Fx.reduce_motion:
@@ -794,6 +801,26 @@ func _show_management_page(sc: ScrollContainer, requested: int) -> void:
 			tw.tween_interval(float(order) * 0.035)
 			tw.tween_property(item, "modulate:a", 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 			order += 1
+
+## A single early page should read as a compact command card over the world,
+## not as a mostly empty full-height menu. The panel expands to its established
+## dashboard height as soon as real pagination is needed.
+func _fit_management_panel(sc: ScrollContainer, total_pages: int) -> void:
+	if not is_instance_valid(sc) or _pages.is_empty() or sc != _pages[_active_tab]:
+		return
+	var nav_top := size.y - NAV_H - _safe_bottom
+	if total_pages <= 1 and sc.get_child_count() > 0:
+		var box := sc.get_child(0) as VBoxContainer
+		var compact_bottom := minf(nav_top, sc.offset_top + box.get_combined_minimum_size().y + 8.0)
+		sc.anchor_bottom = 0.0
+		sc.offset_bottom = compact_bottom
+		_bottom_bg.anchor_bottom = 0.0
+		_bottom_bg.offset_bottom = compact_bottom + 6.0
+	else:
+		sc.anchor_bottom = 1.0
+		sc.offset_bottom = -(NAV_H + _safe_bottom)
+		_bottom_bg.anchor_bottom = 1.0
+		_bottom_bg.offset_bottom = -(NAV_H + _safe_bottom)
 
 ## Make the WHOLE card surface swipe-aware. Buttons stay usable but pass gesture
 ## events to the page container; non-interactive decoration never intercepts.
@@ -1138,8 +1165,10 @@ func _build_fleet_tab() -> ScrollContainer:
 	_auto_mgr_toggle.tooltip_text = tr("Compra automaticamente a opção com maior ganho por moeda. Disponível para todos.")
 	v.add_child(_auto_mgr_toggle)
 
-	v.add_child(_section("Prestige", UITheme.PRESTIGE, "ic_prestige"))
-	var pp := PanelContainer.new(); pp.add_theme_stylebox_override("panel", UITheme.prestige_card()); v.add_child(pp)
+	_prestige_section = _section("Prestige", UITheme.PRESTIGE, "ic_prestige")
+	_prestige_section.set_meta("progression_hidden", true); v.add_child(_prestige_section)
+	var pp := PanelContainer.new(); pp.add_theme_stylebox_override("panel", UITheme.prestige_card())
+	_prestige_card = pp; _prestige_card.set_meta("progression_hidden", true); v.add_child(pp)
 	var pv := VBoxContainer.new(); pv.add_theme_constant_override("separation", 8); pp.add_child(pv)
 	_prestige_info_lbl = _lbl("", 16, UITheme.MUTED)
 	_prestige_info_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; pv.add_child(_prestige_info_lbl)
@@ -1911,6 +1940,14 @@ func _process(delta: float) -> void:
 	var auto_manager_unlocked := GameState.prosperity_rank >= 2
 	_auto_mgr_section.visible = auto_manager_unlocked
 	_auto_mgr_toggle.visible = auto_manager_unlocked
+	_auto_mgr_section.set_meta("progression_hidden", not auto_manager_unlocked)
+	_auto_mgr_toggle.set_meta("progression_hidden", not auto_manager_unlocked)
+	var prestige_panel_unlocked := GameState.current_country >= 3 or Prestige.count > 0
+	if prestige_panel_unlocked != _prestige_panel_unlocked:
+		_prestige_panel_unlocked = prestige_panel_unlocked
+		_prestige_section.set_meta("progression_hidden", not prestige_panel_unlocked)
+		_prestige_card.set_meta("progression_hidden", not prestige_panel_unlocked)
+		_refresh_page_container(_prestige_card)
 	# Construction paths enter the fleet pager only after their city chapter is
 	# earned. Marking them as progression-hidden lets pagination remove them
 	# entirely instead of leaving blank slots/pages.

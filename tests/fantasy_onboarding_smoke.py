@@ -53,6 +53,7 @@ required_main = (
 	'"upgrade_key": recommended_key',
 	"(_mode_btns[mode] as Button).visible = GameState.prosperity_rank >= required_rank",
 	"var auto_manager_unlocked := GameState.prosperity_rank >= 2",
+	"var prestige_panel_unlocked := GameState.current_country >= 3 or Prestige.count > 0",
 	"_auto_mgr_section.visible = auto_manager_unlocked",
 	'not GameState.is_upgrade_unlocked(unlock_key)',
 	'get_meta("progression_hidden", false)',

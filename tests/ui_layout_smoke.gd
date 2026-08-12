@@ -89,10 +89,18 @@ func _run() -> void:
 		GameState.prosperity_rank = 0
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")
+		main.call("_process", 0.0)
 		if not _check((main.get("_ribbon_bg") as Control).visible
 				and (main.get("_next_obj_lbl") as Control).visible
 				and not (main.get("_focus_card") as Control).visible,
 				"dashboard does not open after the four-griffin lesson"):
+			break
+		await get_tree().process_frame
+		var fleet_page := (main.get("_pages") as Array)[0] as ScrollContainer
+		var fleet_pager := fleet_page.get_meta("page_pager") as Control
+		if not _check(not fleet_pager.visible and fleet_page.anchor_bottom == 0.0
+				and fleet_page.offset_bottom < 500.0,
+				"single-page opening dashboard leaves an empty pager panel"):
 			break
 		var construction_objective: Dictionary = main.call("_smart_objective")
 		if not _check(construction_objective.get("tab") == 0
