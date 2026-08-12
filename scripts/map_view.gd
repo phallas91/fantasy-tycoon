@@ -101,6 +101,10 @@ var _city_growth: Dictionary = {}     # city_index -> remaining build reveal tim
 var _investment_signature := ""
 var _investment_reveal := 0.0
 var _recommended_investment := ""
+var _landmark_reveal_key := ""
+var _landmark_reveal_name := ""
+var _landmark_reveal_time := 0.0
+const LANDMARK_REVEAL_DURATION := 2.8
 
 # --- Arcane Trade Empire palette ---
 const VOID      := Color(0.025, 0.016, 0.035)
@@ -316,6 +320,11 @@ func _process(delta: float) -> void:
 			_investment_reveal = 0.9
 	if _investment_reveal > 0.0:
 		_investment_reveal = maxf(0.0, _investment_reveal - delta)
+	if _landmark_reveal_time > 0.0:
+		_landmark_reveal_time = maxf(0.0, _landmark_reveal_time - delta)
+		if _landmark_reveal_time <= 0.0:
+			_landmark_reveal_key = ""
+			_landmark_reveal_name = ""
 	# advance floating pops (mutate in place; skip entirely when idle — the
 	# common case outside the few seconds right after a delivery/unlock)
 	if not _pops.is_empty():
@@ -361,6 +370,15 @@ func set_recommended_investment(key: String) -> void:
 	if key == _recommended_investment:
 		return
 	_recommended_investment = key
+	queue_redraw()
+
+## Places construction feedback where the new structure actually appeared.
+## It is purely visual and non-modal: play continues underneath the reveal.
+func reveal_landmark(key: String, landmark_name: String) -> void:
+	_landmark_reveal_key = key
+	_landmark_reveal_name = landmark_name
+	_landmark_reveal_time = LANDMARK_REVEAL_DURATION
+	_investment_reveal = 0.9
 	queue_redraw()
 
 func _band_ctr() -> Vector2:
@@ -525,6 +543,7 @@ func _draw() -> void:
 	_draw_cities(cap, cities, ci)
 	_draw_construction_activity(cap)
 	_draw_recommended_investment(cap)
+	_draw_landmark_reveal(cap)
 	_draw_clouds(w, h)
 	_draw_stars(w, h)
 	_draw_vignette(w, h)
@@ -593,6 +612,33 @@ func _draw_recommended_investment(cap: Vector2) -> void:
 	draw_style_box(_chip_sb, chip)
 	draw_string(_font, Vector2(chip.position.x + 9.0, chip.position.y + 16.0), label,
 		HORIZONTAL_ALIGNMENT_LEFT, tw, 14, INK)
+
+## A short world-space commissioning banner anchors the reward to the new
+## district. Fade and lift are restrained; reduced-motion keeps it stationary.
+func _draw_landmark_reveal(cap: Vector2) -> void:
+	if _landmark_reveal_time <= 0.0 or _landmark_reveal_key.is_empty() or _landmark_reveal_name.is_empty():
+		return
+	var target := _investment_target(cap, _landmark_reveal_key)
+	var elapsed := LANDMARK_REVEAL_DURATION - _landmark_reveal_time
+	var fade_in := smoothstep(0.0, 0.22, elapsed)
+	var fade_out := smoothstep(0.0, 0.55, _landmark_reveal_time)
+	var alpha := minf(fade_in, fade_out)
+	var lift := 0.0 if Fx.reduce_motion else 7.0 * clampf(elapsed / LANDMARK_REVEAL_DURATION, 0.0, 1.0)
+	var pulse := 0.0 if Fx.reduce_motion else 3.0 * sin(elapsed * 5.0)
+	# Keep the commissioning label above ordinary city-name chips. Cargo and
+	# route districts sit close to the first satellite settlement in Goldhain;
+	# the shallower offset put both labels on the same baseline.
+	var anchor := target + Vector2(0.0, -90.0 - lift)
+	var text_width := _measure(_landmark_reveal_name, 17)
+	var chip := Rect2(anchor.x - text_width * 0.5 - 15.0, anchor.y - 21.0, text_width + 30.0, 32.0)
+	_chip_sb.bg_color = Color(0.07, 0.035, 0.10, 0.94 * alpha)
+	_chip_sb.border_color = Color(GOLD.r, GOLD.g, GOLD.b, 0.86 * alpha)
+	draw_style_box(_chip_sb, chip)
+	draw_string(_font, Vector2(chip.position.x + 15.0, chip.position.y + 22.0), _landmark_reveal_name,
+		HORIZONTAL_ALIGNMENT_LEFT, text_width, 17, Color(INK.r, INK.g, INK.b, alpha))
+	draw_line(Vector2(anchor.x, chip.end.y), target + Vector2(0, -10), Color(GOLD.r, GOLD.g, GOLD.b, 0.52 * alpha), 2.0)
+	draw_arc(target, 20.0 + pulse, 0.0, TAU, 32, Color(GOLD.r, GOLD.g, GOLD.b, 0.82 * alpha), 3.0)
+	draw_line(target + Vector2(0, 7), target + Vector2(0, -48), Color(GOLD.r, GOLD.g, GOLD.b, 0.20 * alpha), 7.0)
 
 # ---------------------------------------------------------------- background
 

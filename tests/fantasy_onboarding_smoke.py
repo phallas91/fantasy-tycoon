@@ -64,6 +64,7 @@ required_main = (
 	'get_meta("progression_hidden", false)',
 	"func _reveal_prosperity_unlocks(rank: int) -> void:",
 	'call_deferred("_reveal_prosperity_unlocks", rank)',
+	"_map.reveal_landmark(key, landmark_name)",
 )
 required_map = (
 	'load("res://assets/fantasy/arcane_city_world_v1.webp")',
@@ -82,6 +83,8 @@ required_map = (
 	"if route_level >= 25:",
 	"func _draw_recommended_investment(",
 	"func _draw_construction_activity(",
+	"func reveal_landmark(key: String, landmark_name: String) -> void:",
+	"func _draw_landmark_reveal(cap: Vector2) -> void:",
 	"func _income_chip(p: Vector2, income: String) -> void:",
 	"var trip := 1.0 - absf(phase * 2.0 - 1.0)",
 	"if phase < 0.5:",

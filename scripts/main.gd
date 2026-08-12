@@ -1729,7 +1729,9 @@ func _make_upgrade_row(key: String) -> PanelContainer:
 			var milestone_crossed := after_level / Economy.MILESTONE_STEP > before_tier
 			Audio.play_upgrade(key, landmark_built or milestone_crossed)
 			if landmark_built:
-				_toast(tr("Construído: %s!") % tr(str(after_stage["name"])), UITheme.GOLD, str(Economy.UPGRADES[key].get("icon", "ic_city")))
+				var landmark_name := tr(str(after_stage["name"]))
+				_toast(tr("Construído: %s!") % landmark_name, UITheme.GOLD, str(Economy.UPGRADES[key].get("icon", "ic_city")))
+				_map.reveal_landmark(key, landmark_name)
 				var landmark_centre := Vector2(size.x * 0.62, size.y * 0.46)
 				Fx.confetti(self, landmark_centre, 34, [UITheme.GOLD, accent, UITheme.CYAN])
 				Fx.screen_flash(self, accent, 0.13)

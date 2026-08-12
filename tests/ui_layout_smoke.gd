@@ -37,6 +37,18 @@ func _run() -> void:
 		get_tree().root.add_child(main)
 		for _frame in range(5):
 			await get_tree().process_frame
+		var map := main.get("_map") as Control
+		map.call("reveal_landmark", "cargo", tr("Armazéns da Guilda"))
+		if not _check(str(map.get("_landmark_reveal_key")) == "cargo"
+				and str(map.get("_landmark_reveal_name")) == tr("Armazéns da Guilda")
+				and float(map.get("_landmark_reveal_time")) > 2.0,
+				"completed landmark is not revealed at its world-space district"):
+			break
+		map.call("_process", 3.0)
+		if not _check(str(map.get("_landmark_reveal_key")).is_empty()
+				and str(map.get("_landmark_reveal_name")).is_empty(),
+				"world-space landmark reveal does not clear after its ceremony"):
+			break
 
 		# A ready return reward must invite rather than interrupt. Even when the
 		# pending flag is already true at boot, no blocking overlay may be created;
