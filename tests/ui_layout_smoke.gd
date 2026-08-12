@@ -35,7 +35,12 @@ func _run() -> void:
 
 		var main := MAIN_SCENE.instantiate() as Control
 		get_tree().root.add_child(main)
+		# Headless Linux may restore the project default window size once when the
+		# first full-rect scene enters the tree. Reassert the requested device frame
+		# during layout settling; if a real control minimum prevents shrinking, the
+		# strict canvas assertion below still fails with the measured dimensions.
 		for _frame in range(5):
+			get_tree().root.size = requested_size
 			await get_tree().process_frame
 		var map := main.get("_map") as Control
 		GameState.cities_unlocked = 1
