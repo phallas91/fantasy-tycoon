@@ -115,18 +115,42 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p export
-          godot --headless --path . --install-android-build-template \
-            --export-debug "Android" export/ArcaneTradeEmpire-ci.apk \
-            2>&1 | tee godot-android-apk.log
+          for attempt in 1 2; do
+            echo "Android APK export attempt ${attempt}/2"
+            if godot --headless --path . --install-android-build-template \
+                --export-debug "Android" export/ArcaneTradeEmpire-ci.apk \
+                2>&1 | tee -a godot-android-apk.log; then
+              break
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Android APK export failed twice."
+              exit 1
+            fi
+            echo "Transient Android export failure; retrying once in 5 seconds."
+            rm -f export/ArcaneTradeEmpire-ci.apk
+            sleep 5
+          done
           python3 tests/android_package_smoke.py export/ArcaneTradeEmpire-ci.apk
 
       - name: Build Android release AAB with native plugins
         shell: bash
         run: |
           set -o pipefail
-          godot --headless --path . \
-            --export-release "Android AAB (Play Store)" export/ArcaneTradeEmpire-ci.aab \
-            2>&1 | tee godot-android-aab.log
+          for attempt in 1 2; do
+            echo "Android AAB export attempt ${attempt}/2"
+            if godot --headless --path . \
+                --export-release "Android AAB (Play Store)" export/ArcaneTradeEmpire-ci.aab \
+                2>&1 | tee -a godot-android-aab.log; then
+              break
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Android AAB export failed twice."
+              exit 1
+            fi
+            echo "Transient Android export failure; retrying once in 5 seconds."
+            rm -f export/ArcaneTradeEmpire-ci.aab
+            sleep 5
+          done
           python3 tests/android_package_smoke.py export/ArcaneTradeEmpire-ci.aab
 
       - name: Enforce Android package size budgets
