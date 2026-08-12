@@ -418,12 +418,13 @@ func _run() -> void:
 			break
 		if not _check(absf(hud.position.x - REF_GUTTER) <= 1.0
 				and absf(hud.position.y - REF_HUD_TOP) <= 1.0
-				and absf(hud.position.x + hud.size.x - (canvas.x - REF_GUTTER)) <= 1.0
-				and hud.position.y + hud.size.y <= REF_PANEL_TOP - 4.0,
+				and absf(hud.position.x + hud.size.x - (canvas.x - REF_GUTTER)) <= 1.0,
 				"HUD %s size %s no longer matches canvas %s reference frame at %s" % [hud.position, hud.size, canvas, requested_size]):
 			break
+		var expected_panel_top := maxf(REF_PANEL_TOP, hud.position.y + hud.size.y + 8.0)
 		if not _check(absf(panel.position.x - REF_GUTTER) <= 1.0
-				and absf(panel.position.y - REF_PANEL_TOP) <= 1.0
+				and absf(panel.position.y - expected_panel_top) <= 1.0
+				and panel.position.y >= hud.position.y + hud.size.y + 7.0
 				and absf(panel.position.x + panel.size.x - REF_PANEL_RIGHT) <= 1.0,
 				"side dashboard no longer matches reference frame at %s" % requested_size):
 			break

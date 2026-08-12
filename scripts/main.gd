@@ -2950,6 +2950,12 @@ func _apply_safe_area() -> void:
 		_hud.offset_top = 20.0 + _safe_top
 	var nav_bottom := NAV_H + _safe_bottom
 	var panel_top := LANDSCAPE_PANEL_TOP + _safe_top
+	# Imported font metrics differ slightly between desktop and mobile/Linux.
+	# Follow the measured HUD rather than assuming its nominal height, preserving
+	# the compact 170px boundary wherever it fits and preventing overlap where a
+	# locale or platform shapes the same row a few pixels taller.
+	if is_instance_valid(_hud):
+		panel_top = maxf(panel_top, _hud.position.y + _hud.size.y + 8.0)
 	if is_instance_valid(_bottom_bg):
 		_bottom_bg.anchor_left = 0.0; _bottom_bg.anchor_right = 0.0
 		_bottom_bg.anchor_top = 0.0; _bottom_bg.anchor_bottom = 1.0
