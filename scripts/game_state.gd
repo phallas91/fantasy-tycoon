@@ -92,7 +92,11 @@ func skin_collection_mult() -> float:
 	return 1.0 + 0.02 * float(max(0, skins_owned.size() - 1))
 
 func global_mult() -> float:
-	return (1.0 + 0.05 * float(influence)) * (1.0 + 0.06 * float(talents["global"])) \
+	# Earned influence is permanent trading reputation; the current balance is
+	# only its spendable talent currency. Using the balance here made every
+	# talent purchase remove 5% per spent point and could leave the player weaker
+	# after buying an advertised bonus. Lifetime influence preserves progression.
+	return (1.0 + 0.05 * float(influence_total)) * (1.0 + 0.06 * float(talents["global"])) \
 		* (1.0 + 0.25 * float(gem_boost)) * guild_blessing_mult() \
 		* Events.current_mult * Prestige.effective_mult() * skin_collection_mult() \
 		* region_bonus_mult() * Billing.premium_income_mult()
@@ -130,7 +134,7 @@ func mult_breakdown() -> Array:
 		["Prestige", Prestige.effective_mult()],
 		["Bênção da Guilda", guild_blessing_mult()],
 		["Evento", Events.current_mult],
-		["Influência", 1.0 + 0.05 * float(influence)],
+		["Influência", 1.0 + 0.05 * float(influence_total)],
 		["Talento Global", 1.0 + 0.06 * float(talents["global"])],
 		["Núcleo de Lucro", 1.0 + 0.25 * float(gem_boost)],
 		["Hangar de Skins", skin_collection_mult()],

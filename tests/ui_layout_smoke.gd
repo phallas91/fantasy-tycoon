@@ -154,9 +154,9 @@ func _run() -> void:
 				and not realm_objective.has("upgrade_key"),
 				"opening construction chapter does not hand off to realm growth"):
 			break
-		# Realm growth introduces one management layer per earned settlement:
-		# missions after the first new route, talents after the second. Shop and
-		# legacy remain later realm beats instead of joining the same reveal.
+		# Realm growth introduces missions after the first new route. Talents wait
+		# for the second realm where influence is actually awarded; shop and legacy
+		# remain later realm beats instead of exposing disabled systems.
 		GameState.cities_unlocked = 2
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")
@@ -179,9 +179,9 @@ func _run() -> void:
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")
 		if not _check((nav_buttons[5] as Control).visible
-				and (nav_buttons[2] as Control).visible
+				and not (nav_buttons[2] as Control).visible
 				and not (nav_buttons[4] as Control).visible,
-				"second settlement does not introduce talents as its own progression beat"):
+				"talents appear before the player can earn influence"):
 			break
 		GameState.cities_unlocked = 4
 		main.call("_update_contract_visibility")
@@ -190,10 +190,27 @@ func _run() -> void:
 				"contract board does not grow to a second focused mission with the network"):
 			break
 		GameState.current_country = 1
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
 		main.call("_update_contract_visibility")
-		if not _check(not bool((mission_cards[3] as Control).get_meta("progression_hidden"))
+		if not _check((nav_buttons[2] as Control).visible
+				and not (nav_buttons[4] as Control).visible
+				and not (nav_buttons[3] as Control).visible
+				and not bool((mission_cards[3] as Control).get_meta("progression_hidden"))
 				and not bool((main.get("_mission_weekly_section") as Control).get_meta("progression_hidden")),
-				"weekly contract appears before the second realm or remains hidden after it"):
+				"second realm does not introduce funded talents and the weekly board alone"):
+			break
+		GameState.current_country = 2
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		if not _check((nav_buttons[4] as Control).visible and not (nav_buttons[3] as Control).visible,
+				"shop does not wait until the third realm"):
+			break
+		GameState.current_country = 3
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		if not _check((nav_buttons[3] as Control).visible,
+				"legacy does not remain a later realm system"):
 			break
 		GameState.current_country = 0
 		GameState.cities_unlocked = 1

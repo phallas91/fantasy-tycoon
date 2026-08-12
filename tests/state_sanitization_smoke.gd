@@ -70,6 +70,15 @@ func _run() -> void:
 		return
 
 	game_state.reset()
+	# Spending influence on a talent must be a power gain, never a hidden loss of
+	# the same global reputation multiplier used to advertise progression.
+	game_state.influence = 8
+	game_state.influence_total = 8
+	var pre_talent_mult := float(game_state.global_mult())
+	if not game_state.buy_talent("global") or float(game_state.global_mult()) <= pre_talent_mult:
+		_fail("spending influence on a talent makes the player weaker")
+		return
+	game_state.reset()
 	var breakdown_labels: Array[String] = []
 	for row: Array in game_state.mult_breakdown():
 		breakdown_labels.append(str(row[0]))
