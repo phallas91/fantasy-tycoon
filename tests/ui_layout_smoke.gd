@@ -393,6 +393,19 @@ func _run() -> void:
 				and not next_city_row.pressed.get_connections().is_empty(),
 				"next settlement row is not a direct unlock entry"):
 			break
+		GameState.drones = 4
+		main.set("_nav_stage", -1)
+		main.call("_refresh_progressive_nav")
+		main.call("_switch_tab", 1)
+		await get_tree().process_frame
+		var city_page := main.get("_pages")[1] as ScrollContainer
+		if not _check(next_city_row.visible
+				and city_page.visible
+				and int(main.get("_page_indices").get(city_page, 0)) >= 2,
+				"city navigation does not open directly on the frontier settlement"):
+			break
+		main.call("_switch_tab", 0)
+		GameState.drones = 1
 		GameState.prosperity_rank = 1
 		main.call("_process", 0.0)
 		if not _check(not bool((opening_rows["speed"]["card"] as Control).get_meta("progression_hidden"))

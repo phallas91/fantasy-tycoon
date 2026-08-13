@@ -103,6 +103,7 @@ var _city_prog_fill: Panel
 var _progress_lbl: Label
 var _city_list_box: VBoxContainer
 var _city_income_labels := {}
+var _city_rows := {}
 var _prestige_shop_box: VBoxContainer
 var _achieve_box: VBoxContainer
 var _prestige_shop_rows := {}
@@ -998,6 +999,13 @@ func _switch_tab(i: int) -> void:
 	if i >= 0 and i < _pages.size():
 		var active_page := _pages[i] as ScrollContainer
 		_show_management_page(active_page, int(_page_indices.get(active_page, 0)))
+		# The city catalogue spans several compact pages. Opening it should land on
+		# the frontier settlement — the route the player can improve now or the
+		# next city they can unlock — rather than on a redundant summary page.
+		if i == 1:
+			var frontier_row := _frontier_city_row()
+			if is_instance_valid(frontier_row):
+				_show_control_page(active_page, frontier_row)
 	for j in _nav_btns.size():
 		var active := (j == i)
 		var btn: Button = _nav_btns[j]
@@ -1296,6 +1304,7 @@ func _build_cities_tab() -> ScrollContainer:
 func _rebuild_city_list() -> void:
 	if _city_list_box == null: return
 	_city_income_labels.clear()
+	_city_rows.clear()
 	for c in _city_list_box.get_children():
 		c.queue_free()
 	var ci := GameState.current_country
@@ -1307,6 +1316,7 @@ func _rebuild_city_list() -> void:
 		row.mouse_filter = Control.MOUSE_FILTER_PASS
 		row.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 		row.set_meta("city_index", city_index)
+		_city_rows[city_index] = row
 		var h := HBoxContainer.new(); h.add_theme_constant_override("separation", 8); row.add_child(h)
 		var nm := _lbl(str(cities[i]["name"]), 17, UITheme.INK)
 		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1366,6 +1376,15 @@ func _rebuild_city_list() -> void:
 		_city_list_box.add_child(row)
 	call_deferred("_refresh_page_container", _city_list_box)
 	_refresh_city_income_labels(GameState.income_per_sec())
+
+func _frontier_city_row() -> Control:
+	if _city_rows.is_empty():
+		return null
+	var cities := Economy.country_cities(GameState.current_country)
+	var frontier := clampi(GameState.cities_unlocked, 0, cities.size() - 1)
+	if not GameState.all_cities_unlocked():
+		frontier = clampi(GameState.cities_unlocked + 1, 1, cities.size() - 1)
+	return _city_rows.get(frontier, null) as Control
 
 func _refresh_city_income_labels(_realm_income: float) -> void:
 	for route: int in _city_income_labels:
@@ -2291,7 +2310,7 @@ func _smart_objective() -> Dictionary:
 		var ready_cities := Economy.country_cities(GameState.current_country)
 		var ready_city_idx := clampi(GameState.cities_unlocked + 1, 1, ready_cities.size() - 1)
 		return {"text": tr("Próximo: abrir %s") % ready_cities[ready_city_idx]["name"], "tab": 1,
-			"focus": _city_btn, "cost": GameState.next_city_cost(), "progress": 1.0,
+			"focus": _city_rows.get(ready_city_idx, _city_btn), "cost": GameState.next_city_cost(), "progress": 1.0,
 			"accent": UITheme.CYAN, "icon": "ic_city"}
 	if GameState.can_expand():
 		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
@@ -2324,7 +2343,7 @@ func _smart_objective() -> Dictionary:
 		var pending_cities := Economy.country_cities(GameState.current_country)
 		var pending_city_idx := clampi(GameState.cities_unlocked + 1, 1, pending_cities.size() - 1)
 		return {"text": tr("Próximo: abrir %s") % pending_cities[pending_city_idx]["name"], "tab": 1,
-			"focus": _city_btn, "cost": GameState.next_city_cost(), "progress": 0.0,
+			"focus": _city_rows.get(pending_city_idx, _city_btn), "cost": GameState.next_city_cost(), "progress": 0.0,
 			"accent": UITheme.CYAN, "icon": "ic_city"}
 	var expand_cost := GameState.expand_cost()
 	if expand_cost >= 0.0:
