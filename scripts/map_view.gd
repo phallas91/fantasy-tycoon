@@ -104,6 +104,7 @@ var _stars: Array = []                # faint ambient star/dust field
 var _caustics: Array = []             # animated sea shimmer blobs
 var _flash: Dictionary = {}           # city_index -> remaining flash time on delivery
 var _city_growth: Dictionary = {}     # city_index -> remaining build reveal time
+var _route_reveal: Dictionary = {}    # route index -> remaining commissioning time
 var _investment_signature := ""
 var _investment_reveal := 0.0
 var _recommended_investment := ""
@@ -389,6 +390,16 @@ func _process(delta: float) -> void:
 				finished.append(key)
 		for key in finished:
 			_city_growth.erase(key)
+	if not _route_reveal.is_empty():
+		var finished_routes: Array = []
+		for key: int in _route_reveal:
+			var rem: float = float(_route_reveal[key]) - delta
+			if rem > 0.0:
+				_route_reveal[key] = rem
+			else:
+				finished_routes.append(key)
+		for key in finished_routes:
+			_route_reveal.erase(key)
 	queue_redraw()
 
 func set_recommended_investment(key: String) -> void:
@@ -1041,13 +1052,18 @@ func _draw_routes(cap: Vector2, cities: Array) -> Dictionary:
 		route_geom[r] = {"b": cp, "ctrl": ctrl}
 		var pts := PackedVector2Array()
 		var segs := 14
-		for i in range(segs + 1):
+		var route_progress := 1.0
+		if _route_reveal.has(r) and not Fx.reduce_motion:
+			route_progress = 1.0 - clampf(float(_route_reveal[r]) / 1.5, 0.0, 1.0)
+			route_progress = smoothstep(0.0, 1.0, route_progress)
+		var visible_segments := maxi(1, ceili(float(segs) * route_progress))
+		for i in range(visible_segments + 1):
 			pts.append(_route_point(cap, ctrl, cp, float(i) / float(segs)))
 		# wide soft glow lane + bright core, along the arc
 		draw_polyline(pts, Color(GOLD.r, GOLD.g, GOLD.b, 0.12), 10.0, true)
 		draw_polyline(pts, Color(GOLD.r, GOLD.g, GOLD.b, 0.62 + 0.28 * glow), 2.2, true)
 		# two traveling flow highlights per lane (busier logistics feel)
-		for k in range(2):
+		for k in range(2 if route_progress >= 0.98 else 0):
 			var phase := fmod(_t * 0.35 + float(r) * 0.27 + float(k) * 0.5, 1.0)
 			var flow := _route_point(cap, ctrl, cp, phase)
 			draw_circle(flow, 5.5, Color(SKY.r, SKY.g, SKY.b, 0.20))
@@ -1090,6 +1106,11 @@ func _draw_drones(cap: Vector2, cities: Array, route_geom: Dictionary) -> void:
 	for di in range(GameState.vdrones.size()):
 		var v: Dictionary = GameState.vdrones[di]
 		var route: int = int(v["route"])
+		# Commission the lane before traffic enters it. Otherwise a courier appeared
+		# at the destination while the newly unlocked route was still drawing out
+		# from the capital, breaking the visual cause-and-effect of the reward.
+		if _route_reveal.has(route) and float(_route_reveal[route]) > 0.55:
+			continue
 		var b: Vector2
 		var ctrl: Vector2
 		if route_geom.has(route):
@@ -1408,6 +1429,7 @@ func _on_city_unlocked_visual(index: int) -> void:
 	_flash[index] = 0.5
 	if not Fx.reduce_motion:
 		_city_growth[index] = 1.25
+		_route_reveal[index - 1] = 1.5
 
 func _on_city_developed_visual(index: int, _level: int, _income_gain: float) -> void:
 	_flash[index] = 0.65
@@ -1423,6 +1445,7 @@ func _on_country_changed_visual(_index: int) -> void:
 	_trails.clear()
 	_flash.clear()
 	_city_growth.clear()
+	_route_reveal.clear()
 	if not Fx.reduce_motion:
 		_city_growth[0] = 1.25
 	reveal_country()

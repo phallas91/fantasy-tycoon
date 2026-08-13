@@ -259,6 +259,23 @@ func _run() -> void:
 		Contracts.slots[0]["ready"] = network_contract_ready
 		Contracts.slots[0]["claimed"] = network_contract_claimed
 		main.call("_rebuild_city_list")
+		GameState.cities_unlocked = 2
+		GameState.call("_reset_city_development")
+		main.call("_on_city_unlocked", 2)
+		var route_reduce_motion := Fx.reduce_motion
+		Fx.reduce_motion = false
+		map.call("_on_city_unlocked_visual", 2)
+		Fx.reduce_motion = route_reduce_motion
+		if not _check((map.get("_route_reveal") as Dictionary).has(1)
+				and int((main.get("_objective_cache") as Dictionary).get("city_index", -1)) == 2,
+				"new settlement does not commission its route and hand off to local development"):
+			break
+		if not _check(float((map.get("_route_reveal") as Dictionary)[1]) > 0.55,
+				"new route starts traffic before its commissioning reveal can be read"):
+			break
+		GameState.cities_unlocked = 1
+		GameState.call("_reset_city_development")
+		main.call("_rebuild_city_list")
 		# A fresh later realm must not point at a stored meta reward while its city
 		# is still an empty capital. The reward remains claimable after rank 2.
 		var contract_was_ready := bool(Contracts.slots[0].get("ready", false))

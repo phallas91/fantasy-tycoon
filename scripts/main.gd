@@ -2600,8 +2600,10 @@ func _on_city_unlocked(i: int) -> void:
 	var cities := Economy.country_cities(GameState.current_country)
 	var city_index := clampi(i, 0, cities.size() - 1)
 	var city_name := str(cities[city_index].get("name", tr("Cidade")))
-	_toast(tr("%s desbloqueada · Renda +%s/s") % [city_name, Fmt.short(GameState.last_city_income_gain)],
-		UITheme.CYAN, "ic_city")
+	var unlock_text := tr("%s desbloqueada · Renda +%s/s") % [city_name, Fmt.short(GameState.last_city_income_gain)]
+	if GameState.current_country == 0 and i == 2:
+		unlock_text += "  ·  " + tr("Novo: %s") % tr("Missões")
+	_toast(unlock_text, UITheme.CYAN, "ic_city")
 	var c := Vector2(size.x * 0.5, size.y * 0.42)
 	Fx.confetti(self, c, 22)
 	Fx.ring_pulse(self, c, UITheme.CYAN, 2.2)
@@ -2609,11 +2611,10 @@ func _on_city_unlocked(i: int) -> void:
 	_map.focus_city(i)
 	_sync_city_expansion_visibility(true)
 	_rebuild_city_list()
+	_refresh_smart_objective()
 	# The first settlement teaches missions. Talents wait for the first realm
 	# completion, when influence is actually awarded and the page has a real
 	# decision instead of four disabled cards.
-	if GameState.current_country == 0 and i == 2:
-		_toast(tr("%s desbloqueada!") % tr("Missões"), UITheme.CYAN, "ic_achieve")
 
 func _on_city_developed(index: int, level: int, income_gain: float) -> void:
 	var cities := Economy.country_cities(GameState.current_country)
