@@ -91,6 +91,7 @@ var _chip_sb: StyleBoxFlat
 
 # --- misc caches ---
 var _next_cost_str := ""
+var _next_cost_value := -1.0
 var _frontier_income_str := ""
 var _income_refresh_t := 0.0
 var _text_width_cache: Dictionary = {}
@@ -235,7 +236,11 @@ func _edge_gradient_tex(reverse: bool, horizontal := false) -> GradientTexture2D
 ## actually change (unlock/expand), not every frame from _draw_cities().
 func _refresh_next_cost() -> void:
 	var ci := GameState.current_country
-	_next_cost_str = Fmt.short(Economy.city_unlock_cost(ci, GameState.cities_unlocked))
+	_next_cost_value = Economy.city_unlock_cost(ci, GameState.cities_unlocked)
+	_next_cost_str = Fmt.short(_next_cost_value)
+
+func _next_city_affordable() -> bool:
+	return _next_cost_value >= 0.0 and GameState.credits >= _next_cost_value
 
 ## Memoized text-width measurement (city/cost labels repeat every frame while
 ## on screen but rarely change) — avoids re-measuring the same string+size.
@@ -1196,9 +1201,10 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 				_income_chip(cp, _frontier_income_str)
 		else:
 			var is_next := (i == GameState.cities_unlocked + 1)
-			_locked_marker(cp, is_next)
+			var next_affordable := is_next and _next_city_affordable()
+			_locked_marker(cp, is_next, next_affordable)
 			if is_next:
-				_cost_chip(cp, _next_cost_str)
+				_cost_chip(cp, _next_cost_str, next_affordable)
 
 ## Level-of-detail marker for older hubs whose full crests would overlap in the
 ## portrait overview. Zooming past 1.65 restores the complete city artwork.
@@ -1466,18 +1472,24 @@ func _city_development_ring(p: Vector2, city_index: int, radius: float) -> void:
 		var width := 2.8 if stage < level else 1.5
 		draw_arc(p, radius, from, from + 0.34, 7, col, width, true)
 
-func _locked_marker(p: Vector2, is_next: bool) -> void:
+func _locked_marker(p: Vector2, is_next: bool, affordable := false) -> void:
 	if is_next:
 		# The next expansion is a real construction site, not another abstract
 		# crest. Its warm pulse makes the progression target obvious at a glance.
 		var pulse: float = 0.5 + 0.5 * sin(_t * 2.2)
-		draw_circle(p, 16.0 + pulse * 5.0, Color(MUTED.r, MUTED.g, MUTED.b, 0.14 + 0.06 * pulse))
+		var beacon := MINT if affordable else MUTED
+		draw_circle(p, 16.0 + pulse * 5.0, Color(beacon.r, beacon.g, beacon.b,
+			(0.19 if affordable else 0.14) + 0.07 * pulse))
+		if affordable:
+			draw_arc(p, 20.0 + pulse * 3.0, -PI * 0.5, PI * 1.5, 28,
+				Color(MINT.r, MINT.g, MINT.b, 0.48 + 0.28 * pulse), 2.4)
 		if _hub_city2 != null:
 			var s := 42.0 if zoom < 1.65 else 52.0
 			draw_texture_rect(_hub_city2, Rect2(p.x - s * 0.5, p.y - s + 6.0, s, s), false, Color(0.72, 0.76, 0.88, 0.72 + 0.20 * pulse))
 		else:
 			draw_circle(p, 7.0, Color(MUTED.r, MUTED.g, MUTED.b, 0.9))
-		draw_arc(p, 12.0, 0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, 0.35 + 0.3 * pulse), 1.6)
+		var ring_col := MINT if affordable else GOLD
+		draw_arc(p, 12.0, 0, TAU, 24, Color(ring_col.r, ring_col.g, ring_col.b, 0.35 + 0.3 * pulse), 1.6)
 	else:
 		# far-locked: dim
 		draw_circle(p, 6.0, Color(MUTED.r, MUTED.g, MUTED.b, 0.35))
@@ -1517,7 +1529,7 @@ func _label(p: Vector2, text: String, col: Color) -> void:
 	draw_string(_font, Vector2(p.x - lw * 0.5, p.y + 41.5), text, HORIZONTAL_ALIGNMENT_CENTER, lw, 18, Color(SHADOW.r, SHADOW.g, SHADOW.b, 0.75))
 	draw_string(_font, Vector2(p.x - lw * 0.5, p.y + 40.0), text, HORIZONTAL_ALIGNMENT_CENTER, lw, 18, col)
 
-func _cost_chip(p: Vector2, cost: String) -> void:
+func _cost_chip(p: Vector2, cost: String, affordable := false) -> void:
 	if _font == null:
 		return
 	# lives ABOVE the marker (name pills live below) so lanes never collide
@@ -1528,12 +1540,15 @@ func _cost_chip(p: Vector2, cost: String) -> void:
 		chip_y = p.y - (74.0 if zoom < 1.65 else 88.0)
 	var pill := Rect2(p.x - tw * 0.5 - 27.0, chip_y, tw + 45.0, 26.0)
 	_chip_sb.bg_color = Color(MIDNIGHT.r, MIDNIGHT.g, MIDNIGHT.b, 0.78)
-	_chip_sb.border_color = Color(GOLD.r, GOLD.g, GOLD.b, 0.35)
+	var accent := MINT if affordable else GOLD
+	_chip_sb.border_color = Color(accent.r, accent.g, accent.b, 0.55 if affordable else 0.35)
 	draw_style_box(_chip_sb, pill)
-	if _lock != null:
-		draw_texture_rect(_lock, Rect2(pill.position.x + 8.0, pill.position.y + 6.0, 14, 14), false, Color(GOLD.r, GOLD.g, GOLD.b, 0.95))
+	var state_icon := _coin if affordable else _lock
+	if state_icon != null:
+		draw_texture_rect(state_icon, Rect2(pill.position.x + 8.0, pill.position.y + 6.0, 14, 14), false,
+			Color(accent.r, accent.g, accent.b, 0.98))
 	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.5, chip_y + 18.5), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, Color(SHADOW.r, SHADOW.g, SHADOW.b, 0.7))
-	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.0, chip_y + 17.0), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, Color(GOLD.r, GOLD.g, GOLD.b, 0.95))
+	draw_string(_font, Vector2(p.x - lw * 0.5 + 9.0, chip_y + 17.0), cost, HORIZONTAL_ALIGNMENT_CENTER, lw, 17, accent)
 
 func _income_chip(p: Vector2, income: String) -> void:
 	if _font == null or income.is_empty(): return

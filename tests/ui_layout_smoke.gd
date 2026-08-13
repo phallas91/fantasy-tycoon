@@ -236,6 +236,15 @@ func _run() -> void:
 		# for the second realm where influence is actually awarded; shop and legacy
 		# remain later realm beats instead of exposing disabled systems.
 		GameState.cities_unlocked = 2
+		map.call("_refresh_next_cost")
+		var map_city_cost := float(map.get("_next_cost_value"))
+		GameState.credits = maxf(0.0, map_city_cost - 1.0)
+		var map_city_waiting := not bool(map.call("_next_city_affordable"))
+		GameState.credits = map_city_cost
+		var map_city_ready := bool(map.call("_next_city_affordable"))
+		if not _check(map_city_cost > 0.0 and map_city_waiting and map_city_ready,
+				"world map does not track the frontier city's live affordability"):
+			break
 		var city_model: Dictionary = main.call("_city_inspector_model", 1)
 		var frontier_model: Dictionary = main.call("_city_inspector_model", 3)
 		var base_city_tier := int(map.call("_city_development_tier", false, 1))
