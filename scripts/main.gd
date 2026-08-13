@@ -2339,14 +2339,15 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Próximo: desenvolver %s") % frontier_cities[frontier_city]["name"],
 			"city_index": frontier_city, "cost": GameState.city_development_cost(frontier_city),
 			"progress": 0.0, "accent": UITheme.CYAN, "icon": "ic_range"}
-	# Complete the first network lesson before side rewards resume: once Runenhafen
-	# has been improved, its visible route leads directly to the next construction
-	# site. The cost-driven objective remains useful throughout the saving period.
-	if GameState.cities_unlocked == 1 and not GameState.all_cities_unlocked():
-		var first_network_cities := Economy.country_cities(GameState.current_country)
-		var first_frontier_idx := 2
-		return {"text": tr("Próximo: abrir %s") % first_network_cities[first_frontier_idx]["name"],
-			"city_index": first_frontier_idx, "cost": GameState.next_city_cost(), "progress": 0.0,
+	# Every route repeats the same readable rhythm without repeating tutorial
+	# camera work: establish the newest settlement once, then save toward the next
+	# visible frontier. Side rewards remain signalled by their navigation dot and
+	# regain advisor priority when the local realm network is complete.
+	if not GameState.all_cities_unlocked():
+		var network_cities := Economy.country_cities(GameState.current_country)
+		var next_network_idx := GameState.cities_unlocked + 1
+		return {"text": tr("Próximo: abrir %s") % network_cities[next_network_idx]["name"],
+			"city_index": next_network_idx, "cost": GameState.next_city_cost(), "progress": 0.0,
 			"accent": UITheme.CYAN, "icon": "ic_city"}
 	for i in range(Contracts.slots.size()):
 		var contract: Dictionary = Contracts.slots[i]
@@ -2359,12 +2360,6 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Próximo: Prestige disponível!"), "tab": 0,
 			"focus": _prestige_btn, "cost": -1.0, "progress": 1.0,
 			"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
-	if GameState.can_unlock_city():
-		var ready_cities := Economy.country_cities(GameState.current_country)
-		var ready_city_idx := clampi(GameState.cities_unlocked + 1, 1, ready_cities.size() - 1)
-		return {"text": tr("Próximo: abrir %s") % ready_cities[ready_city_idx]["name"], "tab": 1,
-			"focus": _city_rows.get(ready_city_idx), "cost": GameState.next_city_cost(), "progress": 1.0,
-			"accent": UITheme.CYAN, "icon": "ic_city"}
 	if GameState.can_expand():
 		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
 			"tab": 1, "focus": _expand_btn, "cost": GameState.expand_cost(), "progress": 1.0,
@@ -2392,12 +2387,6 @@ func _smart_objective() -> Dictionary:
 			return {"text": tr(str(Economy.UPGRADES[key]["name"])), "tab": 0,
 				"focus": upgrade_focus, "cost": upgrade_cost, "progress": 1.0,
 				"accent": UITheme.ACCENT, "icon": str(Economy.UPGRADES[key].get("icon", "ic_value"))}
-	if not GameState.all_cities_unlocked():
-		var pending_cities := Economy.country_cities(GameState.current_country)
-		var pending_city_idx := clampi(GameState.cities_unlocked + 1, 1, pending_cities.size() - 1)
-		return {"text": tr("Próximo: abrir %s") % pending_cities[pending_city_idx]["name"], "tab": 1,
-			"focus": _city_rows.get(pending_city_idx), "cost": GameState.next_city_cost(), "progress": 0.0,
-			"accent": UITheme.CYAN, "icon": "ic_city"}
 	var expand_cost := GameState.expand_cost()
 	if expand_cost >= 0.0:
 		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
@@ -2628,8 +2617,8 @@ func _on_city_developed(index: int, level: int, income_gain: float) -> void:
 	Fx.ring_pulse(self, centre, UITheme.CYAN, 1.8 + float(level) * 0.15)
 	Fx.screen_flash(self, UITheme.CYAN, 0.06)
 	Fx.vibrate(22 + level * 6)
+	_refresh_smart_objective()
 	if GameState.cities_unlocked == 1 and index == 1 and level == 1 and not GameState.all_cities_unlocked():
-		_refresh_smart_objective()
 		_map.guide_city(2)
 	else:
 		_map.focus_city(index)

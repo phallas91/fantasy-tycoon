@@ -259,6 +259,21 @@ func _run() -> void:
 		Contracts.slots[0]["ready"] = network_contract_ready
 		Contracts.slots[0]["claimed"] = network_contract_claimed
 		main.call("_rebuild_city_list")
+		GameState.cities_unlocked = 3
+		GameState.call("_reset_city_development")
+		GameState.city_development[3] = 1
+		Contracts.slots[0]["ready"] = true
+		Contracts.slots[0]["claimed"] = false
+		var repeated_network_objective: Dictionary = main.call("_smart_objective")
+		if not _check(int(repeated_network_objective.get("city_index", -1)) == 4
+				and float(repeated_network_objective.get("cost", -1.0)) == GameState.next_city_cost(),
+				"later settlement saving loop is interrupted by a side reward"):
+			break
+		Contracts.slots[0]["ready"] = network_contract_ready
+		Contracts.slots[0]["claimed"] = network_contract_claimed
+		GameState.cities_unlocked = 1
+		GameState.call("_reset_city_development")
+		main.call("_rebuild_city_list")
 		GameState.cities_unlocked = 2
 		GameState.call("_reset_city_development")
 		main.call("_on_city_unlocked", 2)
