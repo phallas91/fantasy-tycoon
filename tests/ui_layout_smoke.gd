@@ -179,6 +179,13 @@ func _run() -> void:
 				and not (main.get("_focus_card") as Control).visible,
 				"dashboard does not open after the four-griffin lesson"):
 			break
+		main.call("_reveal_first_dashboard_chapter")
+		var chapter_rows: Dictionary = main.get("_rows")
+		var cargo_card := chapter_rows["cargo"]["card"] as Control
+		if not _check(cargo_card.is_visible_in_tree()
+				and ((main.get("_pages") as Array)[0] as ScrollContainer).visible,
+				"first dashboard chapter does not hand off to the recommended construction"):
+			break
 		await get_tree().process_frame
 		var fleet_page := (main.get("_pages") as Array)[0] as ScrollContainer
 		var fleet_pager := fleet_page.get_meta("page_pager") as Control

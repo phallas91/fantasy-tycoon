@@ -1114,6 +1114,7 @@ func _refresh_progressive_nav() -> void:
 	_refresh_shop_catalog()
 	if stage == _nav_stage:
 		return
+	var previous_stage := _nav_stage
 	_nav_stage = stage
 	var dashboard_ready := stage > 0
 	_bottom_bg.visible = dashboard_ready
@@ -1135,6 +1136,23 @@ func _refresh_progressive_nav() -> void:
 	if not _nav_unlocked(_active_tab):
 		_active_tab = 0
 	_switch_tab(_active_tab)
+	# The fourth courier is the first chapter ending. Without an explicit hand-off,
+	# the focused opening card simply vanished and a full dashboard appeared in its
+	# place. Celebrate the learned loop, name the one newly relevant system and
+	# point at its recommended construction card before anything else asks attention.
+	if previous_stage == 0 and stage == 1:
+		call_deferred("_reveal_first_dashboard_chapter")
+
+func _reveal_first_dashboard_chapter() -> void:
+	if _progression_stage() < 1 or not is_instance_valid(_rows.get("cargo", {}).get("card", null)):
+		return
+	var card := _rows["cargo"]["card"] as Control
+	_toast(tr("Karawane bereit · Stadtaufbau freigeschaltet!"), UITheme.GOLD, "ic_city")
+	_show_control_page(_pages[0] as ScrollContainer, card)
+	Fx.shimmer(card, UITheme.GOLD, true)
+	Fx.ring_pulse(card, card.size * 0.5, UITheme.GOLD, 1.8)
+	Audio.play("milestone")
+	Fx.vibrate(34)
 
 ## Fade-cascade the rows of the newly shown tab.
 func _stagger_in(i: int) -> void:
