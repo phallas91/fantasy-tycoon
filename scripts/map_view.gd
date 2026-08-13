@@ -105,6 +105,7 @@ var _caustics: Array = []             # animated sea shimmer blobs
 var _flash: Dictionary = {}           # city_index -> remaining flash time on delivery
 var _city_growth: Dictionary = {}     # city_index -> remaining build reveal time
 var _route_reveal: Dictionary = {}    # route index -> remaining commissioning time
+var _realm_complete_reveal := 0.0
 var _investment_signature := ""
 var _investment_reveal := 0.0
 var _recommended_investment := ""
@@ -400,6 +401,8 @@ func _process(delta: float) -> void:
 				finished_routes.append(key)
 		for key in finished_routes:
 			_route_reveal.erase(key)
+	if _realm_complete_reveal > 0.0:
+		_realm_complete_reveal = maxf(0.0, _realm_complete_reveal - delta)
 	queue_redraw()
 
 func set_recommended_investment(key: String) -> void:
@@ -426,6 +429,12 @@ func guide_city(index: int) -> void:
 		return
 	_flash[index] = 1.6
 	focus_city(index)
+	queue_redraw()
+
+func reveal_realm_complete() -> void:
+	_realm_complete_reveal = 2.4
+	if not Fx.reduce_motion:
+		_reset_view()
 	queue_redraw()
 
 func _band_ctr() -> Vector2:
@@ -634,10 +643,24 @@ func _draw() -> void:
 	_draw_construction_activity(cap)
 	_draw_recommended_investment(cap)
 	_draw_landmark_reveal(cap)
+	_draw_realm_complete(cap)
 	_draw_clouds(w, h)
 	_draw_stars(w, h)
 	_draw_vignette(w, h)
 	_draw_pops()
+
+func _draw_realm_complete(cap: Vector2) -> void:
+	if _realm_complete_reveal <= 0.0:
+		return
+	var alpha := clampf(_realm_complete_reveal / 2.4, 0.0, 1.0)
+	var expansion := 0.0 if Fx.reduce_motion else (1.0 - alpha) * 54.0
+	draw_arc(cap, 54.0 + expansion, 0.0, TAU, 56,
+		Color(GOLD.r, GOLD.g, GOLD.b, 0.72 * alpha), 4.0)
+	for ray in range(8):
+		var angle := TAU * float(ray) / 8.0
+		var inner := cap + Vector2.from_angle(angle) * (62.0 + expansion * 0.4)
+		var outer := cap + Vector2.from_angle(angle) * (84.0 + expansion)
+		draw_line(inner, outer, Color(GOLD.r, GOLD.g, GOLD.b, 0.48 * alpha), 2.4)
 
 ## The authored panorama depicts the mature fantasy capital. A fresh realm now
 ## begins as a readable illuminated outpost surrounded by violet construction

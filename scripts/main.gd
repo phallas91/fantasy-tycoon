@@ -1420,7 +1420,6 @@ func _sync_city_expansion_visibility(celebrate := false) -> void:
 	_expand_card.set_meta("progression_hidden", not unlocked)
 	_refresh_page_container(_expand_card)
 	if changed and unlocked and celebrate:
-		_toast(tr("%s desbloqueada!") % tr("Expandir país"), UITheme.GOLD, "ic_city")
 		if _active_tab == 1:
 			_show_control_page(_pages[1] as ScrollContainer, _expand_card)
 			Fx.shimmer(_expand_card, UITheme.GOLD)
@@ -2314,6 +2313,15 @@ func _set_fill(p: Panel, pct: float) -> void:
 ## progression beats outrank routine purchases; otherwise the advisor picks an
 ## affordable early-growth action before returning to the next unlock target.
 func _smart_objective() -> Dictionary:
+	# Save migration can legitimately preserve a completed city network with an
+	# older prosperity rank. World state outranks tutorial state: never send such
+	# a player backwards to the opening courier/construction lesson.
+	if GameState.all_cities_unlocked():
+		var completed_realm_cost := GameState.expand_cost()
+		if completed_realm_cost >= 0.0:
+			return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
+				"tab": 1, "focus": _expand_btn, "cost": completed_realm_cost, "progress": 0.0,
+				"accent": UITheme.GOLD, "icon": "ic_range"}
 	# The opening chapter has exactly one job. Persisted contracts, daily state or
 	# veteran-side systems must never compete with the guided courier card before
 	# the player has completed that first meaningful action.
@@ -2360,10 +2368,6 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Próximo: Prestige disponível!"), "tab": 0,
 			"focus": _prestige_btn, "cost": -1.0, "progress": 1.0,
 			"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
-	if GameState.can_expand():
-		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
-			"tab": 1, "focus": _expand_btn, "cost": GameState.expand_cost(), "progress": 1.0,
-			"accent": UITheme.GOLD, "icon": "ic_range"}
 	# Keep the first few minutes simple: establish the courier loop before
 	# suggesting one of four similarly-priced stat upgrades.
 	if GameState.drones < 4:
@@ -2387,11 +2391,6 @@ func _smart_objective() -> Dictionary:
 			return {"text": tr(str(Economy.UPGRADES[key]["name"])), "tab": 0,
 				"focus": upgrade_focus, "cost": upgrade_cost, "progress": 1.0,
 				"accent": UITheme.ACCENT, "icon": str(Economy.UPGRADES[key].get("icon", "ic_value"))}
-	var expand_cost := GameState.expand_cost()
-	if expand_cost >= 0.0:
-		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
-			"tab": 1, "focus": _expand_btn, "cost": expand_cost, "progress": 0.0,
-			"accent": UITheme.GOLD, "icon": "ic_range"}
 	return {"text": tr("Próximo: 5.º país para Prestige"), "tab": 0,
 		"focus": _prestige_btn, "cost": -1.0,
 		"progress": clampf(float(GameState.current_country + 1) / float(Prestige.MIN_COUNTRY + 1), 0.0, 1.0),
@@ -2592,6 +2591,8 @@ func _on_city_unlocked(i: int) -> void:
 	var unlock_text := tr("%s desbloqueada · Renda +%s/s") % [city_name, Fmt.short(GameState.last_city_income_gain)]
 	if GameState.current_country == 0 and i == 2:
 		unlock_text += "  ·  " + tr("Novo: %s") % tr("Missões")
+	if GameState.all_cities_unlocked():
+		unlock_text += "  ·  " + tr("Novo: %s") % tr("Expandir país")
 	_toast(unlock_text, UITheme.CYAN, "ic_city")
 	var c := Vector2(size.x * 0.5, size.y * 0.42)
 	Fx.confetti(self, c, 22)
@@ -2599,6 +2600,8 @@ func _on_city_unlocked(i: int) -> void:
 	Fx.screen_flash(self, UITheme.CYAN, 0.10)
 	_map.focus_city(i)
 	_sync_city_expansion_visibility(true)
+	if GameState.all_cities_unlocked():
+		_map.reveal_realm_complete()
 	_rebuild_city_list()
 	_refresh_smart_objective()
 	# The first settlement teaches missions. Talents wait for the first realm

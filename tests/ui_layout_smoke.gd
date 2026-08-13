@@ -531,6 +531,16 @@ func _run() -> void:
 		if not _check(not bool(expansion_card.get_meta("progression_hidden", true)),
 				"realm expansion is not revealed after the city network completes"):
 			break
+		Contracts.slots[0]["ready"] = true
+		Contracts.slots[0]["claimed"] = false
+		GameState.credits = 0.0
+		var realm_completion_objective: Dictionary = main.call("_smart_objective")
+		map.call("reveal_realm_complete")
+		if not _check(realm_completion_objective.get("focus") == main.get("_expand_btn")
+				and float(realm_completion_objective.get("cost", -1.0)) == GameState.expand_cost()
+				and float(map.get("_realm_complete_reveal")) > 2.0,
+				"completed realm is interrupted by a side reward or lacks a world climax"):
+			break
 		GameState.cities_unlocked = 1
 		main.call("_sync_city_expansion_visibility", false)
 		GameState.drones = 4
