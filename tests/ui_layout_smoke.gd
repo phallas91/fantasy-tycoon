@@ -399,8 +399,9 @@ func _run() -> void:
 			break
 		if not _check(next_city_row != null and not next_city_row.disabled
 				and int(next_city_row.get_meta("city_index", -1)) == 2
+				and float(next_city_row.get_meta("projected_income_gain", 0.0)) > 0.0
 				and not next_city_row.pressed.get_connections().is_empty(),
-				"next settlement row is not a direct unlock entry"):
+				"next settlement row is not a direct cost-and-income decision"):
 			break
 		var expansion_card := main.get("_expand_card") as Control
 		if not _check(bool(expansion_card.get_meta("progression_hidden", false)),

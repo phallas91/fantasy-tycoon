@@ -1379,9 +1379,18 @@ func _rebuild_city_list() -> void:
 			row.add_theme_stylebox_override("hover", UITheme.solid(base.lightened(0.08), 14))
 			row.add_theme_stylebox_override("pressed", UITheme.solid(base.darkened(0.08), 14))
 			h.add_child(_icon("ic_city", 22)); h.add_child(nm)
+			var reward_stack := VBoxContainer.new()
+			reward_stack.alignment = BoxContainer.ALIGNMENT_CENTER
+			reward_stack.add_theme_constant_override("separation", -2)
 			var cost := _lbl(Fmt.short(Economy.city_unlock_cost(ci, GameState.cities_unlocked)), 15, UITheme.GOLD)
-			cost.add_theme_font_override("font", UITheme.font("Bold")); h.add_child(cost)
+			cost.add_theme_font_override("font", UITheme.font("Bold")); reward_stack.add_child(cost)
+			var projected_gain := GameState.projected_city_income_gain()
+			var gain := _lbl("+" + Fmt.short(projected_gain) + "/s", 12, UITheme.GREEN)
+			gain.add_theme_font_override("font", UITheme.font("Bold")); reward_stack.add_child(gain)
+			h.add_child(reward_stack)
 			h.add_child(_lbl("›", 22, UITheme.ACCENT))
+			row.set_meta("projected_income_gain", projected_gain)
+			row.tooltip_text = tr("Renda +%s/s") % Fmt.short(projected_gain)
 			row.pressed.connect(func():
 				if not _can_tap(): return
 				Fx.press(row); _show_city_inspector(city_index)
