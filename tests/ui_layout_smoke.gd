@@ -279,6 +279,8 @@ func _run() -> void:
 			break
 		main.call("_show_city_inspector", 1)
 		await get_tree().process_frame
+		var development_only_ok := main.find_child("CityDevelopmentCard", true, false) != null \
+			and main.find_child("CityNextCard", true, false) == null
 		var inspector_layer: CanvasLayer = null
 		for child in main.get_children():
 			if child is CanvasLayer and (child as CanvasLayer).layer == 150:
@@ -287,8 +289,23 @@ func _run() -> void:
 		var inspector_fits := inspector_scroll != null and not inspector_scroll.get_v_scroll_bar().visible
 		if inspector_layer != null: inspector_layer.queue_free()
 		await get_tree().process_frame
-		if not _check(inspector_fits,
-				"city development inspector requires scrolling at %s" % requested_size):
+		if not _check(inspector_fits and development_only_ok,
+				"city development inspector scrolls or presents competing decisions at %s" % requested_size):
+			break
+		GameState.city_development[1] = GameState.CITY_DEVELOPMENT_MAX
+		main.call("_show_city_inspector", 1)
+		await get_tree().process_frame
+		var completed_city_handoff_ok := main.find_child("CityDevelopmentCard", true, false) == null \
+			and main.find_child("CityNextCard", true, false) != null
+		var completed_layer: CanvasLayer = null
+		for completed_child in main.get_children():
+			if completed_child is CanvasLayer and (completed_child as CanvasLayer).layer == 150:
+				completed_layer = completed_child as CanvasLayer
+		if completed_layer != null: completed_layer.queue_free()
+		await get_tree().process_frame
+		GameState.city_development[1] = 0
+		if not _check(completed_city_handoff_ok,
+				"fully developed city does not hand off to the next network decision"):
 			break
 		# The inspector must keep pace with idle earnings instead of freezing its
 		# progress and forcing the player to close/reopen it when the city becomes

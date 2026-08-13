@@ -3215,6 +3215,8 @@ func _show_city_inspector(index: int) -> void:
 	var next_detail_label: Label = null
 	var development_cost_label: Label = null
 	var development_detail_label: Label = null
+	var can_develop := is_active and not is_capital \
+		and int(model["development_level"]) < GameState.CITY_DEVELOPMENT_MAX
 	if is_active:
 		var realm_income: float = model["realm_income"]
 		var city_income: float = model["city_income"]
@@ -3242,8 +3244,9 @@ func _show_city_inspector(index: int) -> void:
 		progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; iv.add_child(progress_label)
 	box.add_child(info)
 
-	if is_active and not is_capital and int(model["development_level"]) < GameState.CITY_DEVELOPMENT_MAX:
+	if can_develop:
 		var development_card := _card(UITheme.CYAN)
+		development_card.name = "CityDevelopmentCard"
 		var dv := VBoxContainer.new(); dv.add_theme_constant_override("separation", 6); development_card.add_child(dv)
 		var development_head := HBoxContainer.new(); development_head.add_theme_constant_override("separation", 8); dv.add_child(development_head)
 		development_head.add_child(_icon("ic_range", 22))
@@ -3259,11 +3262,12 @@ func _show_city_inspector(index: int) -> void:
 		dv.add_child(development_detail_label)
 		box.add_child(development_card)
 
-	# An active settlement is not a dead-end statistics card. It also previews the
-	# next network beat, including its actual income gain, so every map tap leaves
-	# the player with one understandable growth decision.
-	if is_active and bool(model["has_next"]):
+	# One popup, one decision. A city with local development remaining focuses on
+	# that investment alone; only a fully developed city may hand off to the next
+	# network site. The frontier itself remains directly tappable on the map.
+	if is_active and bool(model["has_next"]) and not can_develop:
 		var next_card := _card(UITheme.ACCENT)
+		next_card.name = "CityNextCard"
 		var nv := VBoxContainer.new(); nv.add_theme_constant_override("separation", 6); next_card.add_child(nv)
 		var next_head := HBoxContainer.new(); next_head.add_theme_constant_override("separation", 8); nv.add_child(next_head)
 		next_head.add_child(_icon("ic_city", 22))
@@ -3280,8 +3284,6 @@ func _show_city_inspector(index: int) -> void:
 	var action := _buy_btn(accent)
 	action.name = "CityAction"
 	action.custom_minimum_size = Vector2(0, 72)
-	var can_develop := is_active and not is_capital \
-		and int(model["development_level"]) < GameState.CITY_DEVELOPMENT_MAX
 	if can_develop:
 		var development_cost: float = model["development_cost"]
 		action.text = tr("Desenvolver cidade") + "  ·  " + Fmt.short(development_cost)
