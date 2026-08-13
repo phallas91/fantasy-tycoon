@@ -2000,6 +2000,12 @@ func _toast(text: String, accent: Color, icon_name := "") -> void:
 		h.add_child(_icon(icon_name, 22))
 	var l := Label.new(); l.text = text; l.add_theme_font_size_override("font_size", 20)
 	l.add_theme_color_override("font_color", Color.WHITE)
+	# Milestones can name several newly earned systems. Keep every localized toast
+	# inside the authored 580px lane instead of letting one long translation widen
+	# the container beyond a small landscape phone.
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.max_lines_visible = 2
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; h.add_child(l)
 	_toasts.add_child(pc)
 	pc.modulate = Color(1, 1, 1, 0); pc.position.y -= 8
@@ -2496,9 +2502,6 @@ func _reveal_prosperity_unlocks(rank: int) -> void:
 	_sync_upgrade_unlocks()
 	var unlocked := GameState.upgrade_keys_unlocked_at(rank)
 	if unlocked.is_empty(): return
-	for key: String in unlocked:
-		_toast(tr("%s desbloqueada!") % tr(str(Economy.UPGRADES[key]["name"])),
-			UITheme.GOLD, str(Economy.UPGRADES[key].get("icon", "ic_city")))
 	if _active_tab == 0:
 		var reveal_card := _rows[unlocked[0]]["card"] as Control
 		_show_control_page(_pages[0] as ScrollContainer, reveal_card)
@@ -2613,17 +2616,27 @@ func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> 
 	var reward_text := "+" + Fmt.short(cash_reward)
 	if gem_reward > 0:
 		reward_text += "  ·  +%d " % gem_reward + tr("Gemas")
-	_toast(tr("Nível da cidade %d alcançado!") % rank + "  " + reward_text, UITheme.GOLD, "ic_city")
+	var unlock_text := _prosperity_unlock_summary(rank)
+	var milestone_text := tr("Nível da cidade %d alcançado!") % rank + "  " + reward_text
+	if not unlock_text.is_empty():
+		milestone_text += "  ·  " + tr("Novo: %s") % unlock_text
+	_toast(milestone_text, UITheme.GOLD, "ic_city")
 	var centre := Vector2(size.x * 0.62, size.y * 0.45)
 	Fx.confetti(self, centre, 20 + rank * 5, [UITheme.GOLD, UITheme.CYAN, UITheme.GREEN])
 	Fx.ring_pulse(self, centre, UITheme.GOLD, 1.8 + float(rank) * 0.2)
 	Fx.screen_flash(self, UITheme.GOLD, 0.08 + float(rank) * 0.02)
-	if rank == 2:
-		_toast(tr("%s desbloqueada!") % tr("Gestor de Frota Automático"), UITheme.VIOLET, "ic_blessing")
 	call_deferred("_reveal_prosperity_unlocks", rank)
 	Audio.play("milestone")
 	Fx.vibrate(28 + rank * 8)
 	_map.focus_city(0)
+
+func _prosperity_unlock_summary(rank: int) -> String:
+	var names: Array[String] = []
+	for key: String in GameState.upgrade_keys_unlocked_at(rank):
+		names.append(tr(str(Economy.UPGRADES[key]["name"])))
+	if rank == 2:
+		names.append(tr("Gestor de Frota Automático"))
+	return " + ".join(names)
 
 func _on_country_changed(i: int) -> void:
 	_refresh_progressive_nav()

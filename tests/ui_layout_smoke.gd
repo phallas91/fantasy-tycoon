@@ -207,6 +207,21 @@ func _run() -> void:
 				and tr("Gestor de Frota Automático") in route_preview,
 				"opening chapter does not preview routes and automation"):
 			break
+		var rank_one_summary := str(main.call("_prosperity_unlock_summary", 1))
+		var rank_two_summary := str(main.call("_prosperity_unlock_summary", 2))
+		if not _check(tr("Reisetempo") in rank_one_summary
+				and tr("Handelswert") in rank_one_summary
+				and tr("Handelsrouten") in rank_two_summary
+				and tr("Gestor de Frota Automático") in rank_two_summary,
+				"city milestone does not consolidate its unlocks into one summary"):
+			break
+		main.call("_toast", tr("Nível da cidade %d alcançado!") % 2 + "  ·  "
+			+ tr("Novo: %s") % rank_two_summary, UITheme.GOLD, "ic_city")
+		await get_tree().process_frame
+		var toast_lane := main.get("_toasts") as VBoxContainer
+		if not _check(toast_lane.size.x <= 582.0,
+				"localized milestone toast escapes its compact landscape lane"):
+			break
 		GameState.prosperity_rank = 2
 		var ready_states: Array[bool] = []
 		for contract: Dictionary in Contracts.slots:
