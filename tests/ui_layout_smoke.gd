@@ -402,6 +402,17 @@ func _run() -> void:
 				and not next_city_row.pressed.get_connections().is_empty(),
 				"next settlement row is not a direct unlock entry"):
 			break
+		var expansion_card := main.get("_expand_card") as Control
+		if not _check(bool(expansion_card.get_meta("progression_hidden", false)),
+				"realm expansion is shown before the local city network is complete"):
+			break
+		GameState.cities_unlocked = GameState.max_cities()
+		main.call("_sync_city_expansion_visibility", false)
+		if not _check(not bool(expansion_card.get_meta("progression_hidden", true)),
+				"realm expansion is not revealed after the city network completes"):
+			break
+		GameState.cities_unlocked = 1
+		main.call("_sync_city_expansion_visibility", false)
 		GameState.drones = 4
 		main.set("_nav_stage", -1)
 		main.call("_refresh_progressive_nav")

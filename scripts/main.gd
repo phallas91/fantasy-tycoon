@@ -95,6 +95,8 @@ var _city_btn: Button
 var _city_detail: Label
 var _expand_btn: Button
 var _expand_detail: Label
+var _expand_card: Control
+var _expand_panel_unlocked := false
 var _streak_lbl: Label
 var _streak_chip: PanelContainer
 var _daily_hud_sig := ""
@@ -1298,6 +1300,7 @@ func _build_cities_tab() -> ScrollContainer:
 	cr["right"].add_child(_city_btn); v.add_child(cr["card"])
 
 	var er := _row(UITheme.GOLD, "ic_city")
+	_expand_card = er["card"]
 	er["title"].text = "Expandir país"
 	er["detail"].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_expand_detail = er["detail"]
@@ -1307,7 +1310,8 @@ func _build_cities_tab() -> ScrollContainer:
 		if GameState.can_expand(): Fx.press(_expand_btn); _show_expansion_confirm()
 		else: Fx.error_shake(_expand_btn)
 	)
-	er["right"].add_child(_expand_btn); v.add_child(er["card"])
+	er["right"].add_child(_expand_btn); v.add_child(_expand_card)
+	_expand_card.set_meta("progression_hidden", not GameState.all_cities_unlocked())
 
 	v.add_child(_section("Rede de cidades", UITheme.CYAN, "ic_city"))
 	_city_list_box = VBoxContainer.new()
@@ -1393,6 +1397,22 @@ func _rebuild_city_list() -> void:
 		_city_list_box.add_child(row)
 	call_deferred("_refresh_page_container", _city_list_box)
 	_refresh_city_income_labels(GameState.income_per_sec())
+	_sync_city_expansion_visibility(false)
+
+func _sync_city_expansion_visibility(celebrate := false) -> void:
+	if not is_instance_valid(_expand_card):
+		return
+	var unlocked := GameState.all_cities_unlocked()
+	var changed := unlocked != _expand_panel_unlocked
+	_expand_panel_unlocked = unlocked
+	_expand_card.set_meta("progression_hidden", not unlocked)
+	_refresh_page_container(_expand_card)
+	if changed and unlocked and celebrate:
+		_toast(tr("%s desbloqueada!") % tr("Expandir país"), UITheme.GOLD, "ic_city")
+		if _active_tab == 1:
+			_show_control_page(_pages[1] as ScrollContainer, _expand_card)
+			Fx.shimmer(_expand_card, UITheme.GOLD)
+			Fx.ring_pulse(_expand_card, _expand_card.size * 0.5, UITheme.GOLD, 1.7)
 
 func _frontier_city_row() -> Control:
 	if _city_rows.is_empty():
@@ -2565,6 +2585,7 @@ func _on_city_unlocked(i: int) -> void:
 	Fx.ring_pulse(self, c, UITheme.CYAN, 2.2)
 	Fx.screen_flash(self, UITheme.CYAN, 0.10)
 	_map.focus_city(i)
+	_sync_city_expansion_visibility(true)
 	_rebuild_city_list()
 	# The first settlement teaches missions. Talents wait for the first realm
 	# completion, when influence is actually awarded and the page has a real
