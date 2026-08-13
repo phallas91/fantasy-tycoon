@@ -2657,6 +2657,7 @@ func _prosperity_unlock_summary(rank: int) -> String:
 func _on_country_changed(i: int) -> void:
 	_refresh_progressive_nav()
 	_rebuild_city_list()
+	_refresh_smart_objective()
 	var c := Vector2(size.x * 0.5, size.y * 0.40)
 	if i >= Economy.num_countries() - 1:
 		_toast(tr("🏆 MISSÃO COMPLETA! Conquistaste o mundo!"), UITheme.GOLD, "ic_city")
@@ -2670,7 +2671,12 @@ func _on_country_changed(i: int) -> void:
 		Audio.play("prestige")
 		Fx.vibrate(120)   # biggest milestone in the game — longest buzz
 	else:
-		_toast(tr("Bem-vindo a %s!") % Economy.country_name(i), UITheme.GOLD, "ic_city")
+		# Expansion is progress, not a loss screen: name the permanent reward and
+		# its resulting realm-power multiplier alongside the fresh local chapter.
+		var influence_gain := 4 + int(i / 3)
+		_toast(tr("%s · +%d Influência · Reputação ×%.2f · Próximo: primeira rota") % [
+			Economy.country_name(i), influence_gain, GameState.influence_reputation_mult()],
+			UITheme.GOLD, "ic_city")
 		Fx.confetti(self, c, 48, [UITheme.GOLD, UITheme.CYAN, UITheme.GREEN, UITheme.PINK])
 		Fx.screen_flash(self, UITheme.GOLD, 0.18)
 		Fx.screen_shake(_map, 9.0)
@@ -3004,9 +3010,7 @@ func _show_expansion_confirm() -> void:
 	confirm.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	confirm.pressed.connect(func():
 		layer.queue_free()
-		if GameState.expand_country():
-			Audio.play("milestone")
-			Fx.vibrate(52)
+		GameState.expand_country()
 	)
 	box.add_child(confirm)
 	var cancel := Button.new(); cancel.text = tr("Cancelar"); cancel.add_theme_font_size_override("font_size", 22)

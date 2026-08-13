@@ -297,6 +297,7 @@ func _run() -> void:
 		var contract_was_claimed := bool(Contracts.slots[0].get("claimed", false))
 		Contracts.slots[0]["ready"] = true
 		Contracts.slots[0]["claimed"] = false
+		var prior_influence_total := GameState.influence_total
 		GameState.current_country = 1
 		GameState.cities_unlocked = 1
 		GameState.prosperity_rank = 0
@@ -541,6 +542,17 @@ func _run() -> void:
 				and float(map.get("_realm_complete_reveal")) > 2.0,
 				"completed realm is interrupted by a side reward or lacks a world climax"):
 			break
+		GameState.current_country = 1
+		GameState.cities_unlocked = 1
+		GameState.prosperity_rank = 0
+		GameState.influence_total = 4
+		main.call("_on_country_changed", 1)
+		if not _check((main.get("_objective_cache") as Dictionary).get("focus") == main.get("_drone_btn")
+				and GameState.influence_reputation_mult() > 1.0,
+				"new realm transition does not expose permanent progress and its first route goal"):
+			break
+		GameState.current_country = 0
+		GameState.influence_total = prior_influence_total
 		GameState.cities_unlocked = 1
 		main.call("_sync_city_expansion_visibility", false)
 		GameState.drones = 4
@@ -549,7 +561,9 @@ func _run() -> void:
 		main.call("_switch_tab", 1)
 		await get_tree().process_frame
 		var city_page := main.get("_pages")[1] as ScrollContainer
-		if not _check(next_city_row.visible
+		var rebuilt_city_rows: Dictionary = main.get("_city_rows")
+		var rebuilt_next_city_row := rebuilt_city_rows[2] as Button
+		if not _check(rebuilt_next_city_row.visible
 				and city_page.visible
 				and int(main.get("_page_indices").get(city_page, 0)) >= 1,
 				"city navigation does not open directly on the frontier settlement"):
