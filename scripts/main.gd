@@ -2330,6 +2330,15 @@ func _smart_objective() -> Dictionary:
 		if GameState.drones < 4:
 			return _courier_objective()
 		return _prosperity_objective()
+	# The first local improvement completes the capital-to-network hand-off. It is
+	# part of the core loop, so a stored side reward must not steal focus during
+	# this one teaching beat. Later city levels remain optional.
+	var frontier_city := GameState.cities_unlocked
+	if frontier_city > 0 and GameState.city_development_level(frontier_city) == 0:
+		var frontier_cities := Economy.country_cities(GameState.current_country)
+		return {"text": tr("Próximo: desenvolver %s") % frontier_cities[frontier_city]["name"],
+			"city_index": frontier_city, "cost": GameState.city_development_cost(frontier_city),
+			"progress": 0.0, "accent": UITheme.CYAN, "icon": "ic_range"}
 	for i in range(Contracts.slots.size()):
 		var contract: Dictionary = Contracts.slots[i]
 		if contract.get("ready", false) and not contract.get("claimed", false):
@@ -2341,15 +2350,6 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Próximo: Prestige disponível!"), "tab": 0,
 			"focus": _prestige_btn, "cost": -1.0, "progress": 1.0,
 			"accent": UITheme.PRESTIGE, "icon": "ic_prestige"}
-	# Teach one local improvement on the newest route before pointing at another
-	# city unlock. Further levels remain an optional map decision, so this adds a
-	# meaningful city beat without turning the advisor into repetitive chores.
-	var frontier_city := GameState.cities_unlocked
-	if frontier_city > 0 and GameState.city_development_level(frontier_city) == 0:
-		var frontier_cities := Economy.country_cities(GameState.current_country)
-		return {"text": tr("Próximo: desenvolver %s") % frontier_cities[frontier_city]["name"],
-			"city_index": frontier_city, "cost": GameState.city_development_cost(frontier_city),
-			"progress": 0.0, "accent": UITheme.CYAN, "icon": "ic_range"}
 	if GameState.can_unlock_city():
 		var ready_cities := Economy.country_cities(GameState.current_country)
 		var ready_city_idx := clampi(GameState.cities_unlocked + 1, 1, ready_cities.size() - 1)
@@ -2502,6 +2502,15 @@ func _reveal_prosperity_unlocks(rank: int) -> void:
 	_sync_upgrade_unlocks()
 	var unlocked := GameState.upgrade_keys_unlocked_at(rank)
 	if unlocked.is_empty(): return
+	# Rank 2 ends the capital tutorial. The advisor's next action now belongs to
+	# the first satellite settlement, so highlighting the newly unlocked route card
+	# sent camera, map and objective in three different directions. Hand the player
+	# back to the world instead; routes and automation remain earned in management.
+	if rank == 2 and GameState.cities_unlocked > 0:
+		_refresh_smart_objective()
+		_switch_tab(0)
+		_map.guide_city(GameState.cities_unlocked)
+		return
 	if _active_tab == 0:
 		var reveal_card := _rows[unlocked[0]]["card"] as Control
 		_show_control_page(_pages[0] as ScrollContainer, reveal_card)
@@ -2628,7 +2637,8 @@ func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> 
 	call_deferred("_reveal_prosperity_unlocks", rank)
 	Audio.play("milestone")
 	Fx.vibrate(28 + rank * 8)
-	_map.focus_city(0)
+	if rank != 2:
+		_map.focus_city(0)
 
 func _prosperity_unlock_summary(rank: int) -> String:
 	var names: Array[String] = []

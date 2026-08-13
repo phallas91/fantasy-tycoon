@@ -406,6 +406,17 @@ func reveal_landmark(key: String, landmark_name: String) -> void:
 	_investment_reveal = 0.9
 	queue_redraw()
 
+## Non-modal chapter hand-off: move the world camera to the settlement that now
+## owns the next decision and keep its marker luminous long enough to be found.
+## The player still chooses whether to tap it; focus_city() respects the global
+## reduced-motion preference while the static highlight remains visible.
+func guide_city(index: int) -> void:
+	if index < 0 or index > GameState.cities_unlocked:
+		return
+	_flash[index] = 1.6
+	focus_city(index)
+	queue_redraw()
+
 func _band_ctr() -> Vector2:
 	return Vector2(size.x * 0.5, band_top + (band_bottom - band_top) * 0.5)
 

@@ -236,6 +236,12 @@ func _run() -> void:
 				and float(realm_objective.get("cost", -1.0)) > 0.0,
 				"opening construction chapter does not hand off to realm growth"):
 			break
+		main.call("_reveal_prosperity_unlocks", 2)
+		if not _check(int(main.get("_active_tab")) == 0
+				and int((main.get("_objective_cache") as Dictionary).get("city_index", -1)) == 1
+				and (map.get("_flash") as Dictionary).has(1),
+				"capital chapter hand-off does not guide the player to the first settlement"):
+			break
 		# A fresh later realm must not point at a stored meta reward while its city
 		# is still an empty capital. The reward remains claimable after rank 2.
 		var contract_was_ready := bool(Contracts.slots[0].get("ready", false))
