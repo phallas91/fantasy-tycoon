@@ -465,9 +465,9 @@ func _tap_ripple(pos: Vector2) -> void:
 		Fx.ring_pulse(self, pos, Color(SKY.r, SKY.g, SKY.b, 0.9), 1.5)
 
 ## Resolve a world tap to one intentional action. The active construction site
-## wins inside its tight ring; otherwise only built settlements are selectable.
-## Locked scenery never opens an inspector and purchasing still requires the
-## explicit dashboard button, preventing accidental spending while panning.
+## wins inside its tight ring; otherwise built settlements and exactly the next
+## frontier site are selectable. Far-locked scenery stays inert, while opening
+## the frontier inspector remains safe because spending still needs confirmation.
 func _world_tap_target(pos: Vector2) -> Dictionary:
 	if pos.y < band_top or pos.y > band_bottom:
 		return {}
@@ -480,11 +480,12 @@ func _world_tap_target(pos: Vector2) -> Dictionary:
 		if pos.distance_to(build_target) <= 30.0:
 			return {"kind": "investment", "key": _recommended_investment}
 	var nearest_index := -1
-	var nearest_distance := 48.0
-	for i in range(mini(cities.size(), GameState.cities_unlocked + 1)):
+	var nearest_distance := INF
+	for i in range(mini(cities.size(), GameState.cities_unlocked + 2)):
 		var city_pos := _proj(Vector2(cities[i]["x"], cities[i]["y"]))
 		var distance := pos.distance_to(city_pos)
-		if distance < nearest_distance:
+		var hit_radius := 54.0 if i == GameState.cities_unlocked + 1 else 48.0
+		if distance <= hit_radius and distance < nearest_distance:
 			nearest_distance = distance
 			nearest_index = i
 	if nearest_index >= 0:

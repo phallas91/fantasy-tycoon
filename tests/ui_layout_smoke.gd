@@ -52,8 +52,8 @@ func _run() -> void:
 		GameState.cities_unlocked = 1
 		GameState.prosperity_rank = 0
 		# World taps must lead to a real tycoon decision. The highlighted building
-		# opens its construction card, built cities open inspection, and locked map
-		# scenery remains inert. No map tap spends currency by itself.
+		# opens its construction card, built cities and the immediate frontier open
+		# inspection, while no map tap spends currency by itself.
 		map.call("set_recommended_investment", "cargo")
 		var tap_cities: Array = Economy.country_cities(GameState.current_country)
 		var capital_tap := map.call("_proj", Vector2(tap_cities[0]["x"], tap_cities[0]["y"])) as Vector2
@@ -65,7 +65,8 @@ func _run() -> void:
 		var credits_before_tap := GameState.credits
 		if not _check(build_target.get("kind") == "investment" and build_target.get("key") == "cargo"
 				and city_target.get("kind") == "city" and int(city_target.get("index", -1)) == 0
-				and locked_target.is_empty() and GameState.credits == credits_before_tap,
+				and locked_target.get("kind") == "city" and int(locked_target.get("index", -1)) == 2
+				and GameState.credits == credits_before_tap,
 				"fantasy map taps do not resolve safely to construction and built cities"):
 			break
 		var fresh_realm_fog := float(map.call("_growth_fog_strength"))
@@ -244,6 +245,18 @@ func _run() -> void:
 		var map_city_ready := bool(map.call("_next_city_affordable"))
 		if not _check(map_city_cost > 0.0 and map_city_waiting and map_city_ready,
 				"world map does not track the frontier city's live affordability"):
+			break
+		var map_cities := Economy.country_cities(GameState.current_country)
+		var capital_pos := map.call("_proj", Vector2(map_cities[0]["x"], map_cities[0]["y"])) as Vector2
+		var next_city_pos := map.call("_proj", Vector2(map_cities[3]["x"], map_cities[3]["y"])) as Vector2
+		var outward := (next_city_pos - capital_pos).normalized()
+		var next_city_target: Dictionary = map.call("_world_tap_target", next_city_pos + outward * 50.0)
+		var far_city_pos := map.call("_proj", Vector2(map_cities[4]["x"], map_cities[4]["y"])) as Vector2
+		var far_city_target: Dictionary = map.call("_world_tap_target", far_city_pos)
+		if not _check(next_city_target.get("kind") == "city"
+				and int(next_city_target.get("index", -1)) == 3
+				and int(far_city_target.get("index", -1)) != 4,
+				"frontier city is not a touch-safe map target or far locks are interactive"):
 			break
 		var city_model: Dictionary = main.call("_city_inspector_model", 1)
 		var frontier_model: Dictionary = main.call("_city_inspector_model", 3)
