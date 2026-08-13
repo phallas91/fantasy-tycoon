@@ -34,6 +34,7 @@ var _focus_card: PanelContainer
 var _focus_title: Label
 var _focus_detail: Label
 var _focus_btn: Button
+var _focus_prog_fill: Panel
 var _active_tab := 0
 var _nav_stage := -1
 var _toasts: VBoxContainer
@@ -666,11 +667,13 @@ func _build_guided_action() -> void:
 	_focus_card.anchor_left = 0.5; _focus_card.anchor_right = 0.5
 	_focus_card.anchor_top = 1.0; _focus_card.anchor_bottom = 1.0
 	_focus_card.offset_left = -300.0; _focus_card.offset_right = 300.0
-	_focus_card.offset_top = -196.0; _focus_card.offset_bottom = -86.0
+	_focus_card.offset_top = -212.0; _focus_card.offset_bottom = -86.0
 	_focus_card.add_theme_stylebox_override("panel", UITheme.glass())
 	add_child(_focus_card)
+	var stack := VBoxContainer.new(); stack.add_theme_constant_override("separation", 8)
+	_focus_card.add_child(stack)
 	var row := HBoxContainer.new(); row.add_theme_constant_override("separation", 16)
-	_focus_card.add_child(row)
+	stack.add_child(row)
 	row.add_child(_icon_badge("ic_drone", UITheme.GOLD, 66, 38))
 	var copy := VBoxContainer.new(); copy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	copy.size_flags_vertical = Control.SIZE_SHRINK_CENTER; copy.add_theme_constant_override("separation", 2)
@@ -693,6 +696,13 @@ func _build_guided_action() -> void:
 			Fx.error_shake(_focus_btn)
 	)
 	row.add_child(_focus_btn)
+	var progress_bg := Panel.new(); progress_bg.custom_minimum_size = Vector2(0, 6)
+	progress_bg.add_theme_stylebox_override("panel", UITheme.prog_bg())
+	stack.add_child(progress_bg)
+	_focus_prog_fill = Panel.new()
+	_focus_prog_fill.anchor_top = 0; _focus_prog_fill.anchor_bottom = 1
+	_focus_prog_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.GREEN))
+	progress_bg.add_child(_focus_prog_fill)
 
 # ── Pages ──────────────────────────────────────────────────────────────────────
 
@@ -1070,12 +1080,19 @@ func _progression_stage() -> int:
 func _refresh_focus_action() -> void:
 	if not is_instance_valid(_focus_card) or not _focus_card.visible:
 		return
+	var first_cost := GameState.drone_cost_multi(1)
+	var income := GameState.income_per_sec()
+	var waiting := GameState.credits < first_cost
 	if GameState.drones <= 1:
 		_focus_title.text = tr("Começa a tua primeira rota comercial")
-		_focus_detail.text = tr("Contrata um correio grifo e vê a cidade ganhar vida.")
+		_focus_detail.text = tr("Contrata um correio grifo e vê a cidade ganhar vida.") \
+			+ (_eta_suffix(first_cost, income) if waiting else "")
 	else:
 		_focus_title.text = tr("Comprar Drones") + "  ·  %d/4" % GameState.drones
-		_focus_detail.text = tr("Tens %d drones") % GameState.drones
+		_focus_detail.text = tr("Tens %d drones") % GameState.drones \
+			+ (_eta_suffix(first_cost, income) if waiting else "")
+	if is_instance_valid(_focus_prog_fill):
+		_set_fill(_focus_prog_fill, clampf(GameState.credits / first_cost, 0.0, 1.0))
 
 func _nav_unlocked(tab_index: int) -> bool:
 	var stage := _progression_stage()

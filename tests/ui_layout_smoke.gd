@@ -139,6 +139,15 @@ func _run() -> void:
 				and not (main.get("_next_obj_lbl") as Control).visible,
 				"opening action is duplicated in the global objective ribbon"):
 			break
+		var opening_cost := GameState.drone_cost_multi(1)
+		GameState.credits = opening_cost * 0.5
+		main.call("_refresh_focus_action")
+		var opening_eta := tr("pronto em %s") % Fmt.duration(
+			(opening_cost - GameState.credits) / GameState.income_per_sec())
+		if not _check(opening_eta in str((main.get("_focus_detail") as Label).text)
+				and is_equal_approx((main.get("_focus_prog_fill") as Panel).anchor_right, 0.5),
+				"first purchase does not explain its wait with a live ETA and progress"):
+			break
 		GameState.drones = 2
 		GameState.prosperity_rank = 0
 		main.set("_nav_stage", -1)
