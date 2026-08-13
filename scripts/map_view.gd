@@ -411,7 +411,7 @@ func reveal_landmark(key: String, landmark_name: String) -> void:
 ## The player still chooses whether to tap it; focus_city() respects the global
 ## reduced-motion preference while the static highlight remains visible.
 func guide_city(index: int) -> void:
-	if index < 0 or index > GameState.cities_unlocked:
+	if index < 0 or index > GameState.cities_unlocked + 1:
 		return
 	_flash[index] = 1.6
 	focus_city(index)
@@ -1214,7 +1214,7 @@ func _draw_cities(cap: Vector2, cities: Array, _ci: int) -> void:
 		else:
 			var is_next := (i == GameState.cities_unlocked + 1)
 			var next_affordable := is_next and _next_city_affordable()
-			_locked_marker(cp, is_next, next_affordable)
+			_locked_marker(cp, is_next, next_affordable, i)
 			if is_next:
 				_cost_chip(cp, _next_cost_str, next_affordable)
 
@@ -1484,7 +1484,7 @@ func _city_development_ring(p: Vector2, city_index: int, radius: float) -> void:
 		var width := 2.8 if stage < level else 1.5
 		draw_arc(p, radius, from, from + 0.34, 7, col, width, true)
 
-func _locked_marker(p: Vector2, is_next: bool, affordable := false) -> void:
+func _locked_marker(p: Vector2, is_next: bool, affordable := false, city_index := -1) -> void:
 	if is_next:
 		# The next expansion is a real construction site, not another abstract
 		# crest. Its warm pulse makes the progression target obvious at a glance.
@@ -1502,6 +1502,11 @@ func _locked_marker(p: Vector2, is_next: bool, affordable := false) -> void:
 			draw_circle(p, 7.0, Color(MUTED.r, MUTED.g, MUTED.b, 0.9))
 		var ring_col := MINT if affordable else GOLD
 		draw_arc(p, 12.0, 0, TAU, 24, Color(ring_col.r, ring_col.g, ring_col.b, 0.35 + 0.3 * pulse), 1.6)
+		var guide_flash := float(_flash.get(city_index, 0.0))
+		if guide_flash > 0.0:
+			var guide_alpha := clampf(guide_flash / 1.6, 0.0, 1.0)
+			draw_arc(p, 25.0 + (1.0 - guide_alpha) * 9.0, 0.0, TAU, 32,
+				Color(GOLD.r, GOLD.g, GOLD.b, 0.82 * guide_alpha), 3.0)
 	else:
 		# far-locked: dim
 		draw_circle(p, 6.0, Color(MUTED.r, MUTED.g, MUTED.b, 0.35))

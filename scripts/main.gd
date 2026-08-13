@@ -2339,6 +2339,15 @@ func _smart_objective() -> Dictionary:
 		return {"text": tr("Próximo: desenvolver %s") % frontier_cities[frontier_city]["name"],
 			"city_index": frontier_city, "cost": GameState.city_development_cost(frontier_city),
 			"progress": 0.0, "accent": UITheme.CYAN, "icon": "ic_range"}
+	# Complete the first network lesson before side rewards resume: once Runenhafen
+	# has been improved, its visible route leads directly to the next construction
+	# site. The cost-driven objective remains useful throughout the saving period.
+	if GameState.cities_unlocked == 1 and not GameState.all_cities_unlocked():
+		var first_network_cities := Economy.country_cities(GameState.current_country)
+		var first_frontier_idx := 2
+		return {"text": tr("Próximo: abrir %s") % first_network_cities[first_frontier_idx]["name"],
+			"city_index": first_frontier_idx, "cost": GameState.next_city_cost(), "progress": 0.0,
+			"accent": UITheme.CYAN, "icon": "ic_city"}
 	for i in range(Contracts.slots.size()):
 		var contract: Dictionary = Contracts.slots[i]
 		if contract.get("ready", false) and not contract.get("claimed", false):
@@ -2618,7 +2627,11 @@ func _on_city_developed(index: int, level: int, income_gain: float) -> void:
 	Fx.ring_pulse(self, centre, UITheme.CYAN, 1.8 + float(level) * 0.15)
 	Fx.screen_flash(self, UITheme.CYAN, 0.06)
 	Fx.vibrate(22 + level * 6)
-	_map.focus_city(index)
+	if GameState.cities_unlocked == 1 and index == 1 and level == 1 and not GameState.all_cities_unlocked():
+		_refresh_smart_objective()
+		_map.guide_city(2)
+	else:
+		_map.focus_city(index)
 	_rebuild_city_list()
 
 func _on_prosperity_advanced(rank: int, cash_reward: float, gem_reward: int) -> void:

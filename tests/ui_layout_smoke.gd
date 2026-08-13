@@ -242,6 +242,23 @@ func _run() -> void:
 				and (map.get("_flash") as Dictionary).has(1),
 				"capital chapter hand-off does not guide the player to the first settlement"):
 			break
+		GameState.city_development[1] = 1
+		GameState.credits = 0.0
+		var network_contract_ready := bool(Contracts.slots[0].get("ready", false))
+		var network_contract_claimed := bool(Contracts.slots[0].get("claimed", false))
+		Contracts.slots[0]["ready"] = true
+		Contracts.slots[0]["claimed"] = false
+		var first_network_objective: Dictionary = main.call("_smart_objective")
+		main.call("_on_city_developed", 1, 1, 1.0)
+		if not _check(int(first_network_objective.get("city_index", -1)) == 2
+				and float(first_network_objective.get("cost", -1.0)) == GameState.next_city_cost()
+				and (map.get("_flash") as Dictionary).has(2),
+				"first city improvement does not preserve the saving loop to the next settlement"):
+			break
+		GameState.city_development[1] = 0
+		Contracts.slots[0]["ready"] = network_contract_ready
+		Contracts.slots[0]["claimed"] = network_contract_claimed
+		main.call("_rebuild_city_list")
 		# A fresh later realm must not point at a stored meta reward while its city
 		# is still an empty capital. The reward remains claimable after rank 2.
 		var contract_was_ready := bool(Contracts.slots[0].get("ready", false))
