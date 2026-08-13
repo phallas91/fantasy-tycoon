@@ -91,8 +91,6 @@ var _section_lbls: Array = []   # section header labels, re-translated on locale
 var _mode_btns := {}
 var _drone_btn: Button
 var _drone_detail: Label
-var _city_btn: Button
-var _city_detail: Label
 var _expand_btn: Button
 var _expand_detail: Label
 var _expand_card: Control
@@ -1286,19 +1284,6 @@ func _build_cities_tab() -> ScrollContainer:
 	_city_prog_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.CYAN))
 	cpb.add_child(_city_prog_fill)
 
-	var cr := _row(UITheme.CYAN, "ic_range")
-	cr["title"].text = "Abrir Cidade"
-	cr["detail"].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_city_detail = cr["detail"]
-	_city_btn = _cbuy(UITheme.CYAN.darkened(0.10), 150.0)
-	_city_btn.pressed.connect(func():
-		if not _can_tap(): return
-		if GameState.unlock_city():
-			Fx.press(_city_btn); Audio.play("buy")
-		else: Fx.error_shake(_city_btn)
-	)
-	cr["right"].add_child(_city_btn); v.add_child(cr["card"])
-
 	var er := _row(UITheme.GOLD, "ic_city")
 	_expand_card = er["card"]
 	er["title"].text = "Expandir país"
@@ -2227,17 +2212,6 @@ func _process(delta: float) -> void:
 			_afford(sbtn, not sbtn.disabled)
 
 	_progress_lbl.text = tr("%s — %d/%d cidades abertas.") % [country_nm, GameState.cities_unlocked, GameState.max_cities()]
-	if next_city_cost < 0.0:
-		_city_btn.disabled = true; _city_btn.text = tr("TODAS")
-		_city_detail.text = tr("Todas as cidades estão abertas.")
-	else:
-		_city_btn.text = Fmt.short(next_city_cost); _city_btn.disabled = GameState.credits < next_city_cost
-		var ci := GameState.current_country; var cities := Economy.country_cities(ci)
-		var nx: int = clampi(GameState.cities_unlocked + 1, 1, cities.size() - 1)
-		_city_detail.text = (tr("Próxima: %s") % cities[nx]["name"]) + "  ·  " \
-			+ (tr("Renda +%s/s") % Fmt.short(GameState.projected_city_income_gain(ips))) \
-			+ _eta_suffix(next_city_cost, ips)
-	_afford(_city_btn, not _city_btn.disabled and next_city_cost >= 0.0)
 	var ec := GameState.expand_cost()
 	if ec < 0.0:
 		_expand_btn.disabled = true; _expand_btn.text = tr("FIM")
@@ -2356,7 +2330,7 @@ func _smart_objective() -> Dictionary:
 		var ready_cities := Economy.country_cities(GameState.current_country)
 		var ready_city_idx := clampi(GameState.cities_unlocked + 1, 1, ready_cities.size() - 1)
 		return {"text": tr("Próximo: abrir %s") % ready_cities[ready_city_idx]["name"], "tab": 1,
-			"focus": _city_rows.get(ready_city_idx, _city_btn), "cost": GameState.next_city_cost(), "progress": 1.0,
+			"focus": _city_rows.get(ready_city_idx), "cost": GameState.next_city_cost(), "progress": 1.0,
 			"accent": UITheme.CYAN, "icon": "ic_city"}
 	if GameState.can_expand():
 		return {"text": tr("Próximo: expandir para %s") % Economy.country_name(GameState.current_country + 1),
@@ -2389,7 +2363,7 @@ func _smart_objective() -> Dictionary:
 		var pending_cities := Economy.country_cities(GameState.current_country)
 		var pending_city_idx := clampi(GameState.cities_unlocked + 1, 1, pending_cities.size() - 1)
 		return {"text": tr("Próximo: abrir %s") % pending_cities[pending_city_idx]["name"], "tab": 1,
-			"focus": _city_rows.get(pending_city_idx, _city_btn), "cost": GameState.next_city_cost(), "progress": 0.0,
+			"focus": _city_rows.get(pending_city_idx), "cost": GameState.next_city_cost(), "progress": 0.0,
 			"accent": UITheme.CYAN, "icon": "ic_city"}
 	var expand_cost := GameState.expand_cost()
 	if expand_cost >= 0.0:

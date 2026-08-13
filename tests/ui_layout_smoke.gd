@@ -378,9 +378,6 @@ func _run() -> void:
 		if not _check("/s" in str((opening_rows["cargo"]["detail"] as Label).text),
 				"visible construction card does not preview its income gain"):
 			break
-		if not _check("/s" in str((main.get("_city_detail") as Label).text),
-				"next settlement does not preview its network income gain"):
-			break
 		var city_income_labels: Dictionary = main.get("_city_income_labels")
 		if not _check(not city_income_labels.is_empty()
 				and "/s" in str((city_income_labels.values()[0] as Label).text),
@@ -422,7 +419,7 @@ func _run() -> void:
 		var city_page := main.get("_pages")[1] as ScrollContainer
 		if not _check(next_city_row.visible
 				and city_page.visible
-				and int(main.get("_page_indices").get(city_page, 0)) >= 2,
+				and int(main.get("_page_indices").get(city_page, 0)) >= 1,
 				"city navigation does not open directly on the frontier settlement"):
 			break
 		main.call("_switch_tab", 0)
