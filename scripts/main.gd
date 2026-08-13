@@ -3207,6 +3207,7 @@ func _show_city_inspector(index: int) -> void:
 	var iv := VBoxContainer.new(); iv.add_theme_constant_override("separation", 6); info.add_child(iv)
 	var status := tr("SEDE") if is_capital else (tr("Obtido") if is_active else tr("Bloqueado"))
 	var status_lbl := _lbl(status, 17, accent)
+	status_lbl.name = "CityStatus"
 	status_lbl.add_theme_font_override("font", UITheme.font("Bold")); iv.add_child(status_lbl)
 	var progress_fill: Panel = null
 	var progress_label: Label = null
@@ -3228,9 +3229,13 @@ func _show_city_inspector(index: int) -> void:
 		var unlock_cost: float = model["next_cost"]
 		var unlock_pct: float = model["progress"]
 		iv.add_child(_lbl(tr("Custo: %s") % Fmt.short(unlock_cost), 20, UITheme.GOLD))
+		next_detail_label = _lbl(tr("Renda +%s/s") % Fmt.short(float(model["next_gain"])), 16, UITheme.GREEN)
+		next_detail_label.text += _eta_suffix(unlock_cost, float(model["realm_income"]))
+		iv.add_child(next_detail_label)
 		var prog_bg := Panel.new(); prog_bg.custom_minimum_size = Vector2(0, 9)
 		prog_bg.add_theme_stylebox_override("panel", UITheme.prog_bg()); iv.add_child(prog_bg)
 		progress_fill = Panel.new(); progress_fill.anchor_left = 0; progress_fill.anchor_right = unlock_pct
+		progress_fill.name = "CityProgress"
 		progress_fill.anchor_top = 0; progress_fill.anchor_bottom = 1
 		progress_fill.add_theme_stylebox_override("panel", UITheme.prog_fill(UITheme.ACCENT)); prog_bg.add_child(progress_fill)
 		progress_label = _lbl(tr("Progresso: %d%%") % int(round(unlock_pct * 100.0)), 15, UITheme.MUTED)
@@ -3273,6 +3278,7 @@ func _show_city_inspector(index: int) -> void:
 		box.add_child(next_card)
 
 	var action := _buy_btn(accent)
+	action.name = "CityAction"
 	action.custom_minimum_size = Vector2(0, 72)
 	var can_develop := is_active and not is_capital \
 		and int(model["development_level"]) < GameState.CITY_DEVELOPMENT_MAX
@@ -3308,7 +3314,8 @@ func _show_city_inspector(index: int) -> void:
 	if can_develop:
 		_bind_city_development_live(layer, action, index, development_cost_label, development_detail_label)
 	elif is_next or (is_active and bool(model["has_next"])):
-		_bind_city_unlock_live(layer, action, progress_fill, progress_label, next_cost_label, next_detail_label)
+		_bind_city_unlock_live(layer, action, progress_fill, progress_label, next_cost_label,
+			next_detail_label, status_lbl if is_next else null)
 	box.add_child(_close_btn(layer))
 
 func _bind_city_development_live(layer: Node, action: Button, city_index: int,
@@ -3344,7 +3351,8 @@ func _bind_city_development_live(layer: Node, action: Button, city_index: int,
 ## enables the purchase the moment it becomes affordable without forcing the
 ## player to close and reopen the city.
 func _bind_city_unlock_live(layer: Node, action: Button, progress_fill: Panel = null,
-		progress_label: Label = null, cost_label: Label = null, detail_label: Label = null) -> void:
+		progress_label: Label = null, cost_label: Label = null, detail_label: Label = null,
+		status_label: Label = null) -> void:
 	var timer := Timer.new()
 	timer.wait_time = 0.25
 	timer.one_shot = false
@@ -3360,12 +3368,26 @@ func _bind_city_unlock_live(layer: Node, action: Button, progress_fill: Panel = 
 			if is_instance_valid(progress_label): progress_label.text = tr("Progresso: %d%%") % 100
 			return
 		var pct := clampf(GameState.credits / maxf(1.0, cost), 0.0, 1.0)
+		var affordable := GameState.credits >= cost
 		action.text = tr("Abrir") + "  ·  " + Fmt.short(cost)
-		action.disabled = GameState.credits < cost
+		action.disabled = not affordable
 		_afford(action, not action.disabled)
-		if is_instance_valid(progress_fill): progress_fill.anchor_right = pct
+		if is_instance_valid(progress_fill):
+			progress_fill.anchor_right = pct
+			if int(progress_fill.get_meta("affordable", -1)) != int(affordable):
+				progress_fill.set_meta("affordable", int(affordable))
+				progress_fill.add_theme_stylebox_override("panel",
+					UITheme.prog_fill(UITheme.GREEN if affordable else UITheme.ACCENT))
 		if is_instance_valid(progress_label): progress_label.text = tr("Progresso: %d%%") % int(round(pct * 100.0))
 		if is_instance_valid(cost_label): cost_label.text = Fmt.short(cost)
+		if is_instance_valid(status_label) and int(status_label.get_meta("affordable", -1)) != int(affordable):
+			var previous := int(status_label.get_meta("affordable", -1))
+			status_label.set_meta("affordable", int(affordable))
+			status_label.text = tr("Abrir") if affordable else tr("Bloqueado")
+			status_label.add_theme_color_override("font_color", UITheme.GREEN if affordable else UITheme.ACCENT)
+			if previous == 0 and affordable:
+				Fx.shimmer(action, UITheme.GREEN)
+				Fx.ring_pulse(action, action.size * 0.5, UITheme.GREEN, 1.5)
 		if is_instance_valid(detail_label):
 			detail_label.text = tr("Renda +%s/s") % Fmt.short(GameState.projected_city_income_gain())
 			detail_label.text += _eta_suffix(cost, GameState.income_per_sec())

@@ -299,15 +299,21 @@ func _run() -> void:
 		var live_action: Button = main.call("_buy_btn", UITheme.CYAN); live_layer.add_child(live_action)
 		var live_fill := Panel.new(); live_layer.add_child(live_fill)
 		var live_progress := Label.new(); live_layer.add_child(live_progress)
-		main.call("_bind_city_unlock_live", live_layer, live_action, live_fill, live_progress)
+		var live_status := Label.new(); live_layer.add_child(live_status)
+		var live_detail := Label.new(); live_layer.add_child(live_detail)
+		main.call("_bind_city_unlock_live", live_layer, live_action, live_fill, live_progress,
+			null, live_detail, live_status)
 		await get_tree().create_timer(0.3).timeout
-		var waiting_ok := live_action.disabled and live_fill.anchor_right > 0.45 and live_fill.anchor_right < 0.55
+		var waiting_ok := live_action.disabled and live_status.text == tr("Bloqueado") \
+			and "/s" in live_detail.text \
+			and live_fill.anchor_right > 0.45 and live_fill.anchor_right < 0.55
 		GameState.credits = unlock_cost * 1.1
 		await get_tree().create_timer(0.3).timeout
-		var ready_ok := not live_action.disabled and is_equal_approx(live_fill.anchor_right, 1.0)
+		var ready_ok := not live_action.disabled and live_status.text == tr("Abrir") \
+			and is_equal_approx(live_fill.anchor_right, 1.0)
 		live_layer.queue_free()
 		if not _check(waiting_ok and ready_ok,
-				"city inspector does not become actionable as idle income reaches its cost"):
+				"city inspector does not visibly transition from locked to ready"):
 			break
 		var route_cost := float(city_model["development_cost"])
 		GameState.credits = route_cost * 0.5
